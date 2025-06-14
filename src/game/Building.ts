@@ -1,6 +1,6 @@
 import type { CardType, BuildingCard } from './Card'
 import { Fort } from './Fort'
-import type { CubeColor } from './colors'
+import type { CubeColor } from '../common/colors'
 import type { Player } from './Player'
 import type { Effect } from './Effect'
 

@@ -1,4 +1,4 @@
-import type { CubeColor } from '../colors'
+import type { CubeColor } from '../../common/colors'
 import type { BuildingCard } from '../Card'
 
 export const createMockBuildingCard = (

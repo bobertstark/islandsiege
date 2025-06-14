@@ -33,8 +33,27 @@ export class Player {
     }
   }
 
+  removeCardInHand(cardID: string): Card | undefined {
+    const cardIdx = this.hand.findIndex((c: Card) => c.id === cardID)
+    if (cardIdx === -1) return undefined
+    const [card] = this.hand.splice(cardIdx, 1)
+    return card
+  }
+
   returnColonists(count: number) {
     this.colonists += count
+  }
+
+  populateForts(): void {
+    this.forts.forEach((f: Fort) => {
+      if (this.colonists <= 0) {
+        return
+      }
+      const placed = f.placeColonists()
+      if (placed) {
+        this.colonists -= 1
+      }
+    })
   }
 
   spendColonists(count: number) {
@@ -48,6 +67,14 @@ export class Player {
 
   addFort(fort: Fort) {
     this.forts.push(fort)
+  }
+
+  findFort(fortID: string): Fort {
+    const fort = this.forts.find(fort => fort.id === fortID)
+    if (!fort) {
+      throw new Error(`Player ${this.id} has no fort ${fortID}`)
+    }
+    return fort
   }
 
   addBuilding(building: Building) {
