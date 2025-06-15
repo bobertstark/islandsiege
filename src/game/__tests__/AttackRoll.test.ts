@@ -1,4 +1,4 @@
-import { AttackRoll } from '../AttackRoll'
+import { AttackRoll, reduceDice } from '../AttackRoll'
 import { Die, DieValue } from '../Die'
 
 describe('AttackRoll', () => {
@@ -66,5 +66,11 @@ describe('AttackRoll', () => {
     roll.finish()
     expect(() => roll.reroll()).toThrow('No rerolls remain')
     expect(roll.isFinished).toBe(true)
+  })
+
+  it('can combine and summarize roll values', () => {
+    const roll: DieValue[] = ['L', 'L', 'B', 'W']
+    const tally = reduceDice(roll)
+    expect(tally).toEqual({ L: 2, B: 1, W: 1 })
   })
 })

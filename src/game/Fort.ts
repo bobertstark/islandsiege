@@ -3,7 +3,7 @@ import { FortGridSpec, FortGrid } from './FortGrid'
 import type { Effect } from './Effect'
 import { Building } from './Building'
 import type { Player } from './Player'
-import { colorToSymbol } from './colors'
+import { colorToSymbol } from '../common/colors'
 
 export class Fort implements FortCard {
   id: string

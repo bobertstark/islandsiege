@@ -1,4 +1,4 @@
-import { CubeColor, cubeSymbolToColor, colorToSymbol } from './colors'
+import { CubeColor, cubeSymbolToColor, colorToSymbol } from '../common/colors'
 
 export type FortGridNaC = { type: 'NaC' }
 export type FortGridCube = { type: 'cube'; color: CubeColor | null }
@@ -93,18 +93,19 @@ export class FortGrid {
     return this.traverseConnectedCubes(row, col).length
   }
 
-  buildSpec(specs: FortGridSpec): void {
+  buildSpec(specs: FortGridSpec): number {
+    let builds = 0
     for (const [r, c, symbol] of specs) {
       const cell = this.grid[r][c]
       if (cell.type !== 'cube') continue
       if (cell.color) {
         throw new Error('Attempting to build on non-empty cell.')
       }
-
       cell.color = symbol === '.' ? null : cubeSymbolToColor(symbol)
+      builds += 1
     }
-
     this.updateCubeInfo()
+    return builds
   }
 
   destroyAt(row: number, col: number): void {

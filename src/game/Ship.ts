@@ -19,4 +19,12 @@ export class Ship implements ShipCard {
     this.coins = data.coins
     this.effect = effect
   }
+
+  addColonists(count: number): void {
+    this.colonists += count
+  }
+
+  removeColonists(count: number): void {
+    this.colonists -= count
+  }
 }

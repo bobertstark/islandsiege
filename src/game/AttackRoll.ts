@@ -64,3 +64,14 @@ export class AttackRoll {
     this.rerollsRemaining = 0
   }
 }
+
+export function reduceDice(roll: DieValue[]): Record<DieValue, number> {
+  const tally = roll.reduce(
+    (acc, val) => {
+      acc[val] = (acc[val] || 0) + 1
+      return acc
+    },
+    {} as Record<DieValue, number>,
+  )
+  return tally
+}
