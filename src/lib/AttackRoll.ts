@@ -9,14 +9,19 @@ export class AttackRoll {
     private numDice: number,
     private rerollsRemaining: number,
   ) {
+    this.createDice()
     this.roll_all()
     if (this.rerollsRemaining <= 0) {
       this.finish()
     }
   }
 
-  private roll_all(): void {
+  private createDice(): void {
     this.dice = Array.from({ length: this.numDice }, () => new Die())
+  }
+
+  private roll_all(): void {
+    this.dice.forEach(die => die.roll())
   }
 
   reroll(indices?: number[]): void {

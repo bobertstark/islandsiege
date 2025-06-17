@@ -1,5 +1,5 @@
 import { AttackRoll } from '../AttackRoll'
-import { Die, DieValue } from '../Die'
+import { Die, DieValue, dieFaces } from '../Die'
 
 describe('AttackRoll', () => {
   afterEach(() => {
@@ -12,7 +12,7 @@ describe('AttackRoll', () => {
 
     expect(rolled).toHaveLength(3)
     rolled.forEach(face => {
-      expect(Die.faces).toContain(face)
+      expect(dieFaces).toContain(face)
     })
   })
 

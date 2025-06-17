@@ -12,7 +12,9 @@ This project is built using typescript and react.
 
 Use npm to install the required packages. From the project root run the following command:
 
-`npm install`
+`npm install --legacy-peer-deps`
+
+The `legacy-peer-deps` is requred as there are peer dependency issues with the project.
 
 ## Running
 

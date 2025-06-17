@@ -16,10 +16,10 @@ describe('Die', () => {
   })
   it('ensure number of rolls is tracked', () => {
     const die = new Die()
+    expect(die.rollCount).toBe(0)
+    die.roll()
     expect(die.rollCount).toBe(1)
     die.roll()
     expect(die.rollCount).toBe(2)
-    die.roll()
-    expect(die.rollCount).toBe(3)
   })
 })
