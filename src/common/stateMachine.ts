@@ -1,54 +1,50 @@
 import { Phase, GamePhases } from '../common/phases'
 import type { GameState } from '../game/GameState'
 
-type stateFunc = (parameters_: GameState) => void
+type stateFunc = (parameters_: GameState) => Phase | null
 
 type stateConfig = {
   stateFunc: stateFunc
   transitions: Phase[]
 }
 
-function initGameStateFunc(parameters_: GameState): void {
-  console.log('init game!')
-}
-function attackStartStateFunc(parameters_: GameState): void {
-  console.log('attack start!')
-}
-
-function gameOverStateFunc(parameters_: GameState): void {
-  console.log('game over!')
-}
 type stateMapping = {
   [key in Phase]: stateConfig
 }
 
-const stateMap: stateMapping[] = {
-  initGame: {
-    stateFunc: initGameStateFunc,
-    transitions: [GamePhases.attackStart, GamePhases.gameOver],
-  },
-  attackStart: {
-    stateFunc: attackStartStateFunc,
-    transitions: [GamePhases.gameOver],
-  },
-  gameOver: {
-    stateFunc: gameOverStateFunc,
-    transitions: [],
-  },
-}
-
 export class StateMachine {
-  private map: stateMapping[] = stateMap
-  private currentState: Phase = GamePhases.initGame
+  private stateMap: stateMapping[] | null = null
+  private currentState: Phase | null = null
 
-  constructor() {}
+  public initialize(map_: stateMapping[], initialState_: Phase) {
+    this.stateMap = map_
+    this.currentState = initialState_
+  }
 
-  get state(): Phase {
+  get state(): Phase | null {
     return this.currentState
   }
 
+  get map(): stateMapping[] | null {
+    return this.stateMap
+  }
+
+  public initialized(): boolean {
+    return this.map != null
+  }
+
   get func(): stateFunc {
-    return this.map[this.state].stateFunc
+    return this.stateMap[this.state].stateFunc
+  }
+
+  // Execute the state function. The state function either returns null or a
+  // state to transition to. If it returns null, the same state is called
+  // again. This function returns true if a transition to a new state occurred
+  // or false if no transition occurred.
+  public execute(parameters_: GameState): boolean {
+    let newState: Phase | null = this.map[this.state].stateFunc(parameters_)
+
+    return newState == null ? false : this.transition(newState)
   }
 
   // Returns false if transition is not possible
@@ -63,6 +59,6 @@ export class StateMachine {
   }
 
   public numStates(): number {
-    return this.map.length
+    return this.map == null ? -1 : this.map.length
   }
 }

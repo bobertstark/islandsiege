@@ -1,11 +1,21 @@
-import { StateMachine } from '../stateMachine'
+import { StateMachine } from 'common/stateMachine'
+import { GamePhases } from 'common/phases'
 
-export const mockStateMachine = (
-  overrides: Partial<StateMachine> = {},
-): StateMachine => {
-  let sm: StateMap = new StateMachine()
-  return {
-    ...sm,
-    ...overrides,
-  } as StateMachine
+const initMock = jest.fn((parameters_: GameState) => {})
+const attackStartMock = jest.fn((parameters_: GameState) => {})
+const gameOverMock = jest.fn((parameters_: GameState) => {})
+
+export const testStateMap: stateMapping[] = {
+  initGame: {
+    stateFunc: initMock,
+    transitions: [GamePhases.attackStart, GamePhases.gameOver],
+  },
+  attackStart: {
+    stateFunc: attackStartMock,
+    transitions: [GamePhases.gameOver],
+  },
+  gameOver: {
+    stateFunc: gameOverMock,
+    transitions: [],
+  },
 }
