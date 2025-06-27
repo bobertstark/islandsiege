@@ -1,0 +1,21 @@
+.game-container {
+  padding: 20px;
+}
+.game-header {
+  margin-bottom: 24px;
+  display: flex;
+  gap: 24px;
+}
+.start-game-container {
+  padding: 40px;
+  text-align: center;
+}
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.player-input {
+  margin-right: 8px;
+}
