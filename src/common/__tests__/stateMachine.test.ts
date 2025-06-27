@@ -1,4 +1,4 @@
-import { StateMachine } from '../stateMachine'
+import { StateMachine, smErrorCode } from '../stateMachine'
 import { testStateMap } from '../__mocks__/mockStateMachine'
 import { GamePhases } from '../phases'
 import { GameState } from 'game/GameState'
@@ -40,21 +40,21 @@ describe('stateMachine', () => {
   it('stateMachineInvalidTransition', () => {
     smInit()
 
-    expect(sm.transition(GamePhases.resetGame)).toBe(false)
+    expect(sm.transition(GamePhases.resetGame)).toBe('INVALIDTRANSITION')
   })
 
   it('stateMachineValidTransition', () => {
     smInit()
 
-    expect(sm.transition(GamePhases.gameOver)).toBe(true)
+    expect(sm.transition(GamePhases.gameOver)).toBe('TRANSITIONED')
   })
 
   it('stateMachineExecuteNoTransition', () => {
     smInit()
 
-    expect(sm.execute(gameState)).toBe(false)
+    expect(sm.execute(gameState)).toBe('SUCCESS')
 
-    expect(sm.execute(gameState)).toBe(false)
+    expect(sm.execute(gameState)).toBe('SUCCESS')
 
     expect(sm.func.mock.calls).toHaveLength(2)
     expect(sm.state).toBe(Object.keys(testStateMap)[0])
@@ -66,7 +66,7 @@ describe('stateMachine', () => {
     let initialFunc: stateFunc = sm.func
     sm.func.mockReturnValue(GamePhases.gameOver)
 
-    expect(sm.execute(gameState)).toBe(true)
+    expect(sm.execute(gameState)).toBe('TRANSITIONED')
 
     // Initial state should have executed once
     expect(initialFunc.mock.calls).toHaveLength(1)

@@ -3,6 +3,8 @@ import type { GameState } from '../game/GameState'
 
 type stateFunc = (parameters_: GameState) => Phase | null
 
+export type smErrorCode = 'SUCCESS' | 'TRANSITIONED' | 'INVALIDTRANSITION'
+
 type stateConfig = {
   stateFunc: stateFunc
   transitions: Phase[]
@@ -41,21 +43,28 @@ export class StateMachine {
   // state to transition to. If it returns null, the same state is called
   // again. This function returns true if a transition to a new state occurred
   // or false if no transition occurred.
-  public execute(parameters_: GameState): boolean {
-    let newState: Phase | null = this.map[this.state].stateFunc(parameters_)
+  public execute(parameters_: GameState): smErrorCode {
+    let newState: Phase | null = this.func(parameters_)
+    if (newState == null) {
+      return 'SUCCESS'
+    }
 
-    return newState == null ? false : this.transition(newState)
+    return newState == null ? 'SUCCESS' : this.transition(newState)
+  }
+
+  public possibleTransition(newState_: Phase): boolean {
+    return this.map[this.state].transitions.includes(newState_)
   }
 
   // Returns false if transition is not possible
   // otherwise transitions
-  public transition(newState_: Phase): boolean {
-    if (!this.map[this.state].transitions.includes(newState_)) {
-      return false
+  public transition(newState_: Phase): smErrorCode {
+    if (!this.possibleTransition(newState_)) {
+      return 'INVALIDTRANSITION'
     }
 
     this.currentState = newState_
-    return true
+    return 'TRANSITIONED'
   }
 
   public numStates(): number {
