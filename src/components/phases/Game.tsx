@@ -1,7 +1,8 @@
 import React, { useReducer, useState } from 'react'
 import { PLAYER_COLORS } from 'common/colors'
 import './Game.css'
-import { StartGame } from './StartGame'
+import '../shared.css'
+import { InitPhase } from './InitPhase'
 import { GamePhases } from 'common/phases'
 import { createInitialGameState } from 'game/GameState'
 import { gameReducer } from 'common/gameReducer'
@@ -41,7 +42,7 @@ const Game: React.FC = () => {
       default:
         if (state.players.length === 0) {
           return (
-            <StartGame
+            <InitPhase
               playerNames={playerNames}
               setPlayerNames={setPlayerNames}
               playerColors={playerColors}
@@ -50,6 +51,9 @@ const Game: React.FC = () => {
             />
           )
         }
+        return <MainGame state={state} dispatch={dispatch} />
+      case GamePhases.initDistribute:
+        // rerender player panels from state
         return <MainGame state={state} dispatch={dispatch} />
       case GamePhases.action:
         return <ActionPhase state={state} dispatch={dispatch} />

@@ -1,7 +1,8 @@
 import ColorPicker from 'components/ColorPicker'
 import { PLAYER_COLORS } from 'common/colors'
+import '../shared.css'
 
-export const StartGame = ({
+export const InitPhase = ({
   playerNames,
   setPlayerNames,
   playerColors,
@@ -40,11 +41,7 @@ export const StartGame = ({
     ))}
     <button
       onClick={() => handleStartGame(playerNames, playerColors)}
-      disabled={
-        !playerNames[0] ||
-        !playerNames[1] ||
-        playerColors[0] === playerColors[1]
-      }>
+      disabled={!playerNames[0] || !playerNames[1]}>
       Start Game
     </button>
   </div>

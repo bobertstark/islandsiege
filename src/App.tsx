@@ -1,4 +1,4 @@
-import Game from 'components/Game/Game'
+import Game from 'components/phases/Game'
 
 const App = () => {
   return <Game />

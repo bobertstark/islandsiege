@@ -4,6 +4,7 @@ import Fort from './Fort'
 import Building from './Building'
 import Ship from './Ship'
 import Hand from './Hand'
+import PlayerShip from './phases/PlayerShip'
 
 interface PlayerPanelProps {
   player: Player
@@ -39,6 +40,7 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
         <li>Gray: {player.shells.gray}</li>
         <li>White: {player.shells.white}</li>
       </ul>
+      <PlayerShip color={color} size={32} />
       <div style={{ marginTop: 16 }}>
         <h3>Hand ({player.hand.length})</h3>
         <Hand
