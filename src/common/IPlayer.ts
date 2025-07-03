@@ -16,4 +16,7 @@ export default interface IPlayer {
   forts: IFort[]
   ships: IBaseContainer[]
   shells: ShellReserve
+
+  // track ship
+  recentAttackedPlayerID?: string
 }
