@@ -1,38 +1,41 @@
 import React from 'react'
-import { Card as CardType, FortCard, BuildingCard, ShipCard } from 'game/Card'
+import type ICard from 'common/ICard'
 import './shared.css'
 
 interface CardProps {
-  card: CardType
+  card: ICard
   selected?: boolean
   onClick?: (cardID: string) => void
 }
 
+// TODO: Color coordinate card types for easier visual digest
 const Card: React.FC<CardProps> = ({ card, selected, onClick }) => (
   <div
     className={`card${selected ? ' selected' : ''}`}
     onClick={() => onClick?.(card.id)}>
     <div className="card-title">{card.name}</div>
     <div className="card-type">{card.type}</div>
-    {card.type === 'fort' && (
-      <>
-        <div className="card-grid">
-          <strong>Grid:</strong>{' '}
-          {Array.isArray((card as FortCard).gridSpec)
-            ? JSON.stringify((card as FortCard).gridSpec)
-            : 'N/A'}
-        </div>
-        <div>
-          <strong>Slots:</strong> {(card as FortCard).slots}
-        </div>
-      </>
-    )}
-    {(card.type === 'ship' || card.type === 'building') && (
-      <div className="card-cost">
-        <strong>Cost:</strong> {(card as ShipCard | BuildingCard).cost}
+    {card.grid && (
+      <div className="card-grid">
+        <strong>Grid:</strong> {JSON.stringify(card.grid)}
       </div>
     )}
-    <div className="card-description">{(card as any).description}</div>
+    {typeof card.slots === 'number' && (
+      <div>
+        <strong>Slots:</strong> {card.slots}
+      </div>
+    )}
+    {typeof card.cost === 'number' && (
+      <div className="card-cost">
+        <strong>Cost:</strong> {card.cost}
+      </div>
+    )}
+    {typeof card.coins === 'number' && (
+      <div>
+        <strong>Coins:</strong> {card.coins}
+      </div>
+    )}
+    <div className="card-description">{card.description}</div>
   </div>
 )
 

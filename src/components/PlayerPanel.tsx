@@ -4,7 +4,7 @@ import Fort from './Fort'
 import Building from './Building'
 import Ship from './Ship'
 import Hand from './Hand'
-import PlayerShip from './phases/PlayerShip'
+import PlayerShip from './PlayerShip'
 
 interface PlayerPanelProps {
   player: Player
