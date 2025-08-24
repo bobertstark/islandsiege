@@ -1,20 +1,28 @@
-import { StateMachine } from 'common/stateMachine'
-import { GamePhases } from 'common/phases'
+import { State, stateMap, StateMachine } from 'common/stateMachine'
 
-const initMock = jest.fn((parameters_: GameState) => {})
-const attackStartMock = jest.fn((parameters_: GameState) => {})
-const gameOverMock = jest.fn((parameters_: GameState) => {})
+const initMock = jest.fn((parameters_: any) => {})
+const attackStartMock = jest.fn((parameters_: any) => {})
+const gameOverMock = jest.fn((parameters_: any) => {})
 
-export const testStateMap: stateMapping[] = {
-  initGame: {
+function trial(parameters_: any): State {
+  return 'invalid'
+}
+
+export enum GameStates {
+  initGame = 'initGame',
+  attackStart = 'attackStart',
+  gameOver = 'gameOver',
+}
+export let testStateMap: stateMap = {
+  [GameStates.initGame]: {
     stateFunc: initMock,
-    transitions: [GamePhases.attackStart, GamePhases.gameOver],
+    transitions: [GameStates.attackStart, GameStates.gameOver],
   },
-  attackStart: {
+  [GameStates.attackStart]: {
     stateFunc: attackStartMock,
-    transitions: [GamePhases.gameOver],
+    transitions: [GameStates.gameOver],
   },
-  gameOver: {
+  [GameStates.gameOver]: {
     stateFunc: gameOverMock,
     transitions: [],
   },
