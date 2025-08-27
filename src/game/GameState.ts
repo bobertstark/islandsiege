@@ -4,7 +4,6 @@ import { DieValue } from './Die'
 import { Phase } from '../common/phases'
 import type { rollCounts } from './AttackRoll'
 import { ShellReserve } from './Game'
-import { stateMap } from 'common/stateMachine'
 import { GamePhases } from 'common/phases'
 
 export type GameState = {
