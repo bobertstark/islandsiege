@@ -4,7 +4,7 @@ import { DieValue } from './Die'
 import { Phase } from '../common/phases'
 import type { rollCounts } from './AttackRoll'
 import { ShellReserve } from './Game'
-import { GamePhases } from '../common/phases'
+import { GamePhases } from 'common/phases'
 
 export type GameState = {
   players: Player[]
