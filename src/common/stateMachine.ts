@@ -12,13 +12,13 @@ export type smErrorCode = 'SUCCESS' | 'TRANSITIONED' | 'INVALIDTRANSITION'
 //of possible states to define the scope of the states.
 export type State = string
 
-// The function that is associated with the state
-type stateFunc = (parameters_: any) => State
+// The type signature of the function that is associated with the state
+export type stateFuncSig = (parameters_: any) => State
 
 // Defines the configation of a state. Each state has an associated function and
 // a list of possible states that it can transition to
 type stateConfig = {
-  stateFunc: stateFunc
+  stateFunc: stateFuncSig
   transitions: State[]
 }
 
@@ -71,7 +71,7 @@ export class StateMachine {
   }
 
   // Returns the function associated with the current state
-  get func(): stateFunc {
+  get func(): stateFuncSig {
     return this.stateMap[this.currentState].stateFunc
   }
 
