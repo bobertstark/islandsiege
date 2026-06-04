@@ -8,9 +8,12 @@ export const InitPhase = ({
   playerColors,
   setPlayerColors,
   handleStartGame,
+  loading,
+  error,
 }: any) => (
   <div className="start-game-container">
     <h2>Start a New Game</h2>
+    {error && <p style={{ color: 'red' }}>{error}</p>}
     {[0, 1].map(idx => (
       <div key={idx} className="player-row">
         <input
@@ -41,8 +44,8 @@ export const InitPhase = ({
     ))}
     <button
       onClick={() => handleStartGame(playerNames, playerColors)}
-      disabled={!playerNames[0] || !playerNames[1]}>
-      Start Game
+      disabled={loading || !playerNames[0] || !playerNames[1]}>
+      {loading ? 'Starting…' : 'Start Game'}
     </button>
   </div>
 )

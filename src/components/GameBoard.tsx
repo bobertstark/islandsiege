@@ -1,10 +1,16 @@
 import React, { useState } from 'react'
 import PlayerPanel from './PlayerPanel'
-import IGameState from 'common/IGameState'
+import IGameStateView, { IPlayerView } from 'common/IGameStateView'
+import IPlayer from 'common/IPlayer'
 
 interface GameBoardProps {
-  state: IGameState
+  state: IGameStateView
   dispatch: React.Dispatch<any>
+}
+
+// Normalize IPlayerView to IPlayer by coercing hand to an array
+function toIPlayer(p: IPlayerView): IPlayer {
+  return { ...p, hand: Array.isArray(p.hand) ? p.hand : [] }
 }
 
 const SIMULTANEOUS_PHASES = new Set(['initDiscard'])
@@ -49,7 +55,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
           return (
             <PlayerPanel
               key={player.id}
-              player={player}
+              player={toIPlayer(player)}
               color={player.color}
               active={isActive}
               onCardSelect={
