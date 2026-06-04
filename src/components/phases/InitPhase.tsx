@@ -3,11 +3,15 @@ import '../shared.css'
 
 interface InitPhaseProps {
   onJoin: (gameId: string, playerIdx: number, playerId: string) => void
+  prefilledGameId?: string
 }
 
-export const InitPhase: React.FC<InitPhaseProps> = ({ onJoin }) => {
+export const InitPhase: React.FC<InitPhaseProps> = ({
+  onJoin,
+  prefilledGameId = '',
+}) => {
   const [name, setName] = useState('')
-  const [joinInput, setJoinInput] = useState('')
+  const [joinInput, setJoinInput] = useState(prefilledGameId)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
