@@ -4,7 +4,7 @@ export function handleAttackStart(
   state: IGameState,
   payload: { targetPlayerIndex: number; fortID: string },
 ): IGameState {
-  const shipLocations = {
+  const shipLocations: IGameState['shipLocations'] = {
     ...state.shipLocations,
     [state.currentPlayerIndex]: {},
   }
