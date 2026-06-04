@@ -8,6 +8,7 @@ import { rollCounts } from './attackRoll'
 // Full game state: plain data, safe to store or send over the wire.
 export default interface IGameState {
   players: IPlayer[]
+  playerCount: number
   currentPlayerIndex: number
 
   // Draw and discard piles
