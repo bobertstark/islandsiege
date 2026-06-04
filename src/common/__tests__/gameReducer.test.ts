@@ -419,6 +419,25 @@ describe('gameReducer', () => {
     expect(() => findFort(state.players[1], 'testFort')).toThrow()
   })
 
+  describe('startGame', () => {
+    it('transitions lobby state to initDiscard and deals cards', () => {
+      const lobby: IGameState = {
+        ...gs,
+        phase: GamePhases.lobby,
+        players: gs.players.map(p => ({
+          ...p,
+          hand: [],
+          forts: [],
+          shells: {},
+        })),
+        readyPlayers: [],
+      }
+      const result = gameReducer(lobby, { type: GamePhases.startGame })
+      expect(result.phase).toBe(GamePhases.initDiscard)
+      result.players.forEach(p => expect(p.hand).toHaveLength(3))
+    })
+  })
+
   it('endTurn - will set next player as active', () => {
     expect(gs.currentPlayerIndex).toBe(0)
     const payload = { type: GamePhases.endTurn }
