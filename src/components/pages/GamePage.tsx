@@ -8,6 +8,7 @@ import GameBoard from 'components/GameBoard'
 import Card from 'components/Card'
 import { Deck, Discard } from 'components/Deck'
 import { ActionPhase } from 'components/phases/ActionPhase'
+import { AttackStartPhase } from 'components/phases/AttackStartPhase'
 import { TurnBanner } from 'components/TurnBanner'
 import 'components/phases/Game.css'
 
@@ -217,6 +218,16 @@ export const GamePage: React.FC = () => {
       return (
         <DiscardPhase
           view={view}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
+    case GamePhases.attackStart:
+      return (
+        <AttackStartPhase
+          view={view}
+          playerIdx={playerIdx}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
           dispatch={dispatch}
