@@ -66,19 +66,27 @@ router.post('/games/:id/join', (req, res) => {
     return
   }
   const { name, color } = req.body ?? {}
-  if (!name || !color) {
-    res.status(400).json({ error: 'name and color are required' })
+  if (!name) {
+    res.status(400).json({ error: 'name is required' })
     return
   }
 
-  const takenColors = state.players.map(p => p.color)
-  if (takenColors.includes(color)) {
-    res.status(409).json({ error: 'color already taken' })
+  const takenNames = state.players.map(p => p.name)
+  if (takenNames.includes(name)) {
+    res.status(409).json({ error: 'name already taken in this game' })
     return
+  }
+
+  if (color) {
+    const takenColors = state.players.map(p => p.color)
+    if (takenColors.includes(color)) {
+      res.status(409).json({ error: 'color already taken' })
+      return
+    }
   }
 
   const playerId = randomBytes(8).toString('base64url')
-  const player = createPlayer(playerId, name, { color })
+  const player = createPlayer(playerId, name, { color: color ?? undefined })
   const updated: IGameState = {
     ...state,
     players: [...state.players, player],
