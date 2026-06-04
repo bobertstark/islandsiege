@@ -114,31 +114,50 @@ describe('gameReducer', () => {
     expect(state.players[1].hand.map(c => c.id)).toContain('a')
   })
 
-  it('draw - will handle individual draw', () => {
+  it('draw - puts 3 cards in drawnCards, not hand', () => {
     const payload = { type: GamePhases.draw }
-    let state = gameReducer(gs, payload)
-    expect(state.players[0].hand).toHaveLength(3)
-    expect(state.players[1].hand).toHaveLength(0)
-    expect(state.deck.length).toBe(33) // deck reflects the draw (36 - 3)
+    const state = gameReducer(gs, payload)
+    expect(state.drawnCards).toHaveLength(3)
+    expect(state.players[0].hand).toHaveLength(0) // hand unchanged until discard
+    expect(state.deck.length).toBe(33)
     expect(state.phase).toBe('discard')
   })
 
-  it('discard - will discard to opponent', () => {
-    const p0hand = [
+  it('discard - selected card goes to pile; remaining 2 go to hand', () => {
+    const drawn = [
       { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
       { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
       { name: 'C', id: 'c', type: 'building' as CardType, description: 'test' },
     ]
-    gs.players[0].hand = p0hand
+    gs.drawnCards = drawn
 
-    const payload = {
+    const state = gameReducer(gs, {
       type: GamePhases.discard,
-      payload: { targetPlayerIndex: 1, cardID: 'c' },
-    }
-    let state = gameReducer(gs, payload)
+      payload: { cardID: 'b' },
+    })
+    expect(state.players[0].hand.map(c => c.id)).toEqual(
+      expect.arrayContaining(['a', 'c']),
+    )
     expect(state.players[0].hand).toHaveLength(2)
-    expect(state.players[1].hand).toHaveLength(1)
+    expect(state.discard.map(c => c.id)).toContain('b')
+    expect(state.drawnCards).toHaveLength(0)
     expect(state.phase).toBe('endTurn')
+  })
+
+  it('discard - optional targetPlayerIndex sends card to player instead of pile', () => {
+    const drawn = [
+      { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
+      { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
+      { name: 'C', id: 'c', type: 'building' as CardType, description: 'test' },
+    ]
+    gs.drawnCards = drawn
+
+    const state = gameReducer(gs, {
+      type: GamePhases.discard,
+      payload: { cardID: 'b', targetPlayerIndex: 1 },
+    })
+    expect(state.players[1].hand.map(c => c.id)).toContain('b')
+    expect(state.discard.map(c => c.id)).not.toContain('b')
   })
 
   it('victory - will check for victory conditions', () => {
