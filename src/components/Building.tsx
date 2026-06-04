@@ -1,8 +1,8 @@
 import React from 'react'
-import { Building as BuildingModel } from '../game/Building'
+import IBuilding from 'common/IBuilding'
 
 interface BuildingProps {
-  building: BuildingModel
+  building: IBuilding
 }
 
 const Building: React.FC<BuildingProps> = ({ building }) => (

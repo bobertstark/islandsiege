@@ -1,9 +1,9 @@
 import React from 'react'
-import { Fort as FortModel } from '../game/Fort'
+import IFort from 'common/IFort'
 import FortGrid from './FortGrid'
 
 interface FortProps {
-  fort: FortModel
+  fort: IFort
 }
 
 const Fort: React.FC<FortProps> = ({ fort }) => (
@@ -32,7 +32,7 @@ const Fort: React.FC<FortProps> = ({ fort }) => (
       {fort.description}
     </div>
     <div style={{ margin: '8px 0' }}>
-      <FortGrid grid={fort.grid.allCells} view="tableau" showLabels={false} />
+      <FortGrid grid={fort.grid} view="tableau" showLabels={false} />
     </div>
     <div
       style={{

@@ -1,29 +1,37 @@
-import { rollDice, rollSingleDie, reduceDice } from 'game/AttackRoll'
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
+import { rollDice, rerollDice, reduceDice } from 'common/attackRoll'
 
 export function handleAttackRoll(
-  state: GameState,
+  state: IGameState,
   payload: { action: 'init' | 'reroll' | 'keep'; diceIndicesReroll?: number[] },
-): GameState {
+): IGameState {
   const player = state.players[state.currentPlayerIndex]
 
   if (payload.action === 'init') {
-    state.attackRoll = rollDice(player.attack_dice)
-    state.attackRerollsRemaining = player.rerolls
-    return { ...state, phase: 'attackRoll' }
+    return {
+      ...state,
+      attackRoll: rollDice(player.attackDice),
+      attackRerollsRemaining: player.diceRerolls,
+      phase: 'attackRoll',
+    }
   }
 
   if (payload.action === 'reroll' && state.attackRerollsRemaining > 0) {
-    payload.diceIndicesReroll?.forEach(idx => {
-      state.attackRoll![idx] = rollSingleDie()
-    })
-    state.attackRerollsRemaining--
-    return { ...state, phase: 'attackRoll' }
+    const roll = rerollDice(state.attackRoll!, payload.diceIndicesReroll ?? [])
+    return {
+      ...state,
+      attackRoll: roll,
+      attackRerollsRemaining: state.attackRerollsRemaining - 1,
+      phase: 'attackRoll',
+    }
   }
 
   if (payload.action === 'keep' || state.attackRerollsRemaining === 0) {
-    state.attackValueCounts = reduceDice(state.attackRoll!)
-    return { ...state, phase: 'attackLeadership' }
+    return {
+      ...state,
+      attackValueCounts: reduceDice(state.attackRoll!),
+      phase: 'attackLeadership',
+    }
   }
 
   return state

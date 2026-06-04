@@ -1,9 +1,9 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
 
 export function handleInitDiscard(
-  state: GameState,
+  state: IGameState,
   payload: { playerIdx: number; cardID: string },
-): GameState {
+): IGameState {
   const pending = { ...state.pending, [payload.playerIdx]: payload.cardID }
 
   if (Object.keys(pending).length < state.players.length) {

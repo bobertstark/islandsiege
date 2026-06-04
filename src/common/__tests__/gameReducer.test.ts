@@ -1,19 +1,37 @@
 import { gameReducer } from '../gameReducer'
 import { GamePhases } from '../phases'
 
-import type { GameState } from 'game/GameState'
-import { CardType } from 'game/Card'
-import { Fort } from 'game/Fort'
+import type IGameState from 'common/IGameState'
+type CardType = 'building' | 'fort' | 'ship'
+import { createFort } from 'common/fort'
+import { fortColonists, fortShellsRemaining } from 'common/fort'
+import { addFort, findFort, populateForts } from 'common/player'
+import { destroyAt } from 'common/fortGrid'
+import type { FortGridSpec } from 'common/fortGrid'
 
 import { mockGameState } from 'common/__mocks__/mockGameState'
-import { createMockFortCard } from 'game/__mocks__'
 
-import * as AttackRollModule from 'game/AttackRoll'
-import { DieValue } from 'game/Die'
-import { FortGridSpec } from 'game/FortGrid'
+import * as AttackRollModule from 'common/attackRoll'
+import { DieValue } from 'common/die'
+
+const createMockFort = (
+  overrides: { gridSpec?: FortGridSpec; slots?: number } = {},
+) =>
+  createFort({
+    id: 'testFort',
+    name: 'Test Fort',
+    description: 'Testing',
+    gridSpec: overrides.gridSpec ?? [
+      [0, 0, 'B'],
+      [0, 1, '.'],
+      [2, 2, 'W'],
+      [3, 3, 'G'],
+    ],
+    slots: overrides.slots ?? 3,
+  })
 
 describe('gameReducer', () => {
-  let gs: GameState
+  let gs: IGameState
   beforeEach(() => {
     gs = mockGameState()
   })
@@ -35,7 +53,7 @@ describe('gameReducer', () => {
     expect(state.players[1].name).toBe('Arg')
     expect(state.players[2].name).toBe('Matey')
     expect(state.phase).toBe('initDiscard')
-    expect(state.deck.remaining).toBe(27) // 3 per player
+    expect(state.deck.length).toBe(27) // 3 per player drawn
     expect(state.players.every(player => player.forts.length === 1))
     expect(state.players.every(player => player.shells.black === 1))
     expect(state.players.every(player => player.shells.white === 1))
@@ -84,7 +102,7 @@ describe('gameReducer', () => {
     let state = gameReducer(gs, payload)
     expect(state.players[0].hand).toHaveLength(3)
     expect(state.players[1].hand).toHaveLength(0)
-    expect(state.deck.remaining).toBe(33) // deck reflect the draw
+    expect(state.deck.length).toBe(33) // deck reflects the draw (36 - 3)
     expect(state.phase).toBe('discard')
   })
 
@@ -127,13 +145,14 @@ describe('gameReducer', () => {
   })
 
   it('colonize - will move colonists to forts', () => {
-    let fort = new Fort(createMockFortCard())
-    expect(fort.colonists).toBe(0)
-    gs.players[0].addFort(fort)
+    const fort = createMockFort()
+    expect(fortColonists(fort)).toBe(0)
+    gs.players[0] = addFort(gs.players[0], fort)
     const payload = { type: GamePhases.colonize }
     const state = gameReducer(gs, payload)
     expect(state.phase).toBe('action')
-    expect(fort.colonists).toBe(1)
+    const updatedFort = findFort(state.players[0], 'testFort')
+    expect(fortColonists(updatedFort)).toBe(1)
   })
 
   it('action - move on to next phase if action can be performed', () => {
@@ -169,14 +188,14 @@ describe('gameReducer', () => {
       payload: { fortID: 'spyOutpost', fortGridSpec: [] as FortGridSpec },
     }
     let state = gameReducer(gs, payload)
-    let fort = state.players[0].forts[0]
+    let fort = findFort(state.players[0], 'spyOutpost')
     expect(fort.id).toBe('spyOutpost')
-    expect(fort.shellsRemaining).toEqual(1)
+    expect(fortShellsRemaining(fort)).toEqual(1)
     expect(state.phase).toBe('endTurn')
     // reset
-    state.players[0].forts = []
+    gs.players[0] = { ...gs.players[0], forts: [] }
 
-    state.players[0].shells = { black: 2, gray: 2, white: 2 }
+    gs.players[0].shells = { black: 2, gray: 2, white: 2 }
     payload.payload.fortGridSpec = [
       [0, 3, 'B'],
       [1, 3, 'G'],
@@ -184,12 +203,12 @@ describe('gameReducer', () => {
     ]
     state = gameReducer(gs, payload)
     let player = state.players[0]
-    fort = player.forts[0]
+    fort = findFort(player, 'spyOutpost')
     expect(fort.id).toBe('spyOutpost')
-    expect(fort.shellsRemaining).toEqual(4)
+    expect(fortShellsRemaining(fort)).toEqual(4)
     expect(player.shells).toEqual({ black: 1, gray: 1, white: 1 })
     // fail if player does not have shells
-    state.players[0].forts = []
+    gs.players[0] = { ...gs.players[0], forts: [] }
     payload.payload.fortGridSpec = [
       [0, 3, 'B'],
       [1, 3, 'B'],
@@ -220,7 +239,7 @@ describe('gameReducer', () => {
     expect(state.attackIsOpenWater).toBe(true)
     expect(state.phase).toBe('attackRoll')
 
-    gs.players[1].addFort(new Fort(createMockFortCard()))
+    gs.players[1] = addFort(gs.players[1], createMockFort())
     payload.payload.fortID = 'testFort'
     state = gameReducer(gs, payload)
     expect(state.attackIsOpenWater).toBe(false)
@@ -243,17 +262,14 @@ describe('gameReducer', () => {
     expect(state.phase).toBe('attackRoll')
 
     payload.payload = { action: 'reroll', diceIndicesReroll: [1, 2] }
-    const mockSingleRoll: DieValue = 'B'
-    jest
-      .spyOn(AttackRollModule, 'rollSingleDie')
-      .mockReturnValue(mockSingleRoll)
-    state = gameReducer(gs, payload)
+    jest.spyOn(AttackRollModule, 'rerollDice').mockReturnValue(['L', 'B', 'B'])
+    state = gameReducer(state, payload)
     expect(state.attackRoll).toEqual(['L', 'B', 'B'])
     expect(state.attackRerollsRemaining).toBe(0)
     expect(state.phase).toBe('attackRoll')
 
     // even if reroll is called again, we will finalize
-    state = gameReducer(gs, payload)
+    state = gameReducer(state, payload)
     expect(state.attackValueCounts).toEqual({ B: 2, L: 1 })
     expect(state.phase).toBe('attackLeadership')
   })
@@ -263,18 +279,16 @@ describe('gameReducer', () => {
   it('attackWave1 - all dice of one color used, protection enabled', () => {
     // initialize roll values, fort to attack
     gs.attackValueCounts = { B: 1, W: 2, G: 1 }
-    let fort = new Fort(
-      createMockFortCard({
-        gridSpec: [
-          [0, 0, 'B'],
-          [1, 0, 'W'],
-          [1, 1, 'W'],
-          [1, 2, 'G'],
-        ],
-      }),
-    )
-    gs.players[1].addFort(fort)
-    expect(fort.shellsRemaining).toBe(4)
+    const fort = createMockFort({
+      gridSpec: [
+        [0, 0, 'B'],
+        [1, 0, 'W'],
+        [1, 1, 'W'],
+        [1, 2, 'G'],
+      ],
+    })
+    gs.players[1] = addFort(gs.players[1], fort)
+    expect(fortShellsRemaining(fort)).toBe(4)
     // add attacking state information
     gs.shipLocations[0] = { targetPlayerIndex: 1, fortID: 'testFort' }
 
@@ -285,13 +299,13 @@ describe('gameReducer', () => {
     let state = gameReducer(gs, payload)
     expect(state.phase).toBe('attackReinforceOrWave2')
     expect(state.attackValueCounts).toEqual({ B: 1, W: 2 })
-    fort = state.players[1].findFort('testFort')
-    expect(fort.shellsRemaining).toBe(3)
+    const updatedFort = findFort(state.players[1], 'testFort')
+    expect(fortShellsRemaining(updatedFort)).toBe(3)
     // now try to destroy a cell that is connected to a protected cell
     payload.payload = { attackColor: 'W', attackLoc: [1, 1] }
-    state = gameReducer(gs, payload)
-    fort = state.players[1].findFort('testFort')
-    expect(fort.shellsRemaining).toBe(3) // attack should fail
+    state = gameReducer(state, payload)
+    const fort2 = findFort(state.players[1], 'testFort')
+    expect(fortShellsRemaining(fort2)).toBe(3) // attack should fail
   })
 
   it('attackReinforceOrWave2 - reinforce if no target', () => {
@@ -301,8 +315,7 @@ describe('gameReducer', () => {
       payload: { choice: 'attackWave2' },
     }
 
-    let fort = new Fort(createMockFortCard())
-    gs.players[1].addFort(fort)
+    gs.players[1] = addFort(gs.players[1], createMockFort())
     gs.shipLocations[0] = { targetPlayerIndex: 1, fortID: 'testFort' }
 
     let state = gameReducer(gs, payload)
@@ -326,27 +339,28 @@ describe('gameReducer', () => {
     expect(state.shellReserve).toMatchObject({ black: 4, white: 4 })
 
     // but cannot take more than available
-    gs.shellReserve = { black: 1, white: 3, gray: 2 }
-    gs.attackValueCounts = { B: 2, T: 1 }
-    state = gameReducer(gs, payload)
+    state = {
+      ...state,
+      shellReserve: { black: 1, white: 3, gray: 2 },
+      attackValueCounts: { B: 2, T: 1 },
+    }
+    state = gameReducer(state, payload)
     expect(state.players[0].shells).toMatchObject({ black: 2 })
     expect(state.shellReserve).toMatchObject({ black: 0 })
   })
 
   it('attackWave2 - destroy fort shells with no care for protection', () => {
     gs.attackValueCounts = { T: 2, G: 1 }
-    let fort = new Fort(
-      createMockFortCard({
-        gridSpec: [
-          [0, 0, 'B'],
-          [1, 0, 'W'],
-          [1, 1, 'W'],
-          [1, 2, 'G'],
-        ],
-      }),
-    )
-    expect(fort.shellsRemaining).toBe(4)
-    gs.players[1].addFort(fort)
+    const fort = createMockFort({
+      gridSpec: [
+        [0, 0, 'B'],
+        [1, 0, 'W'],
+        [1, 1, 'W'],
+        [1, 2, 'G'],
+      ],
+    })
+    expect(fortShellsRemaining(fort)).toBe(4)
+    gs.players[1] = addFort(gs.players[1], fort)
     gs.shipLocations[0] = { targetPlayerIndex: 1, fortID: 'testFort' }
     let payload = {
       type: GamePhases.attackWave2,
@@ -359,28 +373,32 @@ describe('gameReducer', () => {
     }
     let state = gameReducer(gs, payload)
     expect(state.phase).toBe('attackDestroy')
-    fort = state.players[1].findFort('testFort')
-    expect(fort.shellsRemaining).toBe(2)
+    const updatedFort = findFort(state.players[1], 'testFort')
+    expect(fortShellsRemaining(updatedFort)).toBe(2)
   })
 
   it('attackDestroy - destroy fort and buildings, return colonists', () => {
-    let fort = new Fort(createMockFortCard({ gridSpec: [[0, 0, 'B']] }))
-    expect(fort.shellsRemaining).toBe(1)
-    let targetPlayer = gs.players[1]
-    targetPlayer.addFort(fort)
-    targetPlayer.populateForts()
-    expect(targetPlayer.colonists).toBe(8)
+    const fort = createMockFort({ gridSpec: [[0, 0, 'B']] })
+    expect(fortShellsRemaining(fort)).toBe(1)
+    gs.players[1] = addFort(gs.players[1], fort)
+    gs.players[1] = populateForts(gs.players[1])
+    expect(gs.players[1].colonists).toBe(8)
     gs.shipLocations[0] = { targetPlayerIndex: 1, fortID: 'testFort' }
     let payload = { type: GamePhases.attackDestroy }
     let state = gameReducer(gs, payload)
     expect(state.phase).toBe('endTurn')
-    fort = state.players[1].findFort('testFort')
-    expect(fort).toBeDefined()
-    // now destroy the last shell
-    fort.grid.destroyAt([0, 0])
+    const livingFort = findFort(state.players[1], 'testFort')
+    expect(livingFort).toBeDefined()
+    // now destroy the last shell to trigger fort destruction
+    gs.players[1] = {
+      ...gs.players[1],
+      forts: gs.players[1].forts.map(f =>
+        f.id === 'testFort' ? { ...f, grid: destroyAt(f.grid, [0, 0]) } : f,
+      ),
+    }
     state = gameReducer(gs, payload)
     expect(state.players[1].colonists).toBe(9)
-    expect(() => state.players[1].findFort('testFort')).toThrow()
+    expect(() => findFort(state.players[1], 'testFort')).toThrow()
   })
 
   it('endTurn - will set next player as active', () => {

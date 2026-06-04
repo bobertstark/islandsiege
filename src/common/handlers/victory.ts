@@ -1,6 +1,6 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
 
-export function handleVictory(state: GameState): GameState {
+export function handleVictory(state: IGameState): IGameState {
   const player = state.players[state.currentPlayerIndex]
 
   if (

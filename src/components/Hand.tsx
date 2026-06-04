@@ -1,15 +1,16 @@
 import React from 'react'
 import Card from './Card'
-import { Card as CardType } from 'game/Card'
+import ICard from 'common/ICard'
+import './shared.css'
 
 interface HandProps {
-  cards: CardType[]
+  cards: ICard[]
   onCardSelect?: (cardID: string) => void
   selectedCardID?: string
 }
 
 const Hand: React.FC<HandProps> = ({ cards, onCardSelect, selectedCardID }) => (
-  <div className="hand" style={{ display: 'flex', gap: '8px' }}>
+  <div className="hand">
     {cards.map(card => (
       <Card
         key={card.id}

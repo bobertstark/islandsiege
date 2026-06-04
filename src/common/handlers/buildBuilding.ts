@@ -1,15 +1,20 @@
-import { GameState } from 'game/GameState'
-import { BuildingRegistry } from 'game/buildings'
+import IGameState from 'common/IGameState'
+import { createBuildingById } from 'common/cardRegistry'
+import { findFort } from 'common/player'
+import { addBuilding } from 'common/fort'
 
 export function handleBuildBuilding(
-  state: GameState,
+  state: IGameState,
   payload: { fortID: string; buildingID: string },
-): GameState {
-  const player = state.players[state.currentPlayerIndex]
-  const buildingToBuild =
-    BuildingRegistry[payload.buildingID as keyof typeof BuildingRegistry]
-  const building = new buildingToBuild()
-  const fort = player.findFort(payload.fortID)
-  fort.addBuilding(building)
-  return { ...state, phase: 'endTurn' }
+): IGameState {
+  const players = [...state.players]
+  const player = players[state.currentPlayerIndex]
+  const fort = findFort(player, payload.fortID)
+  const building = createBuildingById(payload.buildingID)
+  const updatedFort = addBuilding(fort, building)
+  players[state.currentPlayerIndex] = {
+    ...player,
+    forts: player.forts.map(f => (f.id === payload.fortID ? updatedFort : f)),
+  }
+  return { ...state, players, phase: 'endTurn' }
 }

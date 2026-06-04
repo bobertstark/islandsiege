@@ -1,21 +1,17 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
+import { removeCardInHand, addCardsToHand } from 'common/player'
 
-export function handleInitDistribute(state: GameState): GameState {
+export function handleInitDistribute(state: IGameState): IGameState {
   const pending = state.pending || {}
+  let players = [...state.players]
 
   Object.entries(pending).forEach(([idxStr, cardID]) => {
     const idx = parseInt(idxStr, 10)
-    const nextIdx = (idx + 1) % state.players.length
-    const player = state.players[idx]
-    const target = state.players[nextIdx]
-    const discarded = player.removeCardInHand(cardID as string)
-    target.hand.push(discarded)
-    player.drawCache = []
+    const nextIdx = (idx + 1) % players.length
+    const { player: fromPlayer, card } = removeCardInHand(players[idx], cardID)
+    players[idx] = fromPlayer
+    players[nextIdx] = addCardsToHand(players[nextIdx], [card])
   })
 
-  return {
-    ...state,
-    pending: {},
-    phase: 'action',
-  }
+  return { ...state, players, pending: {}, phase: 'action' }
 }

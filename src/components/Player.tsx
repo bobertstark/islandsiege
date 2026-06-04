@@ -1,13 +1,12 @@
 import React from 'react'
+import './shared.css'
 
 interface PlayerProps {
   children?: React.ReactNode
 }
 
 const Player: React.FC<PlayerProps> = ({ children }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-    {children}
-  </div>
+  <div className="player">{children}</div>
 )
 
 export default Player

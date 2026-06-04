@@ -1,27 +1,41 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
 
 export function handleAttackStart(
-  state: GameState,
+  state: IGameState,
   payload: { targetPlayerIndex: number; fortID: string },
-): GameState {
-  state.shipLocations[state.currentPlayerIndex] = {}
+): IGameState {
+  const shipLocations: IGameState['shipLocations'] = {
+    ...state.shipLocations,
+    [state.currentPlayerIndex]: {},
+  }
   const openWaterAttack = !state.players.some(p => p.forts.length >= 1)
-  state.attackIsOpenWater = openWaterAttack
 
   if (openWaterAttack) {
-    return { ...state, phase: 'attackRoll' }
+    return {
+      ...state,
+      shipLocations,
+      attackIsOpenWater: true,
+      phase: 'attackRoll',
+    }
   }
 
-  const alreadyTargeted = Object.values(state.shipLocations).some(
+  const alreadyTargeted = Object.values(shipLocations).some(
     loc => loc.targetPlayerIndex === payload.targetPlayerIndex,
   )
-  if (alreadyTargeted)
+  if (alreadyTargeted) {
     throw new Error(`${payload.targetPlayerIndex} cannot be attacked.`)
-
-  state.shipLocations[state.currentPlayerIndex] = {
-    targetPlayerIndex: payload.targetPlayerIndex,
-    fortID: payload.fortID,
   }
 
-  return { ...state, phase: 'attackRoll' }
+  return {
+    ...state,
+    attackIsOpenWater: false,
+    shipLocations: {
+      ...shipLocations,
+      [state.currentPlayerIndex]: {
+        targetPlayerIndex: payload.targetPlayerIndex,
+        fortID: payload.fortID,
+      },
+    },
+    phase: 'attackRoll',
+  }
 }

@@ -1,9 +1,10 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
 import { symbolToColor } from 'common/colors'
-import { DieValue } from 'game/Die'
+import { DieValue } from 'common/die'
 
-export function handleAttackReinforce(state: GameState): GameState {
-  const player = state.players[state.currentPlayerIndex]
+export function handleAttackReinforce(state: IGameState): IGameState {
+  const players = [...state.players]
+  const player = players[state.currentPlayerIndex]
   const reserve = { ...state.shellReserve }
   const shells = { ...player.shells }
   const allowed = ['G', 'W', 'B']
@@ -18,6 +19,6 @@ export function handleAttackReinforce(state: GameState): GameState {
     reserve[color] = avail - toGive
   }
 
-  player.shells = shells
-  return { ...state, shellReserve: reserve, phase: 'attackDestroy' }
+  players[state.currentPlayerIndex] = { ...player, shells }
+  return { ...state, players, shellReserve: reserve, phase: 'attackDestroy' }
 }

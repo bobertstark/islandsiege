@@ -1,5 +1,6 @@
-import type { FortGridCell } from '../game/FortGrid'
+import type { FortGridCell } from 'common/fortGrid'
 import { ShellColors } from '../common/colors'
+import './shared.css'
 
 function getCellLabel(cell: FortGridCell, row: number, col: number) {
   if (cell.type === 'shell' && cell.color) return cell.color[0].toUpperCase()
@@ -12,11 +13,10 @@ export const FortGrid: React.FC<{
   showLabels?: boolean
 }> = ({ grid, view, showLabels }) => {
   return (
-    <div style={{ display: 'inline-block' }}>
+    <div className="fort-grid">
       <div
+        className="fort-grid-inner"
         style={{
-          display: 'grid',
-          gap: 2,
           gridTemplateColumns: `repeat(${grid[0].length}, 24px)`,
         }}>
         {grid.map((row, rowIndex) =>
@@ -35,16 +35,10 @@ export const FortGrid: React.FC<{
             return (
               <div
                 key={`${rowIndex}-${colIndex}`}
+                className="fort-grid-cell"
                 style={{
-                  width: 24,
-                  height: 24,
                   backgroundColor: bgColor,
                   border,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  color: '#222',
                 }}
                 title={`${rowIndex},${colIndex}`}>
                 {showLabels ? getCellLabel(cell, rowIndex, colIndex) : null}

@@ -1,8 +1,8 @@
 import React from 'react'
-import { Ship as ShipModel } from '../game/Ship'
+import IShip from 'common/IShip'
 
 interface ShipProps {
-  ship: ShipModel
+  ship: IShip
 }
 
 const Ship: React.FC<ShipProps> = ({ ship }) => (

@@ -6,6 +6,8 @@ export const ShellColors = {
 
 export type ShellColor = keyof typeof ShellColors // 'black' | 'white' | 'gray'
 
+export type ShellReserve = Partial<Record<ShellColor, number>>
+
 const COLOR_SYMBOLS: Record<ShellColor, string> = {
   black: 'B',
   gray: 'G',

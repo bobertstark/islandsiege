@@ -1,4 +1,5 @@
 import React from 'react'
+import './shared.css'
 
 interface Color {
   name: string
@@ -18,29 +19,17 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
   selectedColor,
   onSelect,
 }) => (
-  <div
-    style={{
-      display: 'flex',
-      gap: 12,
-      margin: '12px 0',
-      alignItems: 'center',
-    }}>
+  <div className="color-picker">
     {allColors.map(color => {
       const isDisabled =
         disabledColors.includes(color.value) && color.value !== selectedColor
       return (
         <div
           key={color.value}
+          className={`color-swatch${selectedColor === color.value ? ' selected' : ''}`}
           onClick={() => !isDisabled && onSelect(color.value)}
           style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
             background: color.value,
-            border:
-              selectedColor === color.value
-                ? '3px solid #222'
-                : '2px solid #ccc',
             cursor: isDisabled ? 'not-allowed' : 'pointer',
             opacity: isDisabled ? 0.3 : 1,
             boxShadow:

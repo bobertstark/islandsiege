@@ -1,26 +1,33 @@
-import { GameState } from 'game/GameState'
-import { FortRegistry } from 'game/forts'
+import IGameState from 'common/IGameState'
+import { createFortById } from 'common/cardRegistry'
+import { addFort } from 'common/player'
+import { buildSpec, FortGridSpec } from 'common/fortGrid'
 import { symbolToColor } from 'common/colors'
+import IFort from 'common/IFort'
 
 export function handleBuildFort(
-  state: GameState,
-  payload: { fortID: string; fortGridSpec: [number, number, string][] },
-): GameState {
-  const player = state.players[state.currentPlayerIndex]
-  const fortToBuild = FortRegistry[payload.fortID as keyof typeof FortRegistry]
-  if (!fortToBuild) throw new Error(`Fort not found: ${payload.fortID}`)
+  state: IGameState,
+  payload: { fortID: string; fortGridSpec: FortGridSpec },
+): IGameState {
+  const players = [...state.players]
+  let player = players[state.currentPlayerIndex]
 
-  const fort = new fortToBuild()
-  player.addFort(fort)
-  const grid = fort.grid
+  const fort = createFortById(payload.fortID)
+  player = addFort(player, fort)
+
   let shellsBuilt = 0
+  let updatedGrid = fort.grid
 
   for (const spec of payload.fortGridSpec) {
     const color = symbolToColor(spec[2]) as 'black' | 'white' | 'gray'
     if ((player.shells[color] ?? 0) > 0) {
-      grid.buildSpec([spec])
-      player.shells[color] = Math.max(0, (player.shells[color] ?? 0) - 1)
-      shellsBuilt++
+      const { grid: nextGrid, builds } = buildSpec(updatedGrid, [spec])
+      updatedGrid = nextGrid
+      shellsBuilt += builds
+      player = {
+        ...player,
+        shells: { ...player.shells, [color]: (player.shells[color] ?? 0) - 1 },
+      }
     } else {
       throw new Error(`Player does not have enough ${color}`)
     }
@@ -30,6 +37,14 @@ export function handleBuildFort(
     throw new Error(`Could not build all components on ${fort.id}`)
   }
 
-  player.coins += shellsBuilt
-  return { ...state, phase: 'endTurn' }
+  // Write the updated grid back into the fort on the player
+  const updatedFort: IFort = { ...fort, grid: updatedGrid }
+  player = {
+    ...player,
+    coins: player.coins + shellsBuilt,
+    forts: player.forts.map(f => (f.id === fort.id ? updatedFort : f)),
+  }
+
+  players[state.currentPlayerIndex] = player
+  return { ...state, players, phase: 'endTurn' }
 }

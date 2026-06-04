@@ -3,7 +3,7 @@
     {
       "type": "fort",
       "name": "Starting Fort",
-      "grid": [
+      "gridSpec": [
         [1, 0, "W"],
         [1, 1, "G"],
         [1, 2, "G"],
@@ -16,7 +16,7 @@
     {
       "type": "fort",
       "name": "Barricaded Fortress",
-      "grid": [
+      "gridSpec": [
         [1, 1, "B"],
         [1, 2, "."],
         [3, 0, "."],
@@ -29,7 +29,7 @@
     {
       "type": "fort",
       "name": "Braced Stronghold",
-      "grid": [
+      "gridSpec": [
         [1, 0, "G"],
         [1, 2, "."],
         [2, 0, "."],
@@ -42,7 +42,7 @@
     {
       "type": "fort",
       "name": "Cove Outpost",
-      "grid": [
+      "gridSpec": [
         [0, 0, "."],
         [0, 1, "."],
         [1, 0, "W"],
@@ -55,7 +55,7 @@
     {
       "type": "fort",
       "name": "Flotilla Outpost",
-      "grid": [
+      "gridSpec": [
         [1, 0, "."],
         [1, 1, "."],
         [2, 1, "W"],
@@ -68,7 +68,7 @@
     {
       "type": "fort",
       "name": "Formidable Fortress",
-      "grid": [
+      "gridSpec": [
         [2, 0, "."],
         [2, 1, "B"],
         [2, 2, "."],
@@ -81,7 +81,7 @@
     {
       "type": "fort",
       "name": "Fortified Stronghold",
-      "grid": [
+      "gridSpec": [
         [1, 0, "G"],
         [1, 1, "."],
         [1, 2, "."],
@@ -94,7 +94,7 @@
     {
       "type": "fort",
       "name": "Guarded Fortress",
-      "grid": [
+      "gridSpec": [
         [1, 1, "B"],
         [2, 0, "."],
         [2, 1, "."],
@@ -107,7 +107,7 @@
     {
       "type": "fort",
       "name": "Lighthouse Outpost",
-      "grid": [
+      "gridSpec": [
         [0, 1, "."],
         [0, 2, "W"],
         [1, 2, "."],
@@ -120,7 +120,7 @@
     {
       "type": "fort",
       "name": "Reefside Fortress",
-      "grid": [
+      "gridSpec": [
         [1, 2, "."],
         [2, 0, "."],
         [2, 1, "."],
@@ -133,20 +133,20 @@
     {
       "type": "fort",
       "name": "Reinforced Stronghold",
-      "grid": [
+      "gridSpec": [
         [1, 0, "."],
         [1, 1, "G"],
         [1, 2, "."],
         [2, 1, "."]
       ],
       "slots": 4,
-      "description": "Whenever an opponent attacks this fort, he cannot reroll [S] results.",
+      "description": "Whenever an opponent attacks this fort, he cannot reroll [T] results.",
       "id": "reinforcedStronghold"
     },
     {
       "type": "fort",
       "name": "Robust Stronghold",
-      "grid": [
+      "gridSpec": [
         [1, 1, "G"],
         [1, 2, "."],
         [2, 1, "."],
@@ -159,7 +159,7 @@
     {
       "type": "fort",
       "name": "Saboteur Outpost",
-      "grid": [
+      "gridSpec": [
         [0, 2, "."],
         [0, 3, "W"],
         [1, 0, "."],
@@ -172,7 +172,7 @@
     {
       "type": "fort",
       "name": "Scout Outpost",
-      "grid": [
+      "gridSpec": [
         [1, 1, "W"],
         [1, 2, "."],
         [2, 0, "."],
@@ -185,7 +185,7 @@
     {
       "type": "fort",
       "name": "Secluded Fortress",
-      "grid": [
+      "gridSpec": [
         [1, 0, "."],
         [2, 0, "."],
         [2, 1, "B"],
@@ -198,7 +198,7 @@
     {
       "type": "fort",
       "name": "Secret Fortress",
-      "grid": [
+      "gridSpec": [
         [1, 1, "B"],
         [1, 2, "."],
         [2, 1, "."],
@@ -211,7 +211,7 @@
     {
       "type": "fort",
       "name": "Steep-Walled Stronghold",
-      "grid": [
+      "gridSpec": [
         [1, 0, "."],
         [1, 1, "G"],
         [1, 2, "."],
@@ -224,7 +224,7 @@
     {
       "type": "fort",
       "name": "Spy Outpost",
-      "grid": [
+      "gridSpec": [
         [0, 3, "."],
         [1, 3, "."],
         [2, 0, "."],
@@ -237,7 +237,7 @@
     {
       "type": "fort",
       "name": "Supported Stronghold",
-      "grid": [
+      "gridSpec": [
         [1, 0, "."],
         [1, 1, "G"],
         [1, 2, "."],
@@ -250,157 +250,157 @@
     {
       "type": "building",
       "name": "Academy",
-      "requires": 2,
-      "gold": 2,
-      "repair": "B",
+      "cost": 2,
+      "coins": 2,
+      "repairColor": "black",
       "description": "Whenever you attack, you may remove one colonist from this building to re-roll 1 additional time.",
       "id": "academy"
     },
     {
       "type": "building",
       "name": "Armory",
-      "requires": 1,
-      "gold": 1,
-      "repair": "B",
+      "cost": 1,
+      "coins": 1,
+      "repairColor": "black",
       "description": "Whenever you attack, add 1 [G] to your result.",
       "id": "armory"
     },
     {
       "type": "building",
       "name": "Cannon Smith",
-      "requires": 1,
-      "gold": 1,
-      "repair": "B",
+      "cost": 1,
+      "coins": 1,
+      "repairColor": "black",
       "description": "Whenever you attack, add 1 [B] to your result.",
       "id": "cannonSmith"
     },
     {
       "type": "building",
       "name": "Cannonball Forge",
-      "requires": 1,
-      "gold": 1,
-      "repair": "B",
+      "cost": 1,
+      "coins": 1,
+      "repairColor": "black",
       "description": "Whenever you attack, add 1 [W] to your result.",
       "id": "cannonballForge"
     },
     {
       "type": "building",
       "name": "Governor's Mansion",
-      "requires": 3,
-      "gold": 3,
-      "repair": "B",
+      "cost": 3,
+      "coins": 3,
+      "repairColor": "black",
       "description": "When built, discard 1 random card from an opponent's hand. Your opponents cannot take Draw actions.",
       "id": "governorsMansion"
     },
     {
       "type": "building",
       "name": "Gunpowder House",
-      "requires": 1,
-      "gold": 1,
-      "repair": "B",
-      "description": "Whenever you attack, add 1 [S] to your result.",
+      "cost": 1,
+      "coins": 1,
+      "repairColor": "black",
+      "description": "Whenever you attack, add 1 [T] to your result.",
       "id": "gunpowderHouse"
     },
     {
       "type": "building",
       "name": "Infirmary",
-      "requires": 2,
-      "gold": 2,
-      "repair": "B",
+      "cost": 2,
+      "coins": 2,
+      "repairColor": "black",
       "description": "Whenever 1 of your forts, buildings, or ships is destroyed, you may move its colonists to this building. (Limit 2 per turn)",
       "id": "infirmary"
     },
     {
       "type": "building",
       "name": "Observatory",
-      "requires": 2,
-      "gold": 2,
-      "repair": "B",
+      "cost": 2,
+      "coins": 2,
+      "repairColor": "black",
       "description": "Whenever you take a Draw action, discard the card you would have given an opponent.",
       "id": "observatory"
     },
     {
       "type": "building",
       "name": "Prison",
-      "requires": 3,
-      "gold": 3,
-      "repair": "B",
+      "cost": 3,
+      "coins": 3,
+      "repairColor": "black",
       "description": "When built, return 1 colonist from each of your opponents' forts. Your opponents' forts cannot gain colonists.",
       "id": "prison"
     },
     {
       "type": "building",
       "name": "Silver Smelter",
-      "requires": 2,
-      "gold": 2,
-      "repair": "B",
+      "cost": 2,
+      "coins": 2,
+      "repairColor": "black",
       "description": "When built, remove any number of colonists from your other forts to score that many coins.",
       "id": "silverSmelter"
     },
     {
       "type": "building",
       "name": "Trade Company",
-      "requires": 3,
-      "gold": 3,
+      "cost": 3,
+      "coins": 3,
       "description": "When built, destroy an opponent's building. Your opponents cannot build any buildings.",
-      "repair": "B",
+      "repairColor": "black",
       "id": "tradeCompany"
     },
     {
       "type": "building",
       "name": "Watchtower",
-      "requires": 3,
-      "gold": 3,
+      "cost": 3,
+      "coins": 3,
       "description": "When built, destroy an opponent's ship. Your opponents cannot build any ships.",
-      "repair": "B",
+      "repairColor": "black",
       "id": "watchtower"
     },
     {
       "type": "ship",
       "name": "Dominica",
-      "requires": 4,
-      "gold": 5,
+      "cost": 4,
+      "coins": 5,
       "description": "[L]: Return 1 colonist off the defending fort.",
       "id": "dominica"
     },
     {
       "type": "ship",
       "name": "Magnifique",
-      "requires": 4,
-      "gold": 5,
+      "cost": 4,
+      "coins": 5,
       "description": "[L]: Gain 1 gold.",
       "id": "magnifique"
     },
     {
       "type": "ship",
       "name": "Raven",
-      "requires": 3,
-      "gold": 4,
+      "cost": 3,
+      "coins": 4,
       "description": "[L]: Add 1 [B] to your result.",
       "id": "raven"
     },
     {
       "type": "ship",
       "name": "Sister Catarina",
-      "requires": 2,
-      "gold": 3,
+      "cost": 2,
+      "coins": 3,
       "description": "[L]: Add 1 [G] to your result.",
       "id": "sisterCatarina"
     },
     {
       "type": "ship",
       "name": "St. Daniel",
-      "requires": 3,
-      "gold": 4,
+      "cost": 3,
+      "coins": 4,
       "description": "[L]: Add 1 [W] to your result.",
       "id": "stDaniel"
     },
     {
       "type": "ship",
       "name": "Victory",
-      "requires": 2,
-      "gold": 3,
-      "description": "[L]: Add 1 [S] to your result.",
+      "cost": 2,
+      "coins": 3,
+      "description": "[L]: Add 1 [T] to your result.",
       "id": "victory"
     }
   ]
