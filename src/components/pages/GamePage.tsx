@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGameSocket } from 'hooks/useGameSocket'
 import { loadAuth } from 'hooks/useGameAuth'
@@ -7,6 +7,24 @@ import GameBoard from 'components/GameBoard'
 import { Deck, Discard } from 'components/Deck'
 import { ActionPhase } from 'components/phases/ActionPhase'
 import 'components/phases/Game.css'
+
+const ColonizePhase: React.FC<{
+  dispatch: (action: { type: string }) => void
+}> = ({ dispatch }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => dispatch({ type: 'colonize' }), 1500)
+    return () => clearTimeout(timer)
+  }, [dispatch])
+
+  return (
+    <div
+      className="game-container"
+      style={{ textAlign: 'center', paddingTop: 80 }}>
+      <h2>Colonizing…</h2>
+      <p>Placing colonists on your forts.</p>
+    </div>
+  )
+}
 
 export const GamePage: React.FC = () => {
   const { gameId = '' } = useParams<{ gameId: string }>()
@@ -33,6 +51,8 @@ export const GamePage: React.FC = () => {
   switch (view.phase) {
     case GamePhases.action:
       return <ActionPhase state={view as any} dispatch={dispatch} />
+    case GamePhases.colonize:
+      return <ColonizePhase dispatch={dispatch} />
     default:
       return (
         <div className="game-container">

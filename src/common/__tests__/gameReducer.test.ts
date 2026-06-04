@@ -77,42 +77,41 @@ describe('gameReducer', () => {
     )
   })
 
-  it('initDiscard - will handle initial draw phase', () => {
-    let payload = {
+  it('initDiscard - collects selections and distributes on last submit', () => {
+    const cardA = {
+      name: 'A',
+      id: 'a',
+      type: 'fort' as CardType,
+      description: 'test',
+    }
+    const cardB = {
+      name: 'B',
+      id: 'b',
+      type: 'ship' as CardType,
+      description: 'test',
+    }
+    gs.players[0].hand = [cardA]
+    gs.players[1].hand = [cardB]
+
+    // First player submits — not yet resolved
+    let state = gameReducer(gs, {
       type: GamePhases.initDiscard,
       payload: { playerIdx: 0, cardID: 'a' },
-    }
-    gs.players[0].hand = [
-      { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
-    ]
-    let state = gameReducer(gs, payload)
-    // Do not swap until all players submit
-    expect(state.players[0].hand[0].id).toBe('a')
+    })
     expect(state.phase).toBe('initDiscard')
     expect(state.pending).toMatchObject({ 0: 'a' })
-    state.players[1].hand = [
-      { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
-    ]
-    payload.payload = { playerIdx: 1, cardID: 'b' }
-    state = gameReducer(state, payload)
-    // Now we transition to distribution
-    expect(state.pending).toMatchObject({ 0: 'a', 1: 'b' })
-    expect(state.phase).toBe('initDistribute')
-  })
+    expect(state.players[0].hand[0].id).toBe('a') // card still in hand
 
-  it('initDistibute - will handle card distribution', () => {
-    gs.players[0].hand = [
-      { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
-    ]
-    gs.players[1].hand = [
-      { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
-    ]
-    gs.pending = { 0: 'a', 1: 'b' }
-    const payload = { type: GamePhases.initDistribute }
-    const state = gameReducer(gs, payload)
-    expect(state.players[0].hand[0].id).toBe('b')
-    expect(state.players[1].hand[0].id).toBe('a')
+    // Last player submits — resolves immediately
+    state = gameReducer(state, {
+      type: GamePhases.initDiscard,
+      payload: { playerIdx: 1, cardID: 'b' },
+    })
     expect(state.phase).toBe('action')
+    expect(state.pending).toEqual({})
+    // Player 0 passed card 'a' to player 1 (next), received card 'b' from player 1
+    expect(state.players[0].hand.map(c => c.id)).toContain('b')
+    expect(state.players[1].hand.map(c => c.id)).toContain('a')
   })
 
   it('draw - will handle individual draw', () => {
