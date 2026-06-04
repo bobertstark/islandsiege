@@ -4,7 +4,7 @@ import { fortColonists } from '../fort'
 
 describe('player', () => {
   it('creates a player with default values', () => {
-    const p = createPlayer('Jack Sparrow', 1)
+    const p = createPlayer('p1', 'Jack Sparrow')
     expect(p.id).toBe('p1')
     expect(p.name).toBe('Jack Sparrow')
     expect(p.coins).toBe(0)
@@ -18,7 +18,7 @@ describe('player', () => {
   })
 
   it('respects overrides', () => {
-    const p = createPlayer('Blackbeard', 2, {
+    const p = createPlayer('p2', 'Blackbeard', {
       coins: 3,
       shells: { black: 2 },
     })
@@ -28,7 +28,7 @@ describe('player', () => {
   })
 
   it('contains forts and populates them', () => {
-    let p = createPlayer('Jack Sparrow', 1)
+    let p = createPlayer('p1', 'Jack Sparrow')
     p = addFort(p, createFortById('spyOutpost'))
     p = addFort(p, createFortById('coveOutpost'))
     expect(p.colonists).toBe(9)
