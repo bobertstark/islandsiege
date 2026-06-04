@@ -38,7 +38,7 @@ export function handleAttackRoll(
   if (payload.action === 'keep' || state.attackRerollsRemaining === 0) {
     return {
       ...state,
-      attackValueCounts: reduceDice(state.attackRoll!),
+      diceBank: reduceDice(state.attackRoll!),
       phase: 'attackLeadership',
     }
   }

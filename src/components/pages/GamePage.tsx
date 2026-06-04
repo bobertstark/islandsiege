@@ -26,9 +26,7 @@ const ATTACK_DISPLAY_PHASES = new Set<string>([
 ])
 
 // Expand rollCounts back to a flat DieValue array for display
-function countsToArray(
-  counts: IGameStateView['attackValueCounts'],
-): DieValue[] {
+function countsToArray(counts: IGameStateView['diceBank']): DieValue[] {
   return (Object.entries(counts) as [DieValue, number][]).flatMap(
     ([face, count]) => Array<DieValue>(count).fill(face),
   )
@@ -221,6 +219,67 @@ const AttackRollPhase: React.FC<{
   )
 }
 
+const AttackLeadershipPhase: React.FC<{
+  view: IGameStateView
+  isMyTurn: boolean
+  waitingFor: string[]
+  dispatch: (action: { type: string; payload?: unknown }) => void
+}> = ({ view, isMyTurn, waitingFor, dispatch }) => {
+  const defenderIdx =
+    view.shipLocations[view.currentPlayerIndex]?.targetPlayerIndex
+  const defenderShips =
+    defenderIdx !== undefined ? (view.players[defenderIdx]?.ships ?? []) : []
+  const lCount = view.diceBank.L ?? 0
+  const canUseLeadership =
+    !view.attackIsOpenWater && lCount >= 2 && defenderShips.length > 0
+
+  useEffect(() => {
+    if (!isMyTurn || canUseLeadership) return
+    dispatch({ type: 'attackLeadership', payload: { skip: true } })
+  }, [isMyTurn, canUseLeadership, dispatch])
+
+  return (
+    <div className="game-container">
+      <TurnBanner
+        phase={view.phase}
+        isMyTurn={isMyTurn}
+        waitingFor={waitingFor}
+      />
+      {isMyTurn && canUseLeadership && (
+        <div style={{ padding: '16px 20px' }}>
+          <h2>Leadership</h2>
+          <p>
+            You have <strong>{lCount}</strong> L {lCount === 1 ? 'die' : 'dice'}
+            . Spend 2 to destroy a ship.
+          </p>
+          <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+            {defenderShips.map(ship => (
+              <li key={ship.id} style={{ marginBottom: 8 }}>
+                <button
+                  onClick={() =>
+                    dispatch({
+                      type: 'attackLeadership',
+                      payload: { shipID: ship.id },
+                    })
+                  }>
+                  Destroy {ship.name} (costs 2 L)
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={() =>
+              dispatch({ type: 'attackLeadership', payload: { skip: true } })
+            }>
+            Skip
+          </button>
+        </div>
+      )}
+      <GameBoard state={view} dispatch={dispatch} />
+    </div>
+  )
+}
+
 export const GamePage: React.FC = () => {
   const { gameId = '' } = useParams<{ gameId: string }>()
   const auth = loadAuth(gameId)
@@ -303,9 +362,18 @@ export const GamePage: React.FC = () => {
           dispatch={dispatch}
         />
       )
+    case GamePhases.attackLeadership:
+      return (
+        <AttackLeadershipPhase
+          view={view}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
     default: {
       const attackDice = ATTACK_DISPLAY_PHASES.has(view.phase)
-        ? countsToArray(view.attackValueCounts)
+        ? countsToArray(view.diceBank)
         : []
       return (
         <div className="game-container">

@@ -37,7 +37,7 @@ export function redactStateForPlayer(
     attackIsOpenWater: state.attackIsOpenWater,
     attackRoll: state.attackRoll,
     attackRerollsRemaining: state.attackRerollsRemaining,
-    attackValueCounts: state.attackValueCounts,
+    diceBank: state.diceBank,
     winningPlayerIndex: state.winningPlayerIndex,
     // rngSeed intentionally omitted
   }

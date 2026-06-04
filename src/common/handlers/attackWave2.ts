@@ -6,7 +6,7 @@ export function handleAttackWave2(
   state: IGameState,
   payload: { attackLocs: [number, number][] },
 ): IGameState {
-  const numT = state.attackValueCounts['T'] ?? 0
+  const numT = state.diceBank['T'] ?? 0
   if (payload.attackLocs.length !== numT) {
     throw new Error(
       `Expected ${numT} locations, got ${payload.attackLocs.length}`,

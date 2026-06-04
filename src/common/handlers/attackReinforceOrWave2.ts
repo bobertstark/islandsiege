@@ -4,7 +4,7 @@ export function handleAttackReinforceOrWave2(
   state: IGameState,
   payload: { choice: 'reinforce' | 'wave2' },
 ): IGameState {
-  const remainingT = state.attackValueCounts['T'] ?? 0
+  const remainingT = state.diceBank['T'] ?? 0
   return {
     ...state,
     phase:

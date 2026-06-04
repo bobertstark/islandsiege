@@ -13,6 +13,7 @@ import { mockGameState } from 'common/__mocks__/mockGameState'
 
 import * as AttackRollModule from 'common/attackRoll'
 import { DieValue } from 'common/die'
+import IShip from 'common/IShip'
 
 const createMockFort = (
   overrides: { gridSpec?: FortGridSpec; slots?: number } = {},
@@ -306,15 +307,101 @@ describe('gameReducer', () => {
 
     // even if reroll is called again, we will finalize
     state = gameReducer(state, payload)
-    expect(state.attackValueCounts).toEqual({ B: 2, L: 1 })
+    expect(state.diceBank).toEqual({ B: 2, L: 1 })
     expect(state.phase).toBe('attackLeadership')
   })
 
-  test.todo('attackLeadership - use Leadership abilities once implemented')
+  describe('attackLeadership', () => {
+    const ship1: IShip = {
+      id: 's1',
+      name: 'Sloop',
+      type: 'ship',
+      description: '',
+      cost: 1,
+      coins: 1,
+      colonists: 1,
+    }
+    const ship2: IShip = {
+      id: 's2',
+      name: 'Brig',
+      type: 'ship',
+      description: '',
+      cost: 1,
+      coins: 1,
+      colonists: 1,
+    }
+
+    it('skip: advances to attackWave1 for normal attack', () => {
+      const state = gameReducer(
+        mockGameState({ phase: 'attackLeadership', attackIsOpenWater: false }),
+        { type: GamePhases.attackLeadership, payload: { skip: true } },
+      )
+      expect(state.phase).toBe('attackWave1')
+    })
+
+    it('skip open water: advances to attackReinforce', () => {
+      const state = gameReducer(
+        mockGameState({ phase: 'attackLeadership', attackIsOpenWater: true }),
+        { type: GamePhases.attackLeadership, payload: { skip: true } },
+      )
+      expect(state.phase).toBe('attackReinforce')
+    })
+
+    it('destroys a ship, spends 2 L, stays in phase when L ≥ 2 and ships remain', () => {
+      const defender = { ...mockGameState().players[1], ships: [ship1, ship2] }
+      const state = gameReducer(
+        mockGameState({
+          phase: 'attackLeadership',
+          attackIsOpenWater: false,
+          diceBank: { L: 4 },
+          shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'f1' } },
+          players: [mockGameState().players[0], defender],
+        }),
+        { type: GamePhases.attackLeadership, payload: { shipID: 's1' } },
+      )
+      expect(state.players[1].ships).toHaveLength(1)
+      expect(state.diceBank.L).toBe(2)
+      expect(state.phase).toBe('attackLeadership')
+    })
+
+    it('destroys a ship, advances to attackWave1 when L drops below 2', () => {
+      const defender = { ...mockGameState().players[1], ships: [ship1, ship2] }
+      const state = gameReducer(
+        mockGameState({
+          phase: 'attackLeadership',
+          attackIsOpenWater: false,
+          diceBank: { L: 2 },
+          shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'f1' } },
+          players: [mockGameState().players[0], defender],
+        }),
+        { type: GamePhases.attackLeadership, payload: { shipID: 's1' } },
+      )
+      expect(state.players[1].ships).toHaveLength(1)
+      expect(state.diceBank.L).toBeUndefined()
+      expect(state.phase).toBe('attackWave1')
+    })
+
+    it('destroys last ship, advances even if L ≥ 2', () => {
+      const defender = { ...mockGameState().players[1], ships: [ship1] }
+      const state = gameReducer(
+        mockGameState({
+          phase: 'attackLeadership',
+          attackIsOpenWater: false,
+          diceBank: { L: 4 },
+          shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'f1' } },
+          players: [mockGameState().players[0], defender],
+        }),
+        { type: GamePhases.attackLeadership, payload: { shipID: 's1' } },
+      )
+      expect(state.players[1].ships).toHaveLength(0)
+      expect(state.diceBank.L).toBe(2)
+      expect(state.phase).toBe('attackWave1')
+    })
+  })
 
   it('attackWave1 - all dice of one color used, protection enabled', () => {
     // initialize roll values, fort to attack
-    gs.attackValueCounts = { B: 1, W: 2, G: 1 }
+    gs.diceBank = { B: 1, W: 2, G: 1 }
     const fort = createMockFort({
       gridSpec: [
         [0, 0, 'B'],
@@ -334,7 +421,7 @@ describe('gameReducer', () => {
     }
     let state = gameReducer(gs, payload)
     expect(state.phase).toBe('attackReinforceOrWave2')
-    expect(state.attackValueCounts).toEqual({ B: 1, W: 2 })
+    expect(state.diceBank).toEqual({ B: 1, W: 2 })
     const updatedFort = findFort(state.players[1], 'testFort')
     expect(fortShellsRemaining(updatedFort)).toBe(3)
     // now try to destroy a cell that is connected to a protected cell
@@ -345,7 +432,7 @@ describe('gameReducer', () => {
   })
 
   it('attackReinforceOrWave2 - reinforce if no target', () => {
-    gs.attackValueCounts = { B: 2 }
+    gs.diceBank = { B: 2 }
     let payload = {
       type: GamePhases.attackReinforceOrWave2,
       payload: { choice: 'attackWave2' },
@@ -358,7 +445,7 @@ describe('gameReducer', () => {
     // no target rolls, so default to reinforce
     expect(state.phase).toBe('attackReinforce')
     // now with target, wave2
-    gs.attackValueCounts = { B: 2, T: 1 }
+    gs.diceBank = { B: 2, T: 1 }
     state = gameReducer(gs, payload)
     expect(state.phase).toBe('attackWave2')
     payload.payload.choice = 'reinforce'
@@ -367,7 +454,7 @@ describe('gameReducer', () => {
   })
 
   it('attackReinforce - add shells to player reserve', () => {
-    gs.attackValueCounts = { B: 1, W: 1, T: 1 }
+    gs.diceBank = { B: 1, W: 1, T: 1 }
     let payload = { type: GamePhases.attackReinforce }
     let state = gameReducer(gs, payload)
     expect(state.phase).toBe('attackDestroy') // Fort may have been destroyed in first wave
@@ -378,7 +465,7 @@ describe('gameReducer', () => {
     state = {
       ...state,
       shellReserve: { black: 1, white: 3, gray: 2 },
-      attackValueCounts: { B: 2, T: 1 },
+      diceBank: { B: 2, T: 1 },
     }
     state = gameReducer(state, payload)
     expect(state.players[0].shells).toMatchObject({ black: 2 })
@@ -386,7 +473,7 @@ describe('gameReducer', () => {
   })
 
   it('attackWave2 - destroy fort shells with no care for protection', () => {
-    gs.attackValueCounts = { T: 2, G: 1 }
+    gs.diceBank = { T: 2, G: 1 }
     const fort = createMockFort({
       gridSpec: [
         [0, 0, 'B'],

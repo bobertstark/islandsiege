@@ -12,9 +12,9 @@ export function handleAttackWave1(
   const players = [...state.players]
   const target = players[targetPlayerIndex!]
   const fort = findFort(target, fortID!)
-  const strength = state.attackValueCounts[payload.attackColor] ?? 0
-  const attackValueCounts = { ...state.attackValueCounts }
-  delete attackValueCounts[payload.attackColor]
+  const strength = state.diceBank[payload.attackColor] ?? 0
+  const diceBank = { ...state.diceBank }
+  delete diceBank[payload.attackColor]
 
   const { grid: updatedGrid } = attackAt(fort.grid, payload.attackLoc, strength)
   const updatedFort = { ...fort, grid: updatedGrid }
@@ -26,7 +26,7 @@ export function handleAttackWave1(
   return {
     ...state,
     players,
-    attackValueCounts,
+    diceBank,
     phase: 'attackReinforceOrWave2',
   }
 }

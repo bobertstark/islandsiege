@@ -32,6 +32,6 @@ export default interface IGameStateView {
   attackIsOpenWater: boolean
   attackRoll: DieValue[] | undefined
   attackRerollsRemaining: number
-  attackValueCounts: rollCounts
+  diceBank: rollCounts
   winningPlayerIndex: number | undefined
 }

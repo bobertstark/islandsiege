@@ -58,7 +58,7 @@ export function gameReducer(
     case GamePhases.attackRoll:
       return handleAttackRoll(state, phase.payload)
     case GamePhases.attackLeadership:
-      return handleAttackLeadership(state)
+      return handleAttackLeadership(state, phase.payload)
     case GamePhases.attackWave1:
       return handleAttackWave1(state, phase.payload)
     case GamePhases.attackReinforceOrWave2:

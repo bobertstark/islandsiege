@@ -115,3 +115,15 @@ export function updateShells(
   const newCount = Math.max(0, (player.shells[color] ?? 0) + count)
   return { ...player, shells: { ...player.shells, [color]: newCount } }
 }
+
+export function destroyShip(player: IPlayer, shipID: string): IPlayer {
+  const ship = player.ships.find(s => s.id === shipID)
+  if (!ship) {
+    throw new Error(`Player ${player.id} has no ship ${shipID}`)
+  }
+  return {
+    ...player,
+    colonists: player.colonists + ship.colonists,
+    ships: player.ships.filter(s => s.id !== shipID),
+  }
+}
