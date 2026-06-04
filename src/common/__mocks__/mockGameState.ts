@@ -7,7 +7,12 @@ export const mockGameState = (
 ): IGameState => {
   const deckState = createDeck()
   return {
-    players: [createPlayer('Francis Drake', 1), createPlayer('Barbarossa', 2)],
+    players: [
+      createPlayer('0', 'Francis Drake'),
+      createPlayer('1', 'Barbarossa'),
+    ],
+    playerCount: 2,
+    readyPlayers: [],
     currentPlayerIndex: 0,
     deck: deckState.deck,
     discard: deckState.discard,

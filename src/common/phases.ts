@@ -17,6 +17,9 @@
 //      5e. Destruction - If no cubes left, destroy fort and buildings, return colonists
 
 export type Phase =
+  | 'lobby'
+  | 'startGame'
+  | 'setColor'
   | 'initGame'
   | 'resetGame'
   | 'initDiscard'
@@ -42,6 +45,9 @@ export type Phase =
 
 export const GamePhases = {
   // Game Setup
+  lobby: 'lobby',
+  startGame: 'startGame',
+  setColor: 'setColor',
   initGame: 'initGame',
   resetGame: 'resetGame',
   initDiscard: 'initDiscard',

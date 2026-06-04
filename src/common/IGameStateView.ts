@@ -1,45 +1,36 @@
-import IPlayer from './IPlayer'
+import { Phase } from './phases'
 import ICard from './ICard'
+import IPlayer from './IPlayer'
 import { ShellReserve } from './colors'
 import { DieValue } from './die'
-import { Phase } from './phases'
 import { rollCounts } from './attackRoll'
 
-// Full game state: plain data, safe to store or send over the wire.
-export default interface IGameState {
-  players: IPlayer[]
-  playerCount: number
-  readyPlayers: number[] // lobby only — indices of players who have confirmed ready
-  currentPlayerIndex: number
+// Per-player view: hidden information removed.
+// deck → deckCount; opponents' hands → count; own hand + discard in full.
+export interface IPlayerView extends Omit<IPlayer, 'hand' | 'id'> {
+  hand: ICard[] | number
+}
 
-  // Draw and discard piles
-  deck: ICard[]
+export default interface IGameStateView {
+  players: IPlayerView[]
+  playerCount?: number // lobby only
+  readyPlayers: number[]
+  currentPlayerIndex: number
+  deckCount: number
   discard: ICard[]
   shuffleCount: number
-
   phase: Phase
-
-  // Wait for all player actions to synchronize (e.g. initial discard)
   pending?: { [playerIdx: number]: string }
-
-  // Track player protection / ship placement, once attacked
   shipLocations: {
     [playerIndex: number]: {
       targetPlayerIndex?: number
       fortID?: string
     }
   }
-
   shellReserve: ShellReserve
-
-  // Current attack only
   attackIsOpenWater: boolean
   attackRoll: DieValue[] | undefined
   attackRerollsRemaining: number
   attackValueCounts: rollCounts
-
   winningPlayerIndex: number | undefined
-
-  // Server-only - not sent to clients
-  rngSeed: number
 }

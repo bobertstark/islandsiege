@@ -13,13 +13,13 @@ import { addColonists as shipAddColonists } from './ship'
 export const MAX_COLONISTS = 9
 
 export function createPlayer(
+  id: string,
   name: string,
-  idx: number,
   overrides: Partial<IPlayer> = {},
 ): IPlayer {
   const { shells, ...rest } = overrides
   return {
-    id: `p${idx}`,
+    id,
     name,
     colonists: MAX_COLONISTS,
     coins: 0,

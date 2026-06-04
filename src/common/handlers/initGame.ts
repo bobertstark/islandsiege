@@ -10,14 +10,14 @@ export function handleInitGame(
 ): IGameState {
   const { playerNames, playerColors } = payload
   const rng = createRng(payload.seed ?? generateSeed())
-  let deckState = createDeck(undefined, rng.next.bind(rng))
+  let deckState = createDeck(undefined, rng.next)
   const currentPlayerIndex = Math.floor(rng.next() * playerNames.length)
 
   const players = playerNames.map((name, idx) => {
-    const base = createPlayer(name, idx + 1, { color: playerColors[idx] })
+    const base = createPlayer(String(idx), name, { color: playerColors[idx] })
     const fort = createFortById('startingFort')
     const withFort = addFort({ ...base, shells: { black: 1, white: 1 } }, fort)
-    const { cards, state: next } = drawCards(deckState, 3, rng.next.bind(rng))
+    const { cards, state: next } = drawCards(deckState, 3, rng.next)
     deckState = next
     return addCardsToHand(withFort, cards)
   })
