@@ -59,6 +59,24 @@ describe('gameReducer', () => {
     expect(state.players.every(player => player.shells.white === 1))
   })
 
+  it('initGame - same seed produces identical deck order and starting player', () => {
+    const payload = {
+      type: GamePhases.initGame,
+      payload: {
+        playerNames: ['Cpt', 'Arg'],
+        playerColors: ['#fff', '#000'],
+        seed: 42,
+      },
+    }
+    const a = gameReducer(gs, payload)
+    const b = gameReducer(gs, payload)
+    expect(a.deck.map(c => c.id)).toEqual(b.deck.map(c => c.id))
+    expect(a.currentPlayerIndex).toBe(b.currentPlayerIndex)
+    expect(a.players[0].hand.map(c => c.id)).toEqual(
+      b.players[0].hand.map(c => c.id),
+    )
+  })
+
   it('initDiscard - will handle initial draw phase', () => {
     let payload = {
       type: GamePhases.initDiscard,

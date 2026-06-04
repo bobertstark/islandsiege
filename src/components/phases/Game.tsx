@@ -28,6 +28,7 @@ function createInitialGameState(): IGameState {
     attackRerollsRemaining: 0,
     attackValueCounts: {},
     winningPlayerIndex: undefined,
+    rngSeed: 0,
   }
 }
 

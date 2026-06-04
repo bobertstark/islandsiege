@@ -37,4 +37,7 @@ export default interface IGameState {
   attackValueCounts: rollCounts
 
   winningPlayerIndex: number | undefined
+
+  // Server-only - not sent to clients
+  rngSeed: number
 }
