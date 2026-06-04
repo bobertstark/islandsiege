@@ -1,14 +1,8 @@
-import { IBase } from './IBase'
-import IPlayer from './IPlayer'
-import ICard from './ICard'
-import { ShellReserve } from 'game/Game'
+import IGameState from './IGameState'
 
-export default interface IGame extends IBase {
-  players: IPlayer[]
-  activePlayerIdx: number
-  turn: number
-
-  deck: ICard[]
-  discard: ICard[]
-  shellReserve: ShellReserve
+// A game record: gameID + state. Server metadata (lobby, ownership) can grow
+// here without touching IGameState.
+export default interface IGame {
+  id: string
+  state: IGameState
 }

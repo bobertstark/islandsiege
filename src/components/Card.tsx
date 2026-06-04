@@ -15,9 +15,9 @@ const Card: React.FC<CardProps> = ({ card, selected, onClick }) => (
     onClick={() => onClick?.(card.id)}>
     <div className="card-title">{card.name}</div>
     <div className="card-type">{card.type}</div>
-    {card.grid && (
+    {card.gridSpec && (
       <div className="card-grid">
-        <strong>Grid:</strong> {JSON.stringify(card.grid)}
+        <strong>Grid:</strong> {JSON.stringify(card.gridSpec)}
       </div>
     )}
     {typeof card.slots === 'number' && (

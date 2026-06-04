@@ -1,10 +1,18 @@
-import { IBaseContainer } from './IBase'
+import type { FortGridSpec, FortGridState } from './fortGrid'
+import IBuilding from './IBuilding'
 
-export type FortGridSymbol = '.' | 'G' | 'B' | 'W'
-export type FortGridSpec = [number, number, FortGridSymbol][]
-
-export default interface IFort extends IBaseContainer {
+// A fort in play: card identity, live shell grid, colonist-slot accounting,
+// and attached buildings. Total colonists are derived (fortColonists), not
+// stored. Buildings live here with no back-reference, keeping state acyclic.
+export default interface IFort {
+  id: string
+  name: string
+  type: 'fort'
+  description: string
+  gridSpec: FortGridSpec
+  grid: FortGridState
   slots: number
-  grid: FortGridSpec
-  buildings: IBaseContainer[]
+  openSlots: number
+  usedSlots: number
+  buildings: IBuilding[]
 }

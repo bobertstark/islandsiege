@@ -1,32 +1,40 @@
 import IPlayer from './IPlayer'
 import ICard from './ICard'
-import { ShellReserve } from 'game/Game'
-import { DieValue } from 'game/Die'
+import { ShellReserve } from './colors'
+import { DieValue } from './die'
 import { Phase } from './phases'
-import { rollCounts } from 'game/AttackRoll'
+import { rollCounts } from './attackRoll'
 
+// Full game state: plain data, safe to store or send over the wire.
 export default interface IGameState {
   players: IPlayer[]
-  activePlayerIdx: number
-  turn: number
-  phase: Phase
+  currentPlayerIndex: number
 
+  // Draw and discard piles
   deck: ICard[]
   discard: ICard[]
+  shuffleCount: number
+
+  phase: Phase
+
+  // Wait for all player actions to synchronize (e.g. initial discard)
+  pending?: { [playerIdx: number]: string }
+
+  // Track player protection / ship placement, once attacked
+  shipLocations: {
+    [playerIndex: number]: {
+      targetPlayerIndex?: number
+      fortID?: string
+    }
+  }
+
   shellReserve: ShellReserve
 
-  attack: IAttackState
-  winningPlayerID: string | undefined
-}
-
-interface IAttackState {
-  // Track who is eligible for attacks
-  attackedPlayerIDs: Set<string>
-
   // Current attack only
-  isOpenWaters: boolean
-  attackingPlayerID: string
-  attackedPlayerID: string | undefined
-  rollValues: DieValue[]
-  rollCounts: rollCounts
+  attackIsOpenWater: boolean
+  attackRoll: DieValue[] | undefined
+  attackRerollsRemaining: number
+  attackValueCounts: rollCounts
+
+  winningPlayerIndex: number | undefined
 }

@@ -1,22 +1,19 @@
 import ICard from './ICard'
 import IFort from './IFort'
-import { ShellReserve } from 'game/Game'
-import { IBaseContainer } from './IBase'
+import IShip from './IShip'
+import { ShellReserve } from './colors'
 
 export default interface IPlayer {
   id: string
   name: string
+  color?: string // display colour, chosen at setup
   colonists: number
   coins: number
   attackDice: number
   diceRerolls: number
 
-  // Custom interfaces & types
   hand: ICard[]
   forts: IFort[]
-  ships: IBaseContainer[]
+  ships: IShip[]
   shells: ShellReserve
-
-  // track ship
-  recentAttackedPlayerID?: string
 }
