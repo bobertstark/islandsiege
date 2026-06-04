@@ -12,7 +12,7 @@ import 'components/phases/Game.css'
 
 const SIMULTANEOUS_PHASES = new Set<string>(['initDiscard'])
 
-function useTurnState(view: IGameStateView, playerIdx: number) {
+function getTurnState(view: IGameStateView, playerIdx: number) {
   const isSimultaneous = SIMULTANEOUS_PHASES.has(view.phase)
 
   const isMyTurn = isSimultaneous
@@ -152,7 +152,7 @@ export const GamePage: React.FC = () => {
   if (!view) return <div>Connecting…</div>
 
   const playerIdx = auth.playerIdx
-  const { isMyTurn, waitingFor } = useTurnState(view, playerIdx)
+  const { isMyTurn, waitingFor } = getTurnState(view, playerIdx)
 
   switch (view.phase) {
     case GamePhases.action:

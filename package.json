@@ -24,7 +24,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:debug": "npx --node-options='--inspect-brk' jest",
-    "server:dev": "ts-node --project server/tsconfig.json server/index.ts",
+    "server:dev": "ts-node-dev --project server/tsconfig.json --require tsconfig-paths/register --respawn --transpile-only server/index.ts",
     "server:build": "tsc --project server/tsconfig.json",
     "dev": "concurrently -n server,client -c cyan,green \"npm run server:dev\" \"npm start\""
   },
@@ -59,6 +59,7 @@
     "simple-git-hooks": "^2.13.0",
     "ts-jest": "^29.3.4",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "<5"
   }
