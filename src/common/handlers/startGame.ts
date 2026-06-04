@@ -4,10 +4,31 @@ import { addFort, addCardsToHand } from 'common/player'
 import { createFortById } from 'common/cardRegistry'
 import { createRng } from 'common/rng'
 
-// Starts the game from a fully-populated lobby state.
-// Deals cards, places starting forts, picks first player.
-// Preserves player ids, names, and colors — does not recreate players.
-export function handleStartGame(state: IGameState): IGameState {
+export function handleStartGame(
+  state: IGameState,
+  payload?: { playerIdx: number },
+): IGameState {
+  if (payload !== undefined) {
+    // Lobby not full yet — readying is not allowed
+    if (state.players.length < state.playerCount) {
+      return state
+    }
+
+    const readyPlayers = state.readyPlayers.includes(payload.playerIdx)
+      ? state.readyPlayers
+      : [...state.readyPlayers, payload.playerIdx]
+
+    if (readyPlayers.length < state.players.length) {
+      return { ...state, readyPlayers }
+    }
+
+    return dealAndStart({ ...state, readyPlayers })
+  }
+
+  return dealAndStart(state)
+}
+
+function dealAndStart(state: IGameState): IGameState {
   const rng = createRng(state.rngSeed)
   let deckState = createDeck(undefined, rng.next)
   const currentPlayerIndex = Math.floor(rng.next() * state.players.length)

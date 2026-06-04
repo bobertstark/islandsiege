@@ -70,6 +70,34 @@ describe('handleStartGame', () => {
     expect(result.currentPlayerIndex).toBeLessThan(lobby.players.length)
   })
 
+  it('ignores ready before lobby is full', () => {
+    // lobbyState() has 2 players but playerCount matches — make it underfull
+    const state = { ...lobbyState(), playerCount: 3 }
+    const result = handleStartGame(state, { playerIdx: 0 })
+    expect(result.readyPlayers).toEqual([])
+    expect(result.phase).toBe(GamePhases.lobby)
+  })
+
+  it('adds playerIdx to readyPlayers once lobby is full', () => {
+    const result = handleStartGame(lobbyState(), { playerIdx: 0 })
+    expect(result.phase).toBe(GamePhases.lobby)
+    expect(result.readyPlayers).toEqual([0])
+  })
+
+  it('does not duplicate a playerIdx already in readyPlayers', () => {
+    const state = { ...lobbyState(), readyPlayers: [0] }
+    const result = handleStartGame(state, { playerIdx: 0 })
+    expect(result.readyPlayers).toEqual([0])
+    expect(result.phase).toBe(GamePhases.lobby)
+  })
+
+  it('starts the game when the last player goes ready', () => {
+    const state = { ...lobbyState(), readyPlayers: [0] }
+    const result = handleStartGame(state, { playerIdx: 1 })
+    expect(result.phase).toBe(GamePhases.initDiscard)
+    result.players.forEach(p => expect(p.hand).toHaveLength(3))
+  })
+
   it('is deterministic for a fixed rngSeed', () => {
     const lobby = { ...lobbyState(), rngSeed: 12345 }
     const r1 = handleStartGame(lobby)
