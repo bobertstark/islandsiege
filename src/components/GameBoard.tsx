@@ -9,8 +9,8 @@ interface GameBoardProps {
 }
 
 // Normalize IPlayerView to IPlayer by coercing hand to an array
-function toIPlayer(p: IPlayerView): IPlayer {
-  return { ...p, hand: Array.isArray(p.hand) ? p.hand : [] }
+function toIPlayer(p: IPlayerView, idx: number): IPlayer {
+  return { ...p, id: String(idx), hand: Array.isArray(p.hand) ? p.hand : [] }
 }
 
 const SIMULTANEOUS_PHASES = new Set(['initDiscard'])
@@ -54,8 +54,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
           const isActive = isSimultaneousPhase ? !isPending : idx === activeIdx
           return (
             <PlayerPanel
-              key={player.id}
-              player={toIPlayer(player)}
+              key={idx}
+              player={toIPlayer(player, idx)}
               color={player.color}
               active={isActive}
               onCardSelect={

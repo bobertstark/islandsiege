@@ -6,9 +6,9 @@ export function redactStateForPlayer(
   viewerIdx: number,
 ): IGameStateView {
   const players: IPlayerView[] = state.players.map((p, i) => {
-    const { hand, ...rest } = p
+    const { hand, id: _id, ...rest } = p
     return i === viewerIdx
-      ? { ...rest, hand } // own hand: full
+      ? { ...rest, hand } // own hand: full; id omitted (client already has it)
       : { ...rest, hand: hand.length } // opponent: count only
   })
 

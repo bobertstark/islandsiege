@@ -7,7 +7,7 @@ import { rollCounts } from './attackRoll'
 
 // Per-player view: hidden information removed.
 // deck → deckCount; opponents' hands → count; own hand + discard in full.
-export interface IPlayerView extends Omit<IPlayer, 'hand'> {
+export interface IPlayerView extends Omit<IPlayer, 'hand' | 'id'> {
   hand: ICard[] | number
 }
 
