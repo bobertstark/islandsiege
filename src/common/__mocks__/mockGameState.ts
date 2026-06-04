@@ -21,6 +21,7 @@ export const mockGameState = (
     attackRoll: ['B', 'B', 'B'],
     attackRerollsRemaining: 1,
     attackValueCounts: { B: 3, W: 0, G: 0, T: 0, L: 0 },
+    rngSeed: 0,
     ...overrides,
   }
 }

@@ -5,8 +5,10 @@ import {
   reshuffleDiscards,
   deckIncludes,
   extractCard,
+  shuffle,
   DeckState,
 } from '../deck'
+import { createRng } from '../rng'
 
 describe('deck', () => {
   let deck: DeckState
@@ -60,6 +62,21 @@ describe('deck', () => {
 
   it('throws when drawing more than exist', () => {
     expect(() => drawCards(deck, 37)).toThrow('No cards left to draw')
+  })
+
+  it('shuffle with fixed rng produces deterministic order', () => {
+    const cards = [1, 2, 3, 4, 5]
+    const a = shuffle(cards, createRng(7).next)
+    const b = shuffle(cards, createRng(7).next)
+    expect(a).toEqual(b)
+  })
+
+  it('createDeck with fixed rng produces deterministic deck order', () => {
+    const rngA = createRng(123)
+    const rngB = createRng(123)
+    const a = createDeck(undefined, rngA.next.bind(rngA))
+    const b = createDeck(undefined, rngB.next.bind(rngB))
+    expect(a.deck.map(c => c.id)).toEqual(b.deck.map(c => c.id))
   })
 
   it('searches and extracts cards', () => {

@@ -19,26 +19,32 @@ export function loadCards(exclude: string[] = DEFAULT_EXCLUDE): ICard[] {
 }
 
 // Fisher–Yates
-export function shuffle<T>(cards: T[]): T[] {
+export function shuffle<T>(cards: T[], rng: () => number = Math.random): T[] {
   const out = [...cards]
   for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
+    const j = Math.floor(rng() * (i + 1))
     ;[out[i], out[j]] = [out[j], out[i]]
   }
   return out
 }
 
-export function createDeck(exclude: string[] = DEFAULT_EXCLUDE): DeckState {
+export function createDeck(
+  exclude: string[] = DEFAULT_EXCLUDE,
+  rng?: () => number,
+): DeckState {
   return {
-    deck: shuffle(loadCards(exclude)),
+    deck: shuffle(loadCards(exclude), rng),
     discard: [],
     shuffleCount: 1,
   }
 }
 
-export function reshuffleDiscards(state: DeckState): DeckState {
+export function reshuffleDiscards(
+  state: DeckState,
+  rng?: () => number,
+): DeckState {
   return {
-    deck: [...state.deck, ...shuffle(state.discard)],
+    deck: [...state.deck, ...shuffle(state.discard, rng)],
     discard: [],
     shuffleCount: state.shuffleCount + 1,
   }
@@ -48,13 +54,14 @@ export function reshuffleDiscards(state: DeckState): DeckState {
 export function drawCards(
   state: DeckState,
   count: number = 1,
+  rng?: () => number,
 ): { cards: ICard[]; state: DeckState } {
   let current = state
   const drawn: ICard[] = []
 
   for (let i = 0; i < count; i++) {
     if (current.deck.length <= 0) {
-      current = reshuffleDiscards(current)
+      current = reshuffleDiscards(current, rng)
     }
     const [card, ...rest] = current.deck
     if (!card) {
