@@ -1,6 +1,6 @@
 import IGameState from 'common/IGameState'
 import { createFortById } from 'common/cardRegistry'
-import { addFort, findFort } from 'common/player'
+import { addFort } from 'common/player'
 import { buildSpec, FortGridSpec } from 'common/fortGrid'
 import { symbolToColor } from 'common/colors'
 import IFort from 'common/IFort'
