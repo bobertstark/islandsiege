@@ -12,6 +12,7 @@ export const mockGameState = (
       createPlayer('1', 'Barbarossa'),
     ],
     playerCount: 2,
+    readyPlayers: [],
     currentPlayerIndex: 0,
     deck: deckState.deck,
     discard: deckState.discard,

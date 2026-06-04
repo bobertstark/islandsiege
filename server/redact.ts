@@ -14,6 +14,8 @@ export function redactStateForPlayer(
 
   return {
     players,
+    playerCount: state.phase === 'lobby' ? state.playerCount : undefined,
+    readyPlayers: state.readyPlayers,
     currentPlayerIndex: state.currentPlayerIndex,
     deckCount: state.deck.length,
     discard: state.discard,

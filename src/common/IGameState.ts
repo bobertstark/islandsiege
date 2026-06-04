@@ -9,6 +9,7 @@ import { rollCounts } from './attackRoll'
 export default interface IGameState {
   players: IPlayer[]
   playerCount: number
+  readyPlayers: number[] // lobby only — indices of players who have confirmed ready
   currentPlayerIndex: number
 
   // Draw and discard piles

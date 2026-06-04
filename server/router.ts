@@ -20,6 +20,7 @@ router.post('/games', (req, res) => {
   const deckState = createDeck()
   const initial: IGameState = {
     playerCount,
+    readyPlayers: [],
     players: [],
     currentPlayerIndex: 0,
     deck: deckState.deck,
