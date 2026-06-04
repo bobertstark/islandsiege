@@ -23,20 +23,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
     [playerIdx: number]: string | undefined
   }>({})
 
-  let activePlayerNames: string[] = []
-  if (isSimultaneousPhase) {
-    activePlayerNames = players
-      .map((player, idx) => {
-        const isPending =
-          state.pending &&
-          (state.pending as Record<number, any>)[idx] !== undefined
-        return !isPending ? player.name : null
-      })
-      .filter((name): name is string => !!name)
-  } else {
-    activePlayerNames = [players[activeIdx]?.name]
-  }
-
   const handleCardSelect = (playerIdx: number, cardID: string) => {
     setSelectedCardIDs(prev => ({ ...prev, [playerIdx]: cardID }))
     dispatch({ type: 'initDiscard', payload: { playerIdx, cardID } })
@@ -44,8 +30,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
 
   return (
     <div style={{ padding: 20, position: 'relative' }}>
-      <h1>Current Phase: {state.phase}</h1>
-      <h2>Active Player(s): {activePlayerNames.join(', ')}</h2>
       <div style={{ display: 'flex', gap: 40 }}>
         {players.map((player, idx) => {
           const isPending =
