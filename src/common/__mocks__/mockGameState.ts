@@ -17,6 +17,7 @@ export const mockGameState = (
     deck: deckState.deck,
     discard: deckState.discard,
     shuffleCount: deckState.shuffleCount,
+    drawnCards: [],
     phase: 'initGame',
     winningPlayerIndex: undefined,
     pending: {},

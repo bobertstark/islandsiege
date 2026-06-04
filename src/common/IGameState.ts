@@ -17,6 +17,9 @@ export default interface IGameState {
   discard: ICard[]
   shuffleCount: number
 
+  // Cards drawn this turn — shown separately from hand until player discards one
+  drawnCards: ICard[]
+
   phase: Phase
 
   // Wait for all player actions to synchronize (e.g. initial discard)

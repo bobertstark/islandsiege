@@ -63,11 +63,23 @@ export function attachWebSocket(wss: WebSocketServer): void {
                   color: (msg.action.payload as any)?.color,
                 },
               }
-            : msg.action
+            : msg.action.type === 'initDiscard'
+              ? {
+                  type: 'initDiscard' as const,
+                  payload: {
+                    playerIdx,
+                    cardID: (msg.action.payload as any)?.cardID,
+                  },
+                }
+              : msg.action
 
-      const next = gameReducer(current, action as any)
-      setGame(gameId, next)
-      broadcastState(gameId, next)
+      const AUTO_PHASES = new Set(['victory'])
+      let result = gameReducer(current, action as any)
+      while (AUTO_PHASES.has(result.phase)) {
+        result = gameReducer(result, { type: result.phase as any })
+      }
+      setGame(gameId, result)
+      broadcastState(gameId, result)
     })
 
     ws.on('close', () => {

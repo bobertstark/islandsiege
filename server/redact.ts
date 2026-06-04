@@ -20,6 +20,7 @@ export function redactStateForPlayer(
     deckCount: state.deck.length,
     discard: state.discard,
     shuffleCount: state.shuffleCount,
+    drawnCards: state.drawnCards,
     phase: state.phase,
     pending: state.pending,
     shipLocations: state.shipLocations,

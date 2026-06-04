@@ -19,6 +19,7 @@ export default interface IGameStateView {
   deckCount: number
   discard: ICard[]
   shuffleCount: number
+  drawnCards: ICard[]
   phase: Phase
   pending?: { [playerIdx: number]: string }
   shipLocations: {

@@ -39,6 +39,7 @@ router.post('/games', (req, res) => {
     deck: deckState.deck,
     discard: deckState.discard,
     shuffleCount: deckState.shuffleCount,
+    drawnCards: [],
     phase: GamePhases.lobby,
     pending: {},
     shipLocations: {},
