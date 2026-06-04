@@ -33,7 +33,6 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
         boxShadow: active ? '0 0 10px #222' : undefined,
       }}>
       <h2 style={{ color }}>{player.name}</h2>
-      <p>ID: {player.id}</p>
       <p>Colonists: {player.colonists}</p>
       <p>Coins: {player.coins}</p>
       <p>Shells:</p>
