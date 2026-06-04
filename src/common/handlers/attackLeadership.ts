@@ -1,6 +1,6 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
 
-export function handleAttackLeadership(state: GameState): GameState {
+export function handleAttackLeadership(state: IGameState): IGameState {
   // TODO: Add leadership use logic
   return {
     ...state,

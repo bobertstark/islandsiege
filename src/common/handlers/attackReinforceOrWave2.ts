@@ -1,9 +1,9 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
 
 export function handleAttackReinforceOrWave2(
-  state: GameState,
+  state: IGameState,
   payload: { choice: 'reinforce' | 'wave2' },
-): GameState {
+): IGameState {
   const remainingT = state.attackValueCounts['T'] ?? 0
   return {
     ...state,

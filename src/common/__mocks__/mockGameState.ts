@@ -1,14 +1,17 @@
-import { GameState } from 'game/GameState'
-import { Deck } from 'game/Deck'
-import { Player } from 'game/Player'
+import IGameState from 'common/IGameState'
+import { createPlayer } from 'common/player'
+import { createDeck } from 'common/deck'
 
 export const mockGameState = (
-  overrides: Partial<GameState> = {},
-): GameState => {
+  overrides: Partial<IGameState> = {},
+): IGameState => {
+  const deckState = createDeck()
   return {
-    players: [new Player('Francis Drake', 1), new Player('Barbarossa', 2)],
+    players: [createPlayer('Francis Drake', 1), createPlayer('Barbarossa', 2)],
     currentPlayerIndex: 0,
-    deck: new Deck(),
+    deck: deckState.deck,
+    discard: deckState.discard,
+    shuffleCount: deckState.shuffleCount,
     phase: 'initGame',
     winningPlayerIndex: undefined,
     pending: {},

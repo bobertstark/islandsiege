@@ -1,6 +1,6 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
 
-export function handleEndTurn(state: GameState): GameState {
+export function handleEndTurn(state: IGameState): IGameState {
   const next = (state.currentPlayerIndex + 1) % state.players.length
   return { ...state, currentPlayerIndex: next, phase: 'victory' }
 }

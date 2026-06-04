@@ -1,7 +1,10 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
+import { populateForts } from 'common/player'
 
-export function handleColonize(state: GameState): GameState {
-  const player = state.players[state.currentPlayerIndex]
-  player.populateForts()
-  return { ...state, phase: 'action' }
+export function handleColonize(state: IGameState): IGameState {
+  const players = [...state.players]
+  players[state.currentPlayerIndex] = populateForts(
+    players[state.currentPlayerIndex],
+  )
+  return { ...state, players, phase: 'action' }
 }

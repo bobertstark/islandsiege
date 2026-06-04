@@ -1,33 +1,34 @@
-import { Deck } from '../../game/Deck'
-import { GameState } from 'game/GameState'
-import { Player } from 'game/Player'
-import { FortRegistry } from 'game/forts'
+import IGameState from 'common/IGameState'
+import { createDeck, drawCards } from 'common/deck'
+import { createPlayer, addFort, addCardsToHand } from 'common/player'
+import { createFortById } from 'common/cardRegistry'
 
 export function handleInitGame(
-  state: GameState,
+  state: IGameState,
   payload: { playerNames: string[]; playerColors: string[] },
-): GameState {
+): IGameState {
   const { playerNames, playerColors } = payload
   // TODO: Seed randomness
-  const players = playerNames.map(
-    (name, idx) => new Player(name, idx + 1, { color: playerColors[idx] }),
-  )
-  const deck = new Deck()
-  const currentPlayerIndex = Math.floor(Math.random() * players.length)
+  let deckState = createDeck()
+  const currentPlayerIndex = Math.floor(Math.random() * playerNames.length)
 
-  players.forEach(player => {
-    const fort = new FortRegistry.startingFort()
-    player.addFort(fort)
-    player.shells = { ...player.shells, black: 1, white: 1 }
-    player.addCardsToHand(deck.draw(3))
+  const players = playerNames.map((name, idx) => {
+    const base = createPlayer(name, idx + 1, { color: playerColors[idx] })
+    const fort = createFortById('startingFort')
+    const withFort = addFort({ ...base, shells: { black: 1, white: 1 } }, fort)
+    const { cards, state: next } = drawCards(deckState, 3)
+    deckState = next
+    return addCardsToHand(withFort, cards)
   })
 
   return {
     ...state,
     players,
-    deck,
+    deck: deckState.deck,
+    discard: deckState.discard,
+    shuffleCount: deckState.shuffleCount,
     currentPlayerIndex,
-    shellReserve: { black: 5, white: 5, gray: 5 }, // regardless of player count
+    shellReserve: { black: 5, white: 5, gray: 5 },
     phase: 'initDiscard',
   }
 }

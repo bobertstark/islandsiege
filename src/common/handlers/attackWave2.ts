@@ -1,9 +1,11 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
+import { findFort } from 'common/player'
+import { destroyAt } from 'common/fortGrid'
 
 export function handleAttackWave2(
-  state: GameState,
+  state: IGameState,
   payload: { attackLocs: [number, number][] },
-): GameState {
+): IGameState {
   const numT = state.attackValueCounts['T'] ?? 0
   if (payload.attackLocs.length !== numT) {
     throw new Error(
@@ -13,10 +15,20 @@ export function handleAttackWave2(
 
   const { targetPlayerIndex, fortID } =
     state.shipLocations[state.currentPlayerIndex]!
-  const target = state.players[targetPlayerIndex!]
-  const targetFort = target.findFort(fortID!)
+  const players = [...state.players]
+  const target = players[targetPlayerIndex!]
+  const fort = findFort(target, fortID!)
 
-  payload.attackLocs.forEach(loc => targetFort.grid.destroyAt(loc))
+  let grid = fort.grid
+  for (const loc of payload.attackLocs) {
+    grid = destroyAt(grid, loc)
+  }
 
-  return { ...state, phase: 'attackDestroy' }
+  const updatedFort = { ...fort, grid }
+  players[targetPlayerIndex!] = {
+    ...target,
+    forts: target.forts.map(f => (f.id === fortID ? updatedFort : f)),
+  }
+
+  return { ...state, players, phase: 'attackDestroy' }
 }

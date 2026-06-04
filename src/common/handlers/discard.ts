@@ -1,13 +1,19 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
+import { removeCardInHand, addCardsToHand } from 'common/player'
 
 export function handleDiscard(
-  state: GameState,
+  state: IGameState,
   payload: { targetPlayerIndex: number; cardID: string },
-): GameState {
-  const player = state.players[state.currentPlayerIndex]
-  const target = state.players[payload.targetPlayerIndex]
-  const removed = player.removeCardInHand(payload.cardID)
-  player.drawCache = []
-  target.addCardsToHand([removed])
-  return { ...state, phase: 'endTurn' }
+): IGameState {
+  const players = [...state.players]
+  const { player: fromPlayer, card } = removeCardInHand(
+    players[state.currentPlayerIndex],
+    payload.cardID,
+  )
+  players[state.currentPlayerIndex] = fromPlayer
+  players[payload.targetPlayerIndex] = addCardsToHand(
+    players[payload.targetPlayerIndex],
+    [card],
+  )
+  return { ...state, players, phase: 'endTurn' }
 }

@@ -1,9 +1,9 @@
-import { GameState } from 'game/GameState'
+import IGameState from 'common/IGameState'
 
 export function handleAction(
-  state: GameState,
+  state: IGameState,
   payload: { actionChosen: string },
-): GameState {
+): IGameState {
   const action = payload.actionChosen
   switch (action) {
     // TODO: Verify action is valid for player prior to returning

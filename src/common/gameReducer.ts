@@ -1,4 +1,4 @@
-import type { GameState } from '../game/GameState'
+import IGameState from 'common/IGameState'
 import type { Phase } from 'common/phases'
 import { GamePhases } from 'common/phases'
 
@@ -24,9 +24,9 @@ import { handleAttackDestroy } from 'common/handlers/attackDestroy'
 import { handleEndTurn } from 'common/handlers/endTurn'
 
 export function gameReducer(
-  state: GameState,
+  state: IGameState,
   phase: { type: Phase; payload?: any },
-): GameState {
+): IGameState {
   switch (phase.type) {
     case GamePhases.initGame:
       return handleInitGame(state, phase.payload)
