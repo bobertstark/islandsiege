@@ -77,18 +77,20 @@ export const InitPhase: React.FC<InitPhaseProps> = ({
         />
       </div>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <div style={{ marginBottom: 32 }}>
-        <h2>Create Game</h2>
-        {[2, 3, 4].map(n => (
-          <button
-            key={n}
-            onClick={() => handleCreate(n)}
-            disabled={loading || !nameOk}
-            style={{ marginRight: 8 }}>
-            {n} Players
-          </button>
-        ))}
-      </div>
+      {!prefilledGameId && (
+        <div style={{ marginBottom: 32 }}>
+          <h2>Create Game</h2>
+          {[2, 3, 4].map(n => (
+            <button
+              key={n}
+              onClick={() => handleCreate(n)}
+              disabled={loading || !nameOk}
+              style={{ marginRight: 8 }}>
+              {n} Players
+            </button>
+          ))}
+        </div>
+      )}
       <div>
         <h2>Join Game</h2>
         <input

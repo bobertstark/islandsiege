@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
 import { PLAYER_COLORS } from 'common/colors'
 import ColorPicker from 'components/ColorPicker'
@@ -20,6 +20,15 @@ export const LobbyPhase: React.FC<LobbyPhaseProps> = ({
   const allJoined =
     view.playerCount !== undefined && view.players.length >= view.playerCount
   const isReady = view.readyPlayers.includes(playerIdx)
+  const [copied, setCopied] = useState(false)
+  const joinUrl = `${window.location.origin}/?join=${gameId}`
+
+  function copyLink() {
+    navigator.clipboard.writeText(joinUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   const takenColors = view.players
     .filter((_, i) => i !== playerIdx)
@@ -31,6 +40,9 @@ export const LobbyPhase: React.FC<LobbyPhaseProps> = ({
       <h1>Island Siege — Lobby</h1>
       <p>
         Game ID: <strong>{gameId}</strong>
+        <button onClick={copyLink} style={{ marginLeft: 12 }}>
+          {copied ? 'Copied!' : 'Copy invite link'}
+        </button>
       </p>
       <h3>
         Players ({view.players.length}/{view.playerCount ?? '?'})
