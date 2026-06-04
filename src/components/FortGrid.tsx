@@ -1,4 +1,4 @@
-import type { FortGridCell } from '../game/FortGrid'
+import type { FortGridCell } from 'common/fortGrid'
 import { ShellColors } from '../common/colors'
 import './shared.css'
 

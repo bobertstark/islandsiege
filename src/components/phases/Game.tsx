@@ -4,18 +4,39 @@ import './Game.css'
 import '../shared.css'
 import { InitPhase } from './InitPhase'
 import { GamePhases } from 'common/phases'
-import { createInitialGameState } from 'game/GameState'
 import { gameReducer } from 'common/gameReducer'
+import { createDeck } from 'common/deck'
+import IGameState from 'common/IGameState'
 import GameBoard from '../GameBoard'
 import { Deck, Discard } from '../Deck'
 import { ActionPhase } from './ActionPhase'
+
+function createInitialGameState(): IGameState {
+  const deckState = createDeck()
+  return {
+    players: [],
+    currentPlayerIndex: 0,
+    deck: deckState.deck,
+    discard: deckState.discard,
+    shuffleCount: deckState.shuffleCount,
+    phase: GamePhases.initGame,
+    pending: {},
+    shipLocations: {},
+    shellReserve: {} as any,
+    attackIsOpenWater: false,
+    attackRoll: undefined,
+    attackRerollsRemaining: 0,
+    attackValueCounts: {},
+    winningPlayerIndex: undefined,
+  }
+}
 
 const MainGame = ({ state, dispatch }: any) => (
   <div className="game-container">
     <h1>Island Siege</h1>
     <div className="game-header">
-      <Deck count={state.deck?.remaining} onDraw={() => {}} />
-      <Discard count={state.deck?.discard?.length ?? 0} />
+      <Deck count={state.deck?.length} onDraw={() => {}} />
+      <Discard count={state.discard?.length ?? 0} />
     </div>
     <GameBoard state={state} dispatch={dispatch} />
   </div>
@@ -53,7 +74,6 @@ const Game: React.FC = () => {
         }
         return <MainGame state={state} dispatch={dispatch} />
       case GamePhases.initDistribute:
-        // rerender player panels from state
         return <MainGame state={state} dispatch={dispatch} />
       case GamePhases.action:
         return <ActionPhase state={state} dispatch={dispatch} />

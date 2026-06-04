@@ -1,5 +1,5 @@
 import React from 'react'
-import { Player } from '../game/Player'
+import IPlayer from 'common/IPlayer'
 import Fort from './Fort'
 import Building from './Building'
 import Ship from './Ship'
@@ -7,7 +7,7 @@ import Hand from './Hand'
 import PlayerShip from './PlayerShip'
 
 interface PlayerPanelProps {
-  player: Player
+  player: IPlayer
   color?: string
   active?: boolean
   onCardSelect?: (cardID: string) => void
@@ -21,6 +21,8 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
   onCardSelect,
   selectedCardID,
 }) => {
+  const buildings = player.forts.flatMap(f => f.buildings)
+
   return (
     <div
       style={{
@@ -59,10 +61,10 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
           ))
         )}
         <h3>Buildings</h3>
-        {player.buildings?.length === 0 ? (
+        {buildings.length === 0 ? (
           <p>None</p>
         ) : (
-          player.buildings?.map((building, i) => (
+          buildings.map((building, i) => (
             <Building key={building.id ?? i} building={building} />
           ))
         )}

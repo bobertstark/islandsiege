@@ -1,10 +1,10 @@
 import React from 'react'
 import Card from './Card'
-import { Card as CardType } from 'game/Card'
+import ICard from 'common/ICard'
 import './shared.css'
 
 interface HandProps {
-  cards: CardType[]
+  cards: ICard[]
   onCardSelect?: (cardID: string) => void
   selectedCardID?: string
 }

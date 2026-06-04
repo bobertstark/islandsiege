@@ -2,7 +2,7 @@ import { gameReducer } from '../gameReducer'
 import { GamePhases } from '../phases'
 
 import type IGameState from 'common/IGameState'
-import type { CardType } from 'game/Card'
+type CardType = 'building' | 'fort' | 'ship'
 import { createFort } from 'common/fort'
 import { fortColonists, fortShellsRemaining } from 'common/fort'
 import { addFort, findFort, populateForts } from 'common/player'

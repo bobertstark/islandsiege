@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import PlayerPanel from './PlayerPanel'
-import { GameState } from '../game/GameState'
+import IGameState from 'common/IGameState'
 
 interface GameBoardProps {
-  state: GameState
+  state: IGameState
   dispatch: React.Dispatch<any>
 }
 
