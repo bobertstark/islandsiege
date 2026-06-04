@@ -9,19 +9,26 @@ import { ActionPhase } from 'components/phases/ActionPhase'
 import 'components/phases/Game.css'
 
 const ColonizePhase: React.FC<{
+  isMyTurn: boolean
+  activePlayerName: string
   dispatch: (action: { type: string }) => void
-}> = ({ dispatch }) => {
+}> = ({ isMyTurn, activePlayerName, dispatch }) => {
   useEffect(() => {
+    if (!isMyTurn) return
     const timer = setTimeout(() => dispatch({ type: 'colonize' }), 1500)
     return () => clearTimeout(timer)
-  }, [dispatch])
+  }, [isMyTurn, dispatch])
 
   return (
     <div
       className="game-container"
       style={{ textAlign: 'center', paddingTop: 80 }}>
       <h2>Colonizing…</h2>
-      <p>Placing colonists on your forts.</p>
+      <p>
+        {isMyTurn
+          ? 'Placing colonists on your forts.'
+          : `Waiting for ${activePlayerName} to colonize…`}
+      </p>
     </div>
   )
 }
@@ -48,11 +55,23 @@ export const GamePage: React.FC = () => {
   if (error) return <div className="error">Error: {error}</div>
   if (!view) return <div>Connecting…</div>
 
+  const playerIdx = auth.playerIdx
+  const isMyTurn = view.currentPlayerIndex === playerIdx
+  const activePlayerName = view.players[view.currentPlayerIndex]?.name ?? ''
+
   switch (view.phase) {
     case GamePhases.action:
-      return <ActionPhase state={view as any} dispatch={dispatch} />
+      return (
+        <ActionPhase state={view} playerIdx={playerIdx} dispatch={dispatch} />
+      )
     case GamePhases.colonize:
-      return <ColonizePhase dispatch={dispatch} />
+      return (
+        <ColonizePhase
+          isMyTurn={isMyTurn}
+          activePlayerName={activePlayerName}
+          dispatch={dispatch}
+        />
+      )
     default:
       return (
         <div className="game-container">
