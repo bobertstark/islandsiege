@@ -3,6 +3,7 @@ import type { Phase } from 'common/phases'
 import { GamePhases } from 'common/phases'
 
 import { handleInitGame } from 'common/handlers/initGame'
+import { handleStartGame } from 'common/handlers/startGame'
 import { handleInitDiscard } from 'common/handlers/initDiscard'
 import { handleInitDistribute } from 'common/handlers/initDistribute'
 import { handleDraw } from 'common/handlers/draw'
@@ -28,6 +29,8 @@ export function gameReducer(
   phase: { type: Phase; payload?: any },
 ): IGameState {
   switch (phase.type) {
+    case GamePhases.startGame:
+      return handleStartGame(state, phase.payload)
     case GamePhases.initGame:
       return handleInitGame(state, phase.payload)
     case GamePhases.initDiscard:

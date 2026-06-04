@@ -1,14 +1,27 @@
 import { Router } from 'express'
 import { randomBytes } from 'crypto'
 import { createGame, getGame, setGame } from './gameRegistry'
+import { broadcastToGame } from './socketHandler'
 import { createPlayer } from 'common/player'
-import { gameReducer } from 'common/gameReducer'
 import { GamePhases } from 'common/phases'
 import { createDeck } from 'common/deck'
 import { generateSeed } from 'common/rng'
 import IGameState from 'common/IGameState'
 
 const router = Router()
+
+// GET /api/games/:id/lobby — unauthenticated peek: player count + joined players
+router.get('/games/:id/lobby', (req, res) => {
+  const state = getGame(req.params.id)
+  if (!state) {
+    res.status(404).json({ error: 'game not found' })
+    return
+  }
+  res.json({
+    playerCount: state.playerCount,
+    players: state.players.map(p => ({ name: p.name, color: p.color ?? null })),
+  })
+})
 
 // POST /api/games — open a lobby for playerCount players
 router.post('/games', (req, res) => {
@@ -26,7 +39,7 @@ router.post('/games', (req, res) => {
     deck: deckState.deck,
     discard: deckState.discard,
     shuffleCount: deckState.shuffleCount,
-    phase: GamePhases.initGame,
+    phase: GamePhases.lobby,
     pending: {},
     shipLocations: {},
     shellReserve: {},
@@ -41,7 +54,7 @@ router.post('/games', (req, res) => {
   res.json({ gameId })
 })
 
-// POST /api/games/:id/join — add a named player; start game when lobby is full
+// POST /api/games/:id/join — add a named player; transition to lobby once full
 router.post('/games/:id/join', (req, res) => {
   const state = getGame(req.params.id)
   if (!state) {
@@ -69,29 +82,11 @@ router.post('/games/:id/join', (req, res) => {
   const updated: IGameState = {
     ...state,
     players: [...state.players, player],
+    phase: GamePhases.lobby,
   }
 
-  let final: IGameState
-  if (updated.players.length === updated.playerCount) {
-    // Run initGame to deal cards and pick first player; then restore stable player IDs
-    const stableIds = updated.players.map(p => p.id)
-    const initialized = gameReducer(updated, {
-      type: GamePhases.initGame,
-      payload: {
-        playerNames: updated.players.map(p => p.name),
-        playerColors: updated.players.map(p => p.color ?? ''),
-      },
-    })
-    // handleInitGame recreates players with idx-based ids; restore the original tokens
-    final = {
-      ...initialized,
-      players: initialized.players.map((p, i) => ({ ...p, id: stableIds[i] })),
-    }
-  } else {
-    final = updated
-  }
-
-  setGame(req.params.id, final)
+  setGame(req.params.id, updated)
+  broadcastToGame(req.params.id, updated)
   res.json({ playerIdx: state.players.length, playerId })
 })
 

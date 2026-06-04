@@ -40,12 +40,24 @@ export function attachWebSocket(wss: WebSocketServer): void {
       const current = getGame(gameId)
       if (!current) return
 
-      if (current.currentPlayerIndex !== playerIdx) {
+      // Actions any player can dispatch regardless of turn order
+      const nonTurnActions = new Set(['initDiscard', 'startGame'])
+
+      if (
+        !nonTurnActions.has(msg.action.type) &&
+        current.currentPlayerIndex !== playerIdx
+      ) {
         send(ws, 'error', 'not your turn')
         return
       }
 
-      const next = gameReducer(current, msg.action as any)
+      // For startGame, server injects the sender's playerIdx to prevent spoofing
+      const action =
+        msg.action.type === 'startGame'
+          ? { type: 'startGame' as const, payload: { playerIdx } }
+          : msg.action
+
+      const next = gameReducer(current, action as any)
       setGame(gameId, next)
       broadcastState(gameId, next)
     })
@@ -69,4 +81,8 @@ function broadcastState(gameId: string, state: IGameState): void {
   for (const { ws, playerIdx } of gameSockets.get(gameId) ?? []) {
     send(ws, 'state', redactStateForPlayer(state, playerIdx))
   }
+}
+
+export function broadcastToGame(gameId: string, state: IGameState): void {
+  broadcastState(gameId, state)
 }

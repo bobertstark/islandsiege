@@ -18,6 +18,7 @@
 
 export type Phase =
   | 'lobby'
+  | 'startGame'
   | 'initGame'
   | 'resetGame'
   | 'initDiscard'
@@ -44,6 +45,7 @@ export type Phase =
 export const GamePhases = {
   // Game Setup
   lobby: 'lobby',
+  startGame: 'startGame',
   initGame: 'initGame',
   resetGame: 'resetGame',
   initDiscard: 'initDiscard',
