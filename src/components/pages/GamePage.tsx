@@ -3,16 +3,36 @@ import { useParams } from 'react-router-dom'
 import { useGameSocket } from 'hooks/useGameSocket'
 import { loadAuth } from 'hooks/useGameAuth'
 import { GamePhases } from 'common/phases'
+import { DieValue } from 'common/die'
 import IGameStateView from 'common/IGameStateView'
 import GameBoard from 'components/GameBoard'
 import Card from 'components/Card'
 import { Deck, Discard } from 'components/Deck'
 import { ActionPhase } from 'components/phases/ActionPhase'
 import { AttackStartPhase } from 'components/phases/AttackStartPhase'
+import AttackRollPanel from 'components/AttackRollPanel'
 import { TurnBanner } from 'components/TurnBanner'
 import 'components/phases/Game.css'
 
 const SIMULTANEOUS_PHASES = new Set<string>(['initDiscard'])
+
+const ATTACK_DISPLAY_PHASES = new Set<string>([
+  GamePhases.attackLeadership,
+  GamePhases.attackWave1,
+  GamePhases.attackReinforceOrWave2,
+  GamePhases.attackReinforce,
+  GamePhases.attackWave2,
+  GamePhases.attackDestroy,
+])
+
+// Expand rollCounts back to a flat DieValue array for display
+function countsToArray(
+  counts: IGameStateView['attackValueCounts'],
+): DieValue[] {
+  return (Object.entries(counts) as [DieValue, number][]).flatMap(
+    ([face, count]) => Array<DieValue>(count).fill(face),
+  )
+}
 
 function getTurnState(view: IGameStateView, playerIdx: number) {
   const isSimultaneous = SIMULTANEOUS_PHASES.has(view.phase)
@@ -160,6 +180,47 @@ const DiscardPhase: React.FC<{
   )
 }
 
+const AttackRollPhase: React.FC<{
+  view: IGameStateView
+  isMyTurn: boolean
+  waitingFor: string[]
+  dispatch: (action: { type: string; payload?: unknown }) => void
+}> = ({ view, isMyTurn, waitingFor, dispatch }) => {
+  useEffect(() => {
+    if (isMyTurn && view.attackRoll === undefined) {
+      dispatch({ type: 'attackRoll', payload: { action: 'init' } })
+    }
+  }, [isMyTurn, view.attackRoll, dispatch])
+
+  useEffect(() => {
+    if (
+      isMyTurn &&
+      view.attackRoll !== undefined &&
+      view.attackRerollsRemaining === 0
+    ) {
+      dispatch({ type: 'attackRoll', payload: { action: 'keep' } })
+    }
+  }, [isMyTurn, view.attackRoll, view.attackRerollsRemaining, dispatch])
+
+  return (
+    <div className="game-container">
+      <TurnBanner
+        phase={view.phase}
+        isMyTurn={isMyTurn}
+        waitingFor={waitingFor}
+      />
+      {isMyTurn && view.attackRoll !== undefined && (
+        <AttackRollPanel
+          dice={view.attackRoll}
+          rerollsRemaining={view.attackRerollsRemaining}
+          dispatch={dispatch}
+        />
+      )}
+      <GameBoard state={view} dispatch={dispatch} />
+    </div>
+  )
+}
+
 export const GamePage: React.FC = () => {
   const { gameId = '' } = useParams<{ gameId: string }>()
   const auth = loadAuth(gameId)
@@ -233,7 +294,19 @@ export const GamePage: React.FC = () => {
           dispatch={dispatch}
         />
       )
-    default:
+    case GamePhases.attackRoll:
+      return (
+        <AttackRollPhase
+          view={view}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
+    default: {
+      const attackDice = ATTACK_DISPLAY_PHASES.has(view.phase)
+        ? countsToArray(view.attackValueCounts)
+        : []
       return (
         <div className="game-container">
           <TurnBanner
@@ -241,6 +314,14 @@ export const GamePage: React.FC = () => {
             isMyTurn={isMyTurn}
             waitingFor={waitingFor}
           />
+          {attackDice.length > 0 && (
+            <AttackRollPanel
+              dice={attackDice}
+              rerollsRemaining={0}
+              dispatch={dispatch}
+              readonly
+            />
+          )}
           <div className="game-header">
             <Deck count={view.deckCount} onDraw={() => {}} />
             <Discard count={view.discard?.length ?? 0} />
@@ -248,5 +329,6 @@ export const GamePage: React.FC = () => {
           <GameBoard state={view} dispatch={dispatch} />
         </div>
       )
+    }
   }
 }

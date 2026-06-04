@@ -28,6 +28,16 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
     dispatch({ type: 'initDiscard', payload: { playerIdx, cardID } })
   }
 
+  // Build a map: defenderIdx → list of attacker colors docked there
+  const dockedShipsMap: Record<number, { color?: string }[]> = {}
+  for (const [attackerIdxStr, loc] of Object.entries(state.shipLocations)) {
+    if (loc.targetPlayerIndex === undefined) continue
+    const attackerIdx = Number(attackerIdxStr)
+    const defenderIdx = loc.targetPlayerIndex
+    if (!dockedShipsMap[defenderIdx]) dockedShipsMap[defenderIdx] = []
+    dockedShipsMap[defenderIdx].push({ color: players[attackerIdx]?.color })
+  }
+
   return (
     <div style={{ padding: 20, position: 'relative' }}>
       <div style={{ display: 'flex', gap: 40 }}>
@@ -36,6 +46,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
             state.pending &&
             (state.pending as Record<number, any>)[idx] !== undefined
           const isActive = isSimultaneousPhase ? !isPending : idx === activeIdx
+          const shipIsAway =
+            state.shipLocations[idx]?.targetPlayerIndex !== undefined
+          const dockedShips = dockedShipsMap[idx] ?? []
           return (
             <PlayerPanel
               key={idx}
@@ -48,6 +61,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
                   : undefined
               }
               selectedCardID={selectedCardIDs[idx]}
+              shipIsAway={shipIsAway}
+              dockedShips={dockedShips}
             />
           )
         })}

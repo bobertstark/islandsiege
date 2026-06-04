@@ -12,6 +12,8 @@ interface PlayerPanelProps {
   active?: boolean
   onCardSelect?: (cardID: string) => void
   selectedCardID?: string
+  shipIsAway?: boolean
+  dockedShips?: { color?: string }[]
 }
 
 const PlayerPanel: React.FC<PlayerPanelProps> = ({
@@ -20,6 +22,8 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
   active,
   onCardSelect,
   selectedCardID,
+  shipIsAway = false,
+  dockedShips = [],
 }) => {
   const buildings = player.forts.flatMap(f => f.buildings)
 
@@ -41,7 +45,18 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
         <li>Gray: {player.shells.gray}</li>
         <li>White: {player.shells.white}</li>
       </ul>
-      <PlayerShip color={color} size={32} />
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}>
+        {!shipIsAway && <PlayerShip color={color} size={32} />}
+        {dockedShips.map((s, i) => (
+          <PlayerShip key={i} color={s.color} size={32} />
+        ))}
+      </div>
       <div style={{ marginTop: 16 }}>
         <h3>Hand ({player.hand.length})</h3>
         <Hand
