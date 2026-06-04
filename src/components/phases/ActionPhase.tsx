@@ -6,33 +6,34 @@ import React from 'react'
 import ActionSelector from 'components/ActionSelector'
 import GameBoard from 'components/GameBoard'
 import IGameStateView from 'common/IGameStateView'
+import { TurnBanner } from 'components/TurnBanner'
 
 interface ActionPhaseProps {
   state: IGameStateView
   playerIdx: number
+  isMyTurn: boolean
   dispatch: (action: { type: string; payload?: unknown }) => void
 }
 
 export const ActionPhase: React.FC<ActionPhaseProps> = ({
   state,
-  playerIdx,
+  isMyTurn,
   dispatch,
 }) => {
-  const isMyTurn = state.currentPlayerIndex === playerIdx
-  const activePlayer = state.players[state.currentPlayerIndex]
-
+  const activePlayerName = state.players[state.currentPlayerIndex]?.name ?? ''
   return (
     <div>
-      {isMyTurn ? (
+      <TurnBanner
+        phase={state.phase}
+        isMyTurn={isMyTurn}
+        waitingFor={[activePlayerName]}
+      />
+      {isMyTurn && (
         <ActionSelector
           onSelect={action =>
             dispatch({ type: 'action', payload: { actionChosen: action } })
           }
         />
-      ) : (
-        <p style={{ margin: '24px 0', color: '#888' }}>
-          Waiting for {activePlayer?.name} to take their turn…
-        </p>
       )}
       <GameBoard state={state} dispatch={dispatch} />
     </div>

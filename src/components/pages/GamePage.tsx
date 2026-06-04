@@ -8,6 +8,7 @@ import GameBoard from 'components/GameBoard'
 import Card from 'components/Card'
 import { Deck, Discard } from 'components/Deck'
 import { ActionPhase } from 'components/phases/ActionPhase'
+import { TurnBanner } from 'components/TurnBanner'
 import 'components/phases/Game.css'
 
 const SIMULTANEOUS_PHASES = new Set<string>(['initDiscard'])
@@ -29,30 +30,6 @@ function getTurnState(view: IGameStateView, playerIdx: number) {
   return { isMyTurn, waitingFor }
 }
 
-const TurnBanner: React.FC<{
-  phase: string
-  isMyTurn: boolean
-  waitingFor: string[]
-}> = ({ phase, isMyTurn, waitingFor }) => (
-  <div
-    style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '8px 16px',
-      background: isMyTurn ? '#e8f5e9' : '#f5f5f5',
-      borderBottom: '1px solid #ddd',
-      fontWeight: 600,
-    }}>
-    <span>
-      {isMyTurn ? 'Your turn' : `Waiting for ${waitingFor.join(', ')}`}
-    </span>
-    <span style={{ color: '#666', fontWeight: 400, fontSize: 13 }}>
-      Phase: {phase}
-    </span>
-  </div>
-)
-
 const ColonizePhase: React.FC<{
   isMyTurn: boolean
   waitingFor: string[]
@@ -70,12 +47,67 @@ const ColonizePhase: React.FC<{
       className="game-container"
       style={{ textAlign: 'center', paddingTop: 80 }}>
       <TurnBanner phase={phase} isMyTurn={isMyTurn} waitingFor={waitingFor} />
-      <h2>Colonizing…</h2>
-      <p>
-        {isMyTurn
-          ? 'Placing colonists on your forts.'
-          : `Waiting for ${waitingFor.join(', ')} to colonize…`}
-      </p>
+      {isMyTurn && <p>Placing colonists on your forts.</p>}
+    </div>
+  )
+}
+
+const InitDiscardPhase: React.FC<{
+  view: IGameStateView
+  playerIdx: number
+  isMyTurn: boolean
+  waitingFor: string[]
+  dispatch: (action: { type: string; payload?: unknown }) => void
+}> = ({ view, playerIdx, isMyTurn, waitingFor, dispatch }) => {
+  const [selectedID, setSelectedID] = useState<string | undefined>()
+  const cards = view.drawnCards
+
+  function handleSelect(cardID: string) {
+    setSelectedID(cardID)
+    dispatch({ type: 'initDiscard', payload: { cardID } })
+  }
+
+  return (
+    <div className="game-container">
+      <TurnBanner
+        phase={view.phase}
+        isMyTurn={isMyTurn}
+        waitingFor={waitingFor}
+      />
+      {isMyTurn && (
+        <>
+          <h2>Select card to give away</h2>
+          <p>
+            Select one card to give to{' '}
+            <strong
+              style={{
+                color:
+                  view.players[(playerIdx + 1) % view.players.length]?.color ??
+                  undefined,
+              }}>
+              {view.players[(playerIdx + 1) % view.players.length]?.name}
+            </strong>
+            .
+          </p>
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              margin: '16px 0',
+            }}>
+            {cards.map(card => (
+              <Card
+                key={card.id}
+                card={card}
+                selected={selectedID === card.id}
+                onClick={handleSelect}
+              />
+            ))}
+          </div>
+        </>
+      )}
+      <GameBoard state={view} dispatch={dispatch} />
     </div>
   )
 }
@@ -100,7 +132,7 @@ const DiscardPhase: React.FC<{
         isMyTurn={isMyTurn}
         waitingFor={waitingFor}
       />
-      {isMyTurn ? (
+      {isMyTurn && (
         <>
           <h2>Pick a card to discard</h2>
           <p>Select one of your drawn cards. The other two go to your hand.</p>
@@ -121,8 +153,6 @@ const DiscardPhase: React.FC<{
             ))}
           </div>
         </>
-      ) : (
-        <h2>Waiting for {waitingFor.join(', ')} to discard…</h2>
       )}
       <GameBoard state={view} dispatch={dispatch} />
     </div>
@@ -155,9 +185,24 @@ export const GamePage: React.FC = () => {
   const { isMyTurn, waitingFor } = getTurnState(view, playerIdx)
 
   switch (view.phase) {
+    case GamePhases.initDiscard:
+      return (
+        <InitDiscardPhase
+          view={view}
+          playerIdx={playerIdx}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
     case GamePhases.action:
       return (
-        <ActionPhase state={view} playerIdx={playerIdx} dispatch={dispatch} />
+        <ActionPhase
+          state={view}
+          playerIdx={playerIdx}
+          isMyTurn={isMyTurn}
+          dispatch={dispatch}
+        />
       )
     case GamePhases.colonize:
       return (
