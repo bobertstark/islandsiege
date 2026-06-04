@@ -16,11 +16,18 @@ Use npm to install the required packages. From the project root run the followin
 
 ## Running
 
-Use npm to run the project. From the project root run the following command:
+To run both the game server and the frontend together:
 
-`npm start`
+`npm run dev`
 
-You can also use `npm run` to list the possible run commands
+This starts the backend on port 3001 and the React frontend on port 3000. Open `http://localhost:3000` to play.
+
+To run them separately:
+
+- Frontend only: `npm start`
+- Server only: `npm run server:dev`
+
+You can also use `npm run` to list all available commands.
 
 ## Testing
 
