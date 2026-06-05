@@ -1,6 +1,8 @@
 import React from 'react'
 import type ICard from 'common/ICard'
 import { createFortGrid } from 'common/fortGrid'
+import { colorToSymbol } from 'common/colors'
+import { DIE_STYLE } from 'common/die'
 import FortGrid from 'components/FortGrid'
 import DescriptionText from 'components/DescriptionText'
 import './shared.css'
@@ -64,6 +66,40 @@ const Card: React.FC<CardProps> = ({ card, selected, dimmed, onClick }) => {
       {typeof card.coins === 'number' && (
         <div>
           <strong>Coins:</strong> {card.coins}
+        </div>
+      )}
+      {card.repair && card.repair.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            margin: '4px 0',
+          }}>
+          <strong>Repair:</strong>
+          {card.repair.map((color, i) => {
+            const sym = colorToSymbol(color)
+            const s = DIE_STYLE[sym as keyof typeof DIE_STYLE]
+            return (
+              <span
+                key={i}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 18,
+                  height: 18,
+                  background: s?.bg ?? '#ccc',
+                  color: s?.text ?? '#000',
+                  border: '1px solid #555',
+                  borderRadius: 3,
+                  fontWeight: 'bold',
+                  fontSize: 11,
+                }}>
+                {sym}
+              </span>
+            )
+          })}
         </div>
       )}
       <div className="card-description">

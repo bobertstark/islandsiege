@@ -102,7 +102,7 @@ export function addBuilding(
   next = removeColonists(next, building.cost).fort
 
   if (repairAt) {
-    const symbol = colorToSymbol(building.repairColor)
+    const symbol = colorToSymbol(building.repair[0])
     next = buildCubes(next, [[repairAt[0], repairAt[1], symbol]])
   }
 

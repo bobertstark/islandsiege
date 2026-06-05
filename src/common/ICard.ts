@@ -4,7 +4,7 @@ import type { ShellColor } from './colors'
 
 // The full card-data shape (mirrors a cards.json row). Type-specific fields are
 // optional: forts use gridSpec/slots, buildings/ships use cost/coins, buildings
-// also use repairColor.
+// also use repair.
 export default interface ICard extends IBase {
   type: string
   description: string
@@ -12,5 +12,5 @@ export default interface ICard extends IBase {
   gridSpec?: FortGridSpec
   slots?: number
   coins?: number
-  repairColor?: ShellColor
+  repair?: ShellColor[]
 }

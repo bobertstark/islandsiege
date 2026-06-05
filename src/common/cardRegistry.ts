@@ -45,7 +45,7 @@ export function createBuildingById(id: string): IBuilding {
     description: c.description,
     cost: c.cost!,
     coins: c.coins!,
-    repairColor: c.repairColor!,
+    repair: c.repair!,
   }
   return createBuilding(data)
 }

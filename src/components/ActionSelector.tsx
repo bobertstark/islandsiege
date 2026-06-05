@@ -303,8 +303,8 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
               <p style={{ marginBottom: 8 }}>
                 <DescriptionText
                   text={`Place the repair shell ${
-                    pendingBuildAction.card.repairColor
-                      ? `[${colorToSymbol(pendingBuildAction.card.repairColor)}]`
+                    pendingBuildAction.card.repair?.[0]
+                      ? `[${colorToSymbol(pendingBuildAction.card.repair[0])}]`
                       : ''
                   }`}
                 />
