@@ -34,10 +34,10 @@ export const ActionPhase: React.FC<ActionPhaseProps> = ({
       {isMyTurn && currentPlayer && (
         <ActionSelector
           player={currentPlayer}
-          onSelect={(action, cardID) =>
+          onSelect={(action, cardID, fortID, repairAt) =>
             dispatch({
               type: 'action',
-              payload: { actionChosen: action, cardID },
+              payload: { actionChosen: action, cardID, fortID, repairAt },
             })
           }
         />
