@@ -8,12 +8,6 @@ import GameBoard from 'components/GameBoard'
 import { FortGrid } from 'components/FortGrid'
 import { DiceBankDisplay } from 'components/DiceBankDisplay'
 
-const WAVE_COLORS: Array<{ symbol: 'B' | 'W' | 'G'; color: ShellColor }> = [
-  { symbol: 'B', color: 'black' },
-  { symbol: 'W', color: 'white' },
-  { symbol: 'G', color: 'gray' },
-]
-
 function eligibleForColor(
   grid: FortGridCell[][],
   color: ShellColor,

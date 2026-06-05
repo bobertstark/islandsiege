@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
-import { shellsRemaining } from 'common/fortGrid'
 import { TurnBanner } from 'components/TurnBanner'
 import GameBoard from 'components/GameBoard'
 import { FortGrid } from 'components/FortGrid'
