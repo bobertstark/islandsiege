@@ -10,7 +10,7 @@
         [1, 3, "B"]
       ],
       "slots": 4,
-      "description": "Add [B,W] to your supply. Draw three cards then give one to your opponent.",
+      "description": "Add [B],[W] to your supply. Draw three cards then give one to your opponent.",
       "id": "startingFort"
     },
     {
