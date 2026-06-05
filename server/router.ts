@@ -48,7 +48,7 @@ router.post('/games', (req, res) => {
     attackIsOpenWater: false,
     attackRoll: undefined,
     attackRerollsRemaining: 0,
-    attackValueCounts: {},
+    diceBank: {},
     winningPlayerIndex: undefined,
     rngSeed: generateSeed(),
   }
