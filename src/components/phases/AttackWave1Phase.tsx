@@ -109,6 +109,17 @@ export const AttackWave1Phase: React.FC<Props> = ({
         isMyTurn={isMyTurn}
         waitingFor={waitingFor}
       />
+      {isMyTurn && (
+        <p style={{ color: '#aaa', fontStyle: 'italic', margin: '4px 0 8px' }}>
+          {!selectedColor
+            ? 'Select a colored attack die to use.'
+            : pendingLoc
+              ? 'Confirm to destroy the selected shells (outlined in red), or cancel.'
+              : noEligible
+                ? 'No shells can be destroyed with this die — confirm to spend it anyway.'
+                : 'Select a shell group on the fort to destroy.'}
+        </p>
+      )}
       <div style={{ padding: '8px 0' }}>
         <strong>Attack dice:</strong>
         <DiceBankDisplay
