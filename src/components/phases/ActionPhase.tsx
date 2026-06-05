@@ -17,10 +17,13 @@ interface ActionPhaseProps {
 
 export const ActionPhase: React.FC<ActionPhaseProps> = ({
   state,
+  playerIdx: _playerIdx,
   isMyTurn,
   dispatch,
 }) => {
   const activePlayerName = state.players[state.currentPlayerIndex]?.name ?? ''
+  const currentPlayer = state.players[state.currentPlayerIndex]
+
   return (
     <div>
       <TurnBanner
@@ -28,10 +31,14 @@ export const ActionPhase: React.FC<ActionPhaseProps> = ({
         isMyTurn={isMyTurn}
         waitingFor={[activePlayerName]}
       />
-      {isMyTurn && (
+      {isMyTurn && currentPlayer && (
         <ActionSelector
-          onSelect={action =>
-            dispatch({ type: 'action', payload: { actionChosen: action } })
+          player={currentPlayer}
+          onSelect={(action, cardID) =>
+            dispatch({
+              type: 'action',
+              payload: { actionChosen: action, cardID },
+            })
           }
         />
       )}

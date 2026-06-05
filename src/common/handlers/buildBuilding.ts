@@ -16,5 +16,11 @@ export function handleBuildBuilding(
     ...player,
     forts: player.forts.map(f => (f.id === payload.fortID ? updatedFort : f)),
   }
-  return { ...state, players, phase: 'endTurn' }
+  return {
+    ...state,
+    players,
+    phase: 'endTurn',
+    buildContext: { cardID: payload.buildingID, fortID: payload.fortID },
+    pendingBuildCardID: undefined,
+  }
 }

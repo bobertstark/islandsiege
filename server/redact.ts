@@ -39,6 +39,8 @@ export function redactStateForPlayer(
     attackRerollsRemaining: state.attackRerollsRemaining,
     diceBank: state.diceBank,
     winningPlayerIndex: state.winningPlayerIndex,
+    buildContext: state.buildContext,
+    pendingBuildCardID: state.pendingBuildCardID,
     // rngSeed intentionally omitted
   }
 }

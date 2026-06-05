@@ -13,5 +13,11 @@ export function handleBuildShip(
     ship,
     payload.fortID,
   )
-  return { ...state, players, phase: 'endTurn' }
+  return {
+    ...state,
+    players,
+    phase: 'endTurn',
+    buildContext: { cardID: payload.shipID, fortID: payload.fortID },
+    pendingBuildCardID: undefined,
+  }
 }

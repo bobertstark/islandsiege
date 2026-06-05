@@ -34,4 +34,6 @@ export default interface IGameStateView {
   attackRerollsRemaining: number
   diceBank: rollCounts
   winningPlayerIndex: number | undefined
+  buildContext?: { cardID: string; fortID?: string }
+  pendingBuildCardID?: string
 }

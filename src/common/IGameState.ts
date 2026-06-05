@@ -43,6 +43,9 @@ export default interface IGameState {
 
   winningPlayerIndex: number | undefined
 
+  buildContext?: { cardID: string; fortID?: string }
+  pendingBuildCardID?: string
+
   // Server-only - not sent to clients
   rngSeed: number
 }

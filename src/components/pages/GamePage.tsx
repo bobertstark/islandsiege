@@ -13,6 +13,9 @@ import { AttackStartPhase } from 'components/phases/AttackStartPhase'
 import { AttackWave1Phase } from 'components/phases/AttackWave1Phase'
 import { AttackReinforceOrWave2Phase } from 'components/phases/AttackReinforceOrWave2Phase'
 import { AttackWave2Phase } from 'components/phases/AttackWave2Phase'
+import { BuildFortPhase } from 'components/phases/BuildFortPhase'
+import { BuildBuildingPhase } from 'components/phases/BuildBuildingPhase'
+import { BuildShipPhase } from 'components/phases/BuildShipPhase'
 import AttackRollPanel from 'components/AttackRollPanel'
 import { TurnBanner } from 'components/TurnBanner'
 import 'components/phases/Game.css'
@@ -404,6 +407,33 @@ export const GamePage: React.FC = () => {
     case GamePhases.attackWave2:
       return (
         <AttackWave2Phase
+          view={view}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
+    case GamePhases.buildFort:
+      return (
+        <BuildFortPhase
+          view={view}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
+    case GamePhases.buildBuilding:
+      return (
+        <BuildBuildingPhase
+          view={view}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
+    case GamePhases.buildShip:
+      return (
+        <BuildShipPhase
           view={view}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
