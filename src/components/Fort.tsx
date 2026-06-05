@@ -47,7 +47,7 @@ const Fort: React.FC<FortProps> = ({
       <FortGrid
         grid={fort.grid}
         view="tableau"
-        showLabels={false}
+        showLabels
         highlights={highlights}
         dims={dims}
         selectedGroup={selectedGroup}
