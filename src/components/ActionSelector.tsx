@@ -112,7 +112,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
               key={card.id}
               onClick={() => pick('buildBuilding', card.id)}
               style={{ cursor: 'pointer' }}>
-              <Building building={createBuildingById(card.id)} />
+              <Building building={createBuildingById(card.id)} preview />
             </div>
           ))}
         </div>
@@ -131,7 +131,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
               key={card.id}
               onClick={() => pick('buildShip', card.id)}
               style={{ cursor: 'pointer' }}>
-              <Ship ship={createShipById(card.id)} />
+              <Ship ship={createShipById(card.id)} preview />
             </div>
           ))}
         </div>

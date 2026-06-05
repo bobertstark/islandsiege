@@ -1,5 +1,6 @@
 import React from 'react'
 import type ICard from 'common/ICard'
+import DescriptionText from 'components/DescriptionText'
 import './shared.css'
 
 interface CardProps {
@@ -35,7 +36,9 @@ const Card: React.FC<CardProps> = ({ card, selected, onClick }) => (
         <strong>Coins:</strong> {card.coins}
       </div>
     )}
-    <div className="card-description">{card.description}</div>
+    <div className="card-description">
+      <DescriptionText text={card.description} />
+    </div>
   </div>
 )
 

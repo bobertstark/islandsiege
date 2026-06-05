@@ -1,6 +1,7 @@
 import React from 'react'
 import IFort from 'common/IFort'
 import FortGrid from './FortGrid'
+import DescriptionText from 'components/DescriptionText'
 
 interface FortProps {
   fort: IFort
@@ -29,7 +30,7 @@ const Fort: React.FC<FortProps> = ({ fort }) => (
         textAlign: 'center',
         maxWidth: 220,
       }}>
-      {fort.description}
+      <DescriptionText text={fort.description} />
     </div>
     <div style={{ margin: '8px 0' }}>
       <FortGrid grid={fort.grid} view="tableau" showLabels={false} />

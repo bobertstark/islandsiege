@@ -1,11 +1,13 @@
 import React from 'react'
 import IShip from 'common/IShip'
+import DescriptionText from 'components/DescriptionText'
 
 interface ShipProps {
   ship: IShip
+  preview?: boolean
 }
 
-const Ship: React.FC<ShipProps> = ({ ship }) => (
+const Ship: React.FC<ShipProps> = ({ ship, preview }) => (
   <div
     style={{
       border: '1px solid #55a',
@@ -14,9 +16,15 @@ const Ship: React.FC<ShipProps> = ({ ship }) => (
       marginBottom: 8,
     }}>
     <strong>{ship.name}</strong>
-    <div>Description: {ship.description}</div>
+    <div>
+      <DescriptionText text={ship.description} />
+    </div>
     <div>Coins: {ship.coins}</div>
-    <div>Colonists: {ship.colonists}</div>
+    {preview ? (
+      <div>Cost: {ship.cost} colonists</div>
+    ) : (
+      <div>Colonists: {ship.colonists}</div>
+    )}
   </div>
 )
 
