@@ -39,8 +39,18 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
         boxShadow: active ? '0 0 10px #222' : undefined,
       }}>
       <h2 style={{ color }}>{player.name}</h2>
-      <p>Colonists: {player.colonists}</p>
-      <p>Coins: {player.coins}</p>
+      <p>
+        Colonists:{' '}
+        <span style={{ color: player.colonists === 0 ? 'red' : undefined }}>
+          {player.colonists}
+        </span>
+      </p>
+      <p>
+        Coins:{' '}
+        <span style={{ color: player.coins >= 20 ? 'red' : undefined }}>
+          {player.coins}
+        </span>
+      </p>
       <p>Shells:</p>
       <ul>
         <li>Black: {player.shells.black}</li>

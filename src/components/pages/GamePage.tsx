@@ -55,6 +55,63 @@ function getTurnState(view: IGameStateView, playerIdx: number) {
   return { isMyTurn, waitingFor }
 }
 
+const GameOverPhase: React.FC<{
+  view: IGameStateView
+  playerIdx: number
+}> = ({ view, playerIdx }) => {
+  const winner =
+    view.winningPlayerIndex !== undefined
+      ? view.players[view.winningPlayerIndex]
+      : undefined
+  const isWinner = view.winningPlayerIndex === playerIdx
+
+  return (
+    <div
+      className="game-container"
+      style={{ textAlign: 'center', paddingTop: 80 }}>
+      <h1 style={{ fontSize: '2.5rem', marginBottom: 8 }}>Game Over</h1>
+      {winner ? (
+        <>
+          <h2
+            style={{
+              fontSize: '1.8rem',
+              color: winner.color ?? undefined,
+              marginBottom: 8,
+            }}>
+            {isWinner ? 'You win!' : `${winner.name} wins!`}
+          </h2>
+          {winner.colonists <= 0 ? (
+            <>
+              <p style={{ fontWeight: 'bold', marginBottom: 4 }}>
+                Colonist Victory
+              </p>
+              <p style={{ color: '#aaa' }}>
+                Successfully colonized the Caribbean!
+              </p>
+            </>
+          ) : (
+            <>
+              <p style={{ fontWeight: 'bold', marginBottom: 4 }}>
+                Economic Victory
+              </p>
+              <p style={{ color: '#aaa' }}>
+                Prosperous colony dominates the New World!
+              </p>
+            </>
+          )}
+        </>
+      ) : (
+        <p>The game has ended.</p>
+      )}
+      <button
+        style={{ marginTop: 32 }}
+        onClick={() => (window.location.href = '/')}>
+        Back to Home
+      </button>
+    </div>
+  )
+}
+
 const ColonizePhase: React.FC<{
   isMyTurn: boolean
   waitingFor: string[]
@@ -440,6 +497,8 @@ export const GamePage: React.FC = () => {
           dispatch={dispatch}
         />
       )
+    case GamePhases.gameOver:
+      return <GameOverPhase view={view} playerIdx={playerIdx} />
     default: {
       const attackDice = ATTACK_DISPLAY_PHASES.has(view.phase)
         ? countsToArray(view.diceBank)
