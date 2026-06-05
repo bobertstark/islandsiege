@@ -11,6 +11,8 @@ import { Deck, Discard } from 'components/Deck'
 import { ActionPhase } from 'components/phases/ActionPhase'
 import { AttackStartPhase } from 'components/phases/AttackStartPhase'
 import { AttackWave1Phase } from 'components/phases/AttackWave1Phase'
+import { AttackReinforceOrWave2Phase } from 'components/phases/AttackReinforceOrWave2Phase'
+import { AttackWave2Phase } from 'components/phases/AttackWave2Phase'
 import AttackRollPanel from 'components/AttackRollPanel'
 import { TurnBanner } from 'components/TurnBanner'
 import 'components/phases/Game.css'
@@ -375,6 +377,24 @@ export const GamePage: React.FC = () => {
     case GamePhases.attackWave1:
       return (
         <AttackWave1Phase
+          view={view}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
+    case GamePhases.attackReinforceOrWave2:
+      return (
+        <AttackReinforceOrWave2Phase
+          view={view}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
+    case GamePhases.attackWave2:
+      return (
+        <AttackWave2Phase
           view={view}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}

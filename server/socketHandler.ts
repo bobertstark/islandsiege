@@ -73,7 +73,13 @@ export function attachWebSocket(wss: WebSocketServer): void {
                 }
               : msg.action
 
-      const AUTO_PHASES = new Set(['victory', 'draw', 'endTurn'])
+      const AUTO_PHASES = new Set([
+        'victory',
+        'draw',
+        'attackReinforce',
+        'attackDestroy',
+        'endTurn',
+      ])
       let result = gameReducer(current, action as any)
       while (AUTO_PHASES.has(result.phase)) {
         result = gameReducer(result, { type: result.phase as any })
