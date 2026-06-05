@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
 
 const WS_HOST = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:3001`
@@ -32,9 +32,12 @@ export function useGameSocket(
     }
   }, [gameId, playerIdx, playerId])
 
-  function dispatch(action: { type: string; payload?: unknown }) {
-    wsRef.current?.send(JSON.stringify({ action }))
-  }
+  const dispatch = useCallback(
+    (action: { type: string; payload?: unknown }) => {
+      wsRef.current?.send(JSON.stringify({ action }))
+    },
+    [],
+  )
 
   return { view, dispatch, error }
 }

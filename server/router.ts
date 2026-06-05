@@ -6,6 +6,7 @@ import { createPlayer } from 'common/player'
 import { GamePhases } from 'common/phases'
 import { createDeck } from 'common/deck'
 import { generateSeed } from 'common/rng'
+import { PLAYER_COLORS } from 'common/colors'
 import IGameState from 'common/IGameState'
 
 const router = Router()
@@ -39,6 +40,7 @@ router.post('/games', (req, res) => {
     deck: deckState.deck,
     discard: deckState.discard,
     shuffleCount: deckState.shuffleCount,
+    drawnCards: [],
     phase: GamePhases.lobby,
     pending: {},
     shipLocations: {},
@@ -77,16 +79,23 @@ router.post('/games/:id/join', (req, res) => {
     return
   }
 
+  const takenColors = state.players.map(p => p.color)
   if (color) {
-    const takenColors = state.players.map(p => p.color)
     if (takenColors.includes(color)) {
       res.status(409).json({ error: 'color already taken' })
       return
     }
   }
 
+  const availableColors = PLAYER_COLORS.filter(
+    c => !takenColors.includes(c.value),
+  )
+  const assignedColor =
+    color ??
+    availableColors[Math.floor(Math.random() * availableColors.length)]?.value
+
   const playerId = randomBytes(8).toString('base64url')
-  const player = createPlayer(playerId, name, { color: color ?? undefined })
+  const player = createPlayer(playerId, name, { color: assignedColor })
   const updated: IGameState = {
     ...state,
     players: [...state.players, player],

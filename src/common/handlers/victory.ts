@@ -17,5 +17,7 @@ export function handleVictory(state: IGameState): IGameState {
     }
   }
 
-  return { ...state, phase: 'colonize' }
+  const shipLocations = { ...state.shipLocations }
+  delete shipLocations[state.currentPlayerIndex]
+  return { ...state, phase: 'colonize', shipLocations }
 }

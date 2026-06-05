@@ -8,7 +8,7 @@ interface GameBoardProps {
   dispatch: React.Dispatch<any>
 }
 
-// Normalize IPlayerView to IPlayer by coercing hand to an array
+// Normalize IPlayerView to IPlayer, coercing opponent hand count to empty array
 function toIPlayer(p: IPlayerView, idx: number): IPlayer {
   return { ...p, id: String(idx), hand: Array.isArray(p.hand) ? p.hand : [] }
 }
@@ -23,35 +23,32 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
     [playerIdx: number]: string | undefined
   }>({})
 
-  let activePlayerNames: string[] = []
-  if (isSimultaneousPhase) {
-    activePlayerNames = players
-      .map((player, idx) => {
-        const isPending =
-          state.pending &&
-          (state.pending as Record<number, any>)[idx] !== undefined
-        return !isPending ? player.name : null
-      })
-      .filter((name): name is string => !!name)
-  } else {
-    activePlayerNames = [players[activeIdx]?.name]
-  }
-
   const handleCardSelect = (playerIdx: number, cardID: string) => {
     setSelectedCardIDs(prev => ({ ...prev, [playerIdx]: cardID }))
     dispatch({ type: 'initDiscard', payload: { playerIdx, cardID } })
   }
 
+  // Build a map: defenderIdx → list of attacker colors docked there
+  const dockedShipsMap: Record<number, { color?: string }[]> = {}
+  for (const [attackerIdxStr, loc] of Object.entries(state.shipLocations)) {
+    if (loc.targetPlayerIndex === undefined) continue
+    const attackerIdx = Number(attackerIdxStr)
+    const defenderIdx = loc.targetPlayerIndex
+    if (!dockedShipsMap[defenderIdx]) dockedShipsMap[defenderIdx] = []
+    dockedShipsMap[defenderIdx].push({ color: players[attackerIdx]?.color })
+  }
+
   return (
     <div style={{ padding: 20, position: 'relative' }}>
-      <h1>Current Phase: {state.phase}</h1>
-      <h2>Active Player(s): {activePlayerNames.join(', ')}</h2>
       <div style={{ display: 'flex', gap: 40 }}>
         {players.map((player, idx) => {
           const isPending =
             state.pending &&
             (state.pending as Record<number, any>)[idx] !== undefined
           const isActive = isSimultaneousPhase ? !isPending : idx === activeIdx
+          const shipIsAway =
+            state.shipLocations[idx]?.targetPlayerIndex !== undefined
+          const dockedShips = dockedShipsMap[idx] ?? []
           return (
             <PlayerPanel
               key={idx}
@@ -64,6 +61,11 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
                   : undefined
               }
               selectedCardID={selectedCardIDs[idx]}
+              shipIsAway={shipIsAway}
+              dockedShips={dockedShips}
+              handCount={
+                typeof player.hand === 'number' ? player.hand : undefined
+              }
             />
           )
         })}

@@ -19,6 +19,7 @@ export default interface IGameStateView {
   deckCount: number
   discard: ICard[]
   shuffleCount: number
+  drawnCards: ICard[]
   phase: Phase
   pending?: { [playerIdx: number]: string }
   shipLocations: {
@@ -31,6 +32,8 @@ export default interface IGameStateView {
   attackIsOpenWater: boolean
   attackRoll: DieValue[] | undefined
   attackRerollsRemaining: number
-  attackValueCounts: rollCounts
+  diceBank: rollCounts
   winningPlayerIndex: number | undefined
+  buildContext?: { cardID: string; fortID?: string }
+  pendingBuildCardID?: string
 }

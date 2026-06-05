@@ -46,5 +46,11 @@ export function handleBuildFort(
   }
 
   players[state.currentPlayerIndex] = player
-  return { ...state, players, phase: 'endTurn' }
+  return {
+    ...state,
+    players,
+    phase: 'endTurn',
+    buildContext: { cardID: payload.fortID },
+    pendingBuildCardID: undefined,
+  }
 }

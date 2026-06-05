@@ -17,6 +17,7 @@ export const mockGameState = (
     deck: deckState.deck,
     discard: deckState.discard,
     shuffleCount: deckState.shuffleCount,
+    drawnCards: [],
     phase: 'initGame',
     winningPlayerIndex: undefined,
     pending: {},
@@ -25,7 +26,7 @@ export const mockGameState = (
     attackIsOpenWater: false,
     attackRoll: ['B', 'B', 'B'],
     attackRerollsRemaining: 1,
-    attackValueCounts: { B: 3, W: 0, G: 0, T: 0, L: 0 },
+    diceBank: { B: 3, W: 0, G: 0, T: 0, L: 0 },
     rngSeed: 0,
     ...overrides,
   }

@@ -3,6 +3,10 @@ import { findFort, destroyFort } from 'common/player'
 import { fortShellsRemaining } from 'common/fort'
 
 export function handleAttackDestroy(state: IGameState): IGameState {
+  if (state.attackIsOpenWater) {
+    return { ...state, phase: 'endTurn' }
+  }
+
   const { targetPlayerIndex, fortID } =
     state.shipLocations[state.currentPlayerIndex]!
   const players = [...state.players]

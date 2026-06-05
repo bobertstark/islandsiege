@@ -1,6 +1,7 @@
-import { createPlayer, addFort, populateForts } from '../player'
+import { createPlayer, addFort, populateForts, destroyShip } from '../player'
 import { createFortById } from '../cardRegistry'
 import { fortColonists } from '../fort'
+import IShip from '../IShip'
 
 describe('player', () => {
   it('creates a player with default values', () => {
@@ -44,5 +45,29 @@ describe('player', () => {
     expect(p.colonists).toBe(0)
     expect(fortColonists(p.forts[0])).toBe(2)
     expect(fortColonists(p.forts[1])).toBe(1)
+  })
+})
+
+describe('destroyShip', () => {
+  const ship: IShip = {
+    id: 'sloop1',
+    name: 'Sloop',
+    type: 'ship',
+    description: '',
+    cost: 2,
+    coins: 1,
+    colonists: 2,
+  }
+
+  it('removes the ship and returns colonists to the player', () => {
+    const p = { ...createPlayer('p1', 'Drake'), ships: [ship] }
+    const result = destroyShip(p, 'sloop1')
+    expect(result.ships).toHaveLength(0)
+    expect(result.colonists).toBe(p.colonists + 2)
+  })
+
+  it('throws when the ship is not found', () => {
+    const p = createPlayer('p1', 'Drake')
+    expect(() => destroyShip(p, 'nonexistent')).toThrow('no ship nonexistent')
   })
 })

@@ -5,16 +5,23 @@ import { addBuilding } from 'common/fort'
 
 export function handleBuildBuilding(
   state: IGameState,
-  payload: { fortID: string; buildingID: string },
+  payload: { fortID: string; buildingID: string; repairAt?: [number, number] },
 ): IGameState {
   const players = [...state.players]
   const player = players[state.currentPlayerIndex]
   const fort = findFort(player, payload.fortID)
   const building = createBuildingById(payload.buildingID)
-  const updatedFort = addBuilding(fort, building)
+  const updatedFort = addBuilding(fort, building, payload.repairAt)
   players[state.currentPlayerIndex] = {
     ...player,
+    coins: player.coins + building.coins,
     forts: player.forts.map(f => (f.id === payload.fortID ? updatedFort : f)),
   }
-  return { ...state, players, phase: 'endTurn' }
+  return {
+    ...state,
+    players,
+    phase: 'endTurn',
+    buildContext: { cardID: payload.buildingID, fortID: payload.fortID },
+    pendingBuildCardID: undefined,
+  }
 }

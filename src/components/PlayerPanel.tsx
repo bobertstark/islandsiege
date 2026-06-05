@@ -12,6 +12,9 @@ interface PlayerPanelProps {
   active?: boolean
   onCardSelect?: (cardID: string) => void
   selectedCardID?: string
+  shipIsAway?: boolean
+  dockedShips?: { color?: string }[]
+  handCount?: number
 }
 
 const PlayerPanel: React.FC<PlayerPanelProps> = ({
@@ -20,6 +23,9 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
   active,
   onCardSelect,
   selectedCardID,
+  shipIsAway = false,
+  dockedShips = [],
+  handCount,
 }) => {
   const buildings = player.forts.flatMap(f => f.buildings)
 
@@ -33,20 +39,47 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
         boxShadow: active ? '0 0 10px #222' : undefined,
       }}>
       <h2 style={{ color }}>{player.name}</h2>
-      <p>ID: {player.id}</p>
-      <p>Colonists: {player.colonists}</p>
-      <p>Coins: {player.coins}</p>
+      <p>
+        Colonists:{' '}
+        <span style={{ color: player.colonists === 0 ? 'red' : undefined }}>
+          {player.colonists}
+        </span>
+      </p>
+      <p>
+        Coins:{' '}
+        <span style={{ color: player.coins >= 20 ? 'red' : undefined }}>
+          {player.coins}
+        </span>
+      </p>
       <p>Shells:</p>
       <ul>
         <li>Black: {player.shells.black}</li>
         <li>Gray: {player.shells.gray}</li>
         <li>White: {player.shells.white}</li>
       </ul>
-      <PlayerShip color={color} size={32} />
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}>
+        {!shipIsAway && <PlayerShip color={color} size={32} />}
+        {dockedShips.map((s, i) => (
+          <PlayerShip key={i} color={s.color} size={32} />
+        ))}
+      </div>
       <div style={{ marginTop: 16 }}>
-        <h3>Hand ({player.hand.length})</h3>
+        <h3>
+          Hand (
+          {handCount ??
+            (typeof player.hand === 'number'
+              ? player.hand
+              : player.hand.length)}
+          )
+        </h3>
         <Hand
-          cards={player.hand ?? []}
+          cards={typeof player.hand === 'number' ? [] : player.hand}
           onCardSelect={onCardSelect}
           selectedCardID={selectedCardID}
         />

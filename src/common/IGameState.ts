@@ -17,6 +17,9 @@ export default interface IGameState {
   discard: ICard[]
   shuffleCount: number
 
+  // Cards drawn this turn — shown separately from hand until player discards one
+  drawnCards: ICard[]
+
   phase: Phase
 
   // Wait for all player actions to synchronize (e.g. initial discard)
@@ -36,9 +39,12 @@ export default interface IGameState {
   attackIsOpenWater: boolean
   attackRoll: DieValue[] | undefined
   attackRerollsRemaining: number
-  attackValueCounts: rollCounts
+  diceBank: rollCounts
 
   winningPlayerIndex: number | undefined
+
+  buildContext?: { cardID: string; fortID?: string }
+  pendingBuildCardID?: string
 
   // Server-only - not sent to clients
   rngSeed: number

@@ -13,6 +13,7 @@ import { mockGameState } from 'common/__mocks__/mockGameState'
 
 import * as AttackRollModule from 'common/attackRoll'
 import { DieValue } from 'common/die'
+import IShip from 'common/IShip'
 
 const createMockFort = (
   overrides: { gridSpec?: FortGridSpec; slots?: number } = {},
@@ -77,69 +78,87 @@ describe('gameReducer', () => {
     )
   })
 
-  it('initDiscard - will handle initial draw phase', () => {
-    let payload = {
+  it('initDiscard - collects selections and distributes on last submit', () => {
+    const cardA = {
+      name: 'A',
+      id: 'a',
+      type: 'fort' as CardType,
+      description: 'test',
+    }
+    const cardB = {
+      name: 'B',
+      id: 'b',
+      type: 'ship' as CardType,
+      description: 'test',
+    }
+    gs.players[0].hand = [cardA]
+    gs.players[1].hand = [cardB]
+
+    // First player submits — not yet resolved
+    let state = gameReducer(gs, {
       type: GamePhases.initDiscard,
       payload: { playerIdx: 0, cardID: 'a' },
-    }
-    gs.players[0].hand = [
-      { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
-    ]
-    let state = gameReducer(gs, payload)
-    // Do not swap until all players submit
-    expect(state.players[0].hand[0].id).toBe('a')
+    })
     expect(state.phase).toBe('initDiscard')
     expect(state.pending).toMatchObject({ 0: 'a' })
-    state.players[1].hand = [
-      { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
-    ]
-    payload.payload = { playerIdx: 1, cardID: 'b' }
-    state = gameReducer(state, payload)
-    // Now we transition to distribution
-    expect(state.pending).toMatchObject({ 0: 'a', 1: 'b' })
-    expect(state.phase).toBe('initDistribute')
-  })
+    expect(state.players[0].hand[0].id).toBe('a') // card still in hand
 
-  it('initDistibute - will handle card distribution', () => {
-    gs.players[0].hand = [
-      { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
-    ]
-    gs.players[1].hand = [
-      { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
-    ]
-    gs.pending = { 0: 'a', 1: 'b' }
-    const payload = { type: GamePhases.initDistribute }
-    const state = gameReducer(gs, payload)
-    expect(state.players[0].hand[0].id).toBe('b')
-    expect(state.players[1].hand[0].id).toBe('a')
+    // Last player submits — resolves immediately
+    state = gameReducer(state, {
+      type: GamePhases.initDiscard,
+      payload: { playerIdx: 1, cardID: 'b' },
+    })
     expect(state.phase).toBe('action')
+    expect(state.pending).toEqual({})
+    // Player 0 passed card 'a' to player 1 (next), received card 'b' from player 1
+    expect(state.players[0].hand.map(c => c.id)).toContain('b')
+    expect(state.players[1].hand.map(c => c.id)).toContain('a')
   })
 
-  it('draw - will handle individual draw', () => {
+  it('draw - puts 3 cards in drawnCards, not hand', () => {
     const payload = { type: GamePhases.draw }
-    let state = gameReducer(gs, payload)
-    expect(state.players[0].hand).toHaveLength(3)
-    expect(state.players[1].hand).toHaveLength(0)
-    expect(state.deck.length).toBe(33) // deck reflects the draw (36 - 3)
+    const state = gameReducer(gs, payload)
+    expect(state.drawnCards).toHaveLength(3)
+    expect(state.players[0].hand).toHaveLength(0) // hand unchanged until discard
+    expect(state.deck.length).toBe(33)
     expect(state.phase).toBe('discard')
   })
 
-  it('discard - will discard to opponent', () => {
-    const p0hand = [
+  it('discard - selected card goes to pile; remaining 2 go to hand', () => {
+    const drawn = [
       { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
       { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
       { name: 'C', id: 'c', type: 'building' as CardType, description: 'test' },
     ]
-    gs.players[0].hand = p0hand
+    gs.drawnCards = drawn
 
-    const payload = {
+    const state = gameReducer(gs, {
       type: GamePhases.discard,
-      payload: { targetPlayerIndex: 1, cardID: 'c' },
-    }
-    let state = gameReducer(gs, payload)
+      payload: { cardID: 'b' },
+    })
+    expect(state.players[0].hand.map(c => c.id)).toEqual(
+      expect.arrayContaining(['a', 'c']),
+    )
     expect(state.players[0].hand).toHaveLength(2)
-    expect(state.players[1].hand).toHaveLength(1)
+    expect(state.discard.map(c => c.id)).toContain('b')
+    expect(state.drawnCards).toHaveLength(0)
     expect(state.phase).toBe('endTurn')
+  })
+
+  it('discard - optional targetPlayerIndex sends card to player instead of pile', () => {
+    const drawn = [
+      { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
+      { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
+      { name: 'C', id: 'c', type: 'building' as CardType, description: 'test' },
+    ]
+    gs.drawnCards = drawn
+
+    const state = gameReducer(gs, {
+      type: GamePhases.discard,
+      payload: { cardID: 'b', targetPlayerIndex: 1 },
+    })
+    expect(state.players[1].hand.map(c => c.id)).toContain('b')
+    expect(state.discard.map(c => c.id)).not.toContain('b')
   })
 
   it('victory - will check for victory conditions', () => {
@@ -288,15 +307,101 @@ describe('gameReducer', () => {
 
     // even if reroll is called again, we will finalize
     state = gameReducer(state, payload)
-    expect(state.attackValueCounts).toEqual({ B: 2, L: 1 })
+    expect(state.diceBank).toEqual({ B: 2, L: 1 })
     expect(state.phase).toBe('attackLeadership')
   })
 
-  test.todo('attackLeadership - use Leadership abilities once implemented')
+  describe('attackLeadership', () => {
+    const ship1: IShip = {
+      id: 's1',
+      name: 'Sloop',
+      type: 'ship',
+      description: '',
+      cost: 1,
+      coins: 1,
+      colonists: 1,
+    }
+    const ship2: IShip = {
+      id: 's2',
+      name: 'Brig',
+      type: 'ship',
+      description: '',
+      cost: 1,
+      coins: 1,
+      colonists: 1,
+    }
+
+    it('skip: advances to attackWave1 for normal attack', () => {
+      const state = gameReducer(
+        mockGameState({ phase: 'attackLeadership', attackIsOpenWater: false }),
+        { type: GamePhases.attackLeadership, payload: { skip: true } },
+      )
+      expect(state.phase).toBe('attackWave1')
+    })
+
+    it('skip open water: advances to attackReinforce', () => {
+      const state = gameReducer(
+        mockGameState({ phase: 'attackLeadership', attackIsOpenWater: true }),
+        { type: GamePhases.attackLeadership, payload: { skip: true } },
+      )
+      expect(state.phase).toBe('attackReinforce')
+    })
+
+    it('destroys a ship, spends 2 L, stays in phase when L ≥ 2 and ships remain', () => {
+      const defender = { ...mockGameState().players[1], ships: [ship1, ship2] }
+      const state = gameReducer(
+        mockGameState({
+          phase: 'attackLeadership',
+          attackIsOpenWater: false,
+          diceBank: { L: 4 },
+          shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'f1' } },
+          players: [mockGameState().players[0], defender],
+        }),
+        { type: GamePhases.attackLeadership, payload: { shipID: 's1' } },
+      )
+      expect(state.players[1].ships).toHaveLength(1)
+      expect(state.diceBank.L).toBe(2)
+      expect(state.phase).toBe('attackLeadership')
+    })
+
+    it('destroys a ship, advances to attackWave1 when L drops below 2', () => {
+      const defender = { ...mockGameState().players[1], ships: [ship1, ship2] }
+      const state = gameReducer(
+        mockGameState({
+          phase: 'attackLeadership',
+          attackIsOpenWater: false,
+          diceBank: { L: 2 },
+          shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'f1' } },
+          players: [mockGameState().players[0], defender],
+        }),
+        { type: GamePhases.attackLeadership, payload: { shipID: 's1' } },
+      )
+      expect(state.players[1].ships).toHaveLength(1)
+      expect(state.diceBank.L).toBeUndefined()
+      expect(state.phase).toBe('attackReinforceOrWave2')
+    })
+
+    it('destroys last ship, advances even if L ≥ 2', () => {
+      const defender = { ...mockGameState().players[1], ships: [ship1] }
+      const state = gameReducer(
+        mockGameState({
+          phase: 'attackLeadership',
+          attackIsOpenWater: false,
+          diceBank: { L: 4 },
+          shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'f1' } },
+          players: [mockGameState().players[0], defender],
+        }),
+        { type: GamePhases.attackLeadership, payload: { shipID: 's1' } },
+      )
+      expect(state.players[1].ships).toHaveLength(0)
+      expect(state.diceBank.L).toBe(2)
+      expect(state.phase).toBe('attackReinforceOrWave2')
+    })
+  })
 
   it('attackWave1 - all dice of one color used, protection enabled', () => {
     // initialize roll values, fort to attack
-    gs.attackValueCounts = { B: 1, W: 2, G: 1 }
+    gs.diceBank = { B: 1, W: 2, G: 1 }
     const fort = createMockFort({
       gridSpec: [
         [0, 0, 'B'],
@@ -316,7 +421,7 @@ describe('gameReducer', () => {
     }
     let state = gameReducer(gs, payload)
     expect(state.phase).toBe('attackReinforceOrWave2')
-    expect(state.attackValueCounts).toEqual({ B: 1, W: 2 })
+    expect(state.diceBank).toEqual({ B: 1, W: 2 })
     const updatedFort = findFort(state.players[1], 'testFort')
     expect(fortShellsRemaining(updatedFort)).toBe(3)
     // now try to destroy a cell that is connected to a protected cell
@@ -327,7 +432,7 @@ describe('gameReducer', () => {
   })
 
   it('attackReinforceOrWave2 - reinforce if no target', () => {
-    gs.attackValueCounts = { B: 2 }
+    gs.diceBank = { B: 2 }
     let payload = {
       type: GamePhases.attackReinforceOrWave2,
       payload: { choice: 'attackWave2' },
@@ -340,7 +445,7 @@ describe('gameReducer', () => {
     // no target rolls, so default to reinforce
     expect(state.phase).toBe('attackReinforce')
     // now with target, wave2
-    gs.attackValueCounts = { B: 2, T: 1 }
+    gs.diceBank = { B: 2, T: 1 }
     state = gameReducer(gs, payload)
     expect(state.phase).toBe('attackWave2')
     payload.payload.choice = 'reinforce'
@@ -349,7 +454,7 @@ describe('gameReducer', () => {
   })
 
   it('attackReinforce - add shells to player reserve', () => {
-    gs.attackValueCounts = { B: 1, W: 1, T: 1 }
+    gs.diceBank = { B: 1, W: 1, T: 1 }
     let payload = { type: GamePhases.attackReinforce }
     let state = gameReducer(gs, payload)
     expect(state.phase).toBe('attackDestroy') // Fort may have been destroyed in first wave
@@ -360,7 +465,7 @@ describe('gameReducer', () => {
     state = {
       ...state,
       shellReserve: { black: 1, white: 3, gray: 2 },
-      attackValueCounts: { B: 2, T: 1 },
+      diceBank: { B: 2, T: 1 },
     }
     state = gameReducer(state, payload)
     expect(state.players[0].shells).toMatchObject({ black: 2 })
@@ -368,7 +473,7 @@ describe('gameReducer', () => {
   })
 
   it('attackWave2 - destroy fort shells with no care for protection', () => {
-    gs.attackValueCounts = { T: 2, G: 1 }
+    gs.diceBank = { T: 2, G: 1 }
     const fort = createMockFort({
       gridSpec: [
         [0, 0, 'B'],
