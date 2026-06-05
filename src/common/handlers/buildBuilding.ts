@@ -14,6 +14,7 @@ export function handleBuildBuilding(
   const updatedFort = addBuilding(fort, building, payload.repairAt)
   players[state.currentPlayerIndex] = {
     ...player,
+    coins: player.coins + building.coins,
     forts: player.forts.map(f => (f.id === payload.fortID ? updatedFort : f)),
   }
   return {
