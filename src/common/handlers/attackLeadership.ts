@@ -1,4 +1,5 @@
 import IGameState from 'common/IGameState'
+import { Phase } from 'common/phases'
 import { spendDice } from 'common/attackRoll'
 import { destroyShip } from 'common/player'
 
@@ -8,10 +9,14 @@ export function handleAttackLeadership(
   state: IGameState,
   payload: Payload,
 ): IGameState {
-  const nextPhase = state.attackIsOpenWater ? 'attackReinforce' : 'attackWave1'
+  function wavePhase(bank: typeof state.diceBank): Phase {
+    if (state.attackIsOpenWater) return 'attackReinforce'
+    const hasWaveDice = (['B', 'W', 'G'] as const).some(s => (bank[s] ?? 0) > 0)
+    return hasWaveDice ? 'attackWave1' : 'attackReinforceOrWave2'
+  }
 
   if ('skip' in payload) {
-    return { ...state, phase: nextPhase }
+    return { ...state, phase: wavePhase(state.diceBank) }
   }
 
   const defenderIdx =
@@ -27,6 +32,6 @@ export function handleAttackLeadership(
     ...state,
     players,
     diceBank: newBank,
-    phase: stayInPhase ? 'attackLeadership' : nextPhase,
+    phase: stayInPhase ? 'attackLeadership' : wavePhase(newBank),
   }
 }

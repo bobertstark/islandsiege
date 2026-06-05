@@ -378,7 +378,7 @@ describe('gameReducer', () => {
       )
       expect(state.players[1].ships).toHaveLength(1)
       expect(state.diceBank.L).toBeUndefined()
-      expect(state.phase).toBe('attackWave1')
+      expect(state.phase).toBe('attackReinforceOrWave2')
     })
 
     it('destroys last ship, advances even if L ≥ 2', () => {
@@ -395,7 +395,7 @@ describe('gameReducer', () => {
       )
       expect(state.players[1].ships).toHaveLength(0)
       expect(state.diceBank.L).toBe(2)
-      expect(state.phase).toBe('attackWave1')
+      expect(state.phase).toBe('attackReinforceOrWave2')
     })
   })
 
