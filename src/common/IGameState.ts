@@ -20,6 +20,9 @@ export default interface IGameState {
   // Cards drawn this turn — shown separately from hand until player discards one
   drawnCards: ICard[]
 
+  // Per-player cards held during initDraw — not yet in hand until phase resolves
+  initDrawCards?: { [playerIdx: number]: ICard[] }
+
   phase: Phase
 
   // Wait for all player actions to synchronize (e.g. initial discard)

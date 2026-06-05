@@ -1,7 +1,7 @@
 /* Shared styles for all components */
 
 .card {
-  border: 1px solid #ccc;
+  border: 2px solid #ccc;
   border-radius: 4px;
   padding: 8px;
   background: #fff;
@@ -14,7 +14,11 @@
   flex-shrink: 0;
 }
 .card.selected {
-  border: 2px solid #007bff;
+  border: 2px solid #c0392b;
+  box-shadow: 0 0 0 2px #c0392b;
+}
+.card.dimmed {
+  opacity: 0.4;
 }
 .card .card-title {
   font-weight: bold;

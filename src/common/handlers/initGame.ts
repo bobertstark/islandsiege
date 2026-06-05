@@ -1,6 +1,6 @@
 import IGameState from 'common/IGameState'
 import { createDeck, drawCards } from 'common/deck'
-import { createPlayer, addFort, addCardsToHand } from 'common/player'
+import { createPlayer, addFort } from 'common/player'
 import { createFortById } from 'common/cardRegistry'
 import { createRng, generateSeed } from 'common/rng'
 
@@ -13,13 +13,17 @@ export function handleInitGame(
   let deckState = createDeck(undefined, rng.next)
   const currentPlayerIndex = Math.floor(rng.next() * playerNames.length)
 
+  const initDrawCards: {
+    [playerIdx: number]: import('common/ICard').default[]
+  } = {}
   const players = playerNames.map((name, idx) => {
     const base = createPlayer(String(idx), name, { color: playerColors[idx] })
     const fort = createFortById('startingFort')
     const withFort = addFort({ ...base, shells: { black: 1, white: 1 } }, fort)
     const { cards, state: next } = drawCards(deckState, 3, rng.next)
     deckState = next
-    return addCardsToHand(withFort, cards)
+    initDrawCards[idx] = cards
+    return withFort
   })
 
   return {
@@ -30,6 +34,7 @@ export function handleInitGame(
     shuffleCount: deckState.shuffleCount,
     currentPlayerIndex,
     shellReserve: { black: 5, white: 5, gray: 5 },
+    initDrawCards,
     phase: 'initDraw',
     rngSeed: rng.seed(),
   }

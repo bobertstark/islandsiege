@@ -6,7 +6,6 @@ import { GamePhases } from 'common/phases'
 import { DieValue } from 'common/die'
 import IGameStateView from 'common/IGameStateView'
 import GameBoard from 'components/GameBoard'
-import Card from 'components/Card'
 import { Deck, Discard } from 'components/Deck'
 import { ActionPhase } from 'components/phases/ActionPhase'
 import { AttackWave1Phase } from 'components/phases/AttackWave1Phase'
@@ -15,6 +14,8 @@ import { AttackWave2Phase } from 'components/phases/AttackWave2Phase'
 import { BuildFortPhase } from 'components/phases/BuildFortPhase'
 import { BuildBuildingPhase } from 'components/phases/BuildBuildingPhase'
 import { BuildShipPhase } from 'components/phases/BuildShipPhase'
+import { DrawPickPhase } from 'components/phases/DrawPickPhase'
+import { InitDrawPhase } from 'components/phases/InitDrawPhase'
 import AttackRollPanel from 'components/AttackRollPanel'
 import Fort from 'components/Fort'
 import AttackTargetDisplay from 'components/AttackTargetDisplay'
@@ -134,113 +135,6 @@ const ColonizePhase: React.FC<{
       />
       {isMyTurn && (
         <p style={{ padding: '4px 0' }}>Placing colonists on your forts…</p>
-      )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
-  )
-}
-
-const InitDiscardPhase: React.FC<{
-  view: IGameStateView
-  playerIdx: number
-  isMyTurn: boolean
-  waitingFor: string[]
-  dispatch: (action: { type: string; payload?: unknown }) => void
-}> = ({ view, playerIdx, isMyTurn, waitingFor, dispatch }) => {
-  const [selectedID, setSelectedID] = useState<string | undefined>()
-  const cards = view.drawnCards
-
-  function handleSelect(cardID: string) {
-    setSelectedID(cardID)
-    dispatch({ type: 'initDraw', payload: { cardID } })
-  }
-
-  return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
-      {isMyTurn && (
-        <>
-          <h2>Select card to give away</h2>
-          <p>
-            Select one card to give to{' '}
-            <strong
-              style={{
-                color:
-                  view.players[(playerIdx + 1) % view.players.length]?.color ??
-                  undefined,
-              }}>
-              {view.players[(playerIdx + 1) % view.players.length]?.name}
-            </strong>
-            .
-          </p>
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              flexWrap: 'wrap',
-              margin: '16px 0',
-            }}>
-            {cards.map(card => (
-              <Card
-                key={card.id}
-                card={card}
-                selected={selectedID === card.id}
-                onClick={handleSelect}
-              />
-            ))}
-          </div>
-        </>
-      )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
-  )
-}
-
-const DiscardPhase: React.FC<{
-  view: IGameStateView
-  isMyTurn: boolean
-  waitingFor: string[]
-  dispatch: (action: { type: string; payload?: unknown }) => void
-}> = ({ view, isMyTurn, waitingFor, dispatch }) => {
-  const [selectedID, setSelectedID] = useState<string | undefined>()
-
-  function handleDiscard(cardID: string) {
-    setSelectedID(cardID)
-    dispatch({ type: 'discard', payload: { cardID } })
-  }
-
-  return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
-      {isMyTurn && (
-        <>
-          <h2>Pick a card to discard</h2>
-          <p>Select one of your drawn cards. The other two go to your hand.</p>
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              flexWrap: 'wrap',
-              margin: '16px 0',
-            }}>
-            {view.drawnCards.map(card => (
-              <Card
-                key={card.id}
-                card={card}
-                selected={selectedID === card.id}
-                onClick={handleDiscard}
-              />
-            ))}
-          </div>
-        </>
       )}
       <GameBoard state={view} dispatch={dispatch} />
     </div>
@@ -388,7 +282,7 @@ export const GamePage: React.FC = () => {
   switch (view.phase) {
     case GamePhases.initDraw:
       return (
-        <InitDiscardPhase
+        <InitDrawPhase
           view={view}
           playerIdx={playerIdx}
           isMyTurn={isMyTurn}
@@ -414,9 +308,9 @@ export const GamePage: React.FC = () => {
           dispatch={dispatch}
         />
       )
-    case GamePhases.discard:
+    case GamePhases.drawPick:
       return (
-        <DiscardPhase
+        <DrawPickPhase
           view={view}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}

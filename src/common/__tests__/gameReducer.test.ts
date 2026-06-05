@@ -91,8 +91,7 @@ describe('gameReducer', () => {
       type: 'ship' as CardType,
       description: 'test',
     }
-    gs.players[0].hand = [cardA]
-    gs.players[1].hand = [cardB]
+    gs.initDrawCards = { 0: [cardA], 1: [cardB] }
 
     // First player submits — not yet resolved
     let state = gameReducer(gs, {
@@ -101,7 +100,7 @@ describe('gameReducer', () => {
     })
     expect(state.phase).toBe('initDraw')
     expect(state.pending).toMatchObject({ 0: 'a' })
-    expect(state.players[0].hand[0].id).toBe('a') // card still in hand
+    expect(state.initDrawCards?.[0]?.[0].id).toBe('a') // card still in temp holder
 
     // Last player submits — resolves immediately
     state = gameReducer(state, {
@@ -119,12 +118,12 @@ describe('gameReducer', () => {
     const payload = { type: GamePhases.draw }
     const state = gameReducer(gs, payload)
     expect(state.drawnCards).toHaveLength(3)
-    expect(state.players[0].hand).toHaveLength(0) // hand unchanged until discard
+    expect(state.players[0].hand).toHaveLength(0) // hand unchanged until draw pick
     expect(state.deck.length).toBe(33)
-    expect(state.phase).toBe('discard')
+    expect(state.phase).toBe('drawPick')
   })
 
-  it('discard - selected card goes to pile; remaining 2 go to hand', () => {
+  it('drawPick - selected card goes to pile; remaining 2 go to hand', () => {
     const drawn = [
       { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
       { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
@@ -133,7 +132,7 @@ describe('gameReducer', () => {
     gs.drawnCards = drawn
 
     const state = gameReducer(gs, {
-      type: GamePhases.discard,
+      type: GamePhases.drawPick,
       payload: { cardID: 'b' },
     })
     expect(state.players[0].hand.map(c => c.id)).toEqual(
@@ -145,7 +144,7 @@ describe('gameReducer', () => {
     expect(state.phase).toBe('endTurn')
   })
 
-  it('discard - optional targetPlayerIndex sends card to player instead of pile', () => {
+  it('drawPick - optional targetPlayerIndex sends card to player instead of pile', () => {
     const drawn = [
       { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
       { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
@@ -154,7 +153,7 @@ describe('gameReducer', () => {
     gs.drawnCards = drawn
 
     const state = gameReducer(gs, {
-      type: GamePhases.discard,
+      type: GamePhases.drawPick,
       payload: { cardID: 'b', targetPlayerIndex: 1 },
     })
     expect(state.players[1].hand.map(c => c.id)).toContain('b')
@@ -544,7 +543,9 @@ describe('gameReducer', () => {
       }
       const result = gameReducer(lobby, { type: GamePhases.startGame })
       expect(result.phase).toBe(GamePhases.initDraw)
-      result.players.forEach(p => expect(p.hand).toHaveLength(3))
+      result.players.forEach((_, i) =>
+        expect(result.initDrawCards?.[i]).toHaveLength(3),
+      )
     })
   })
 

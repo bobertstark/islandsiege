@@ -7,7 +7,7 @@ import { handleStartGame } from 'common/handlers/startGame'
 import { handleSetColor } from 'common/handlers/setColor'
 import { handleInitDraw } from 'common/handlers/initDraw'
 import { handleDraw } from 'common/handlers/draw'
-import { handleDiscard } from 'common/handlers/discard'
+import { handleDrawPick } from 'common/handlers/drawPick'
 import { handleVictory } from 'common/handlers/victory'
 import { handleColonize } from 'common/handlers/colonize'
 import { handleAction } from 'common/handlers/action'
@@ -38,8 +38,8 @@ export function gameReducer(
       return handleInitDraw(state, phase.payload)
     case GamePhases.draw:
       return handleDraw(state)
-    case GamePhases.discard:
-      return handleDiscard(state, phase.payload)
+    case GamePhases.drawPick:
+      return handleDrawPick(state, phase.payload)
     case GamePhases.victory:
       return handleVictory(state)
     case GamePhases.colonize:

@@ -8,17 +8,19 @@ import './shared.css'
 interface CardProps {
   card: ICard
   selected?: boolean
+  dimmed?: boolean
   onClick?: (cardID: string) => void
 }
 
 // TODO: Color coordinate card types for easier visual digest
-const Card: React.FC<CardProps> = ({ card, selected, onClick }) => {
+const Card: React.FC<CardProps> = ({ card, selected, dimmed, onClick }) => {
   const fortGrid = card.gridSpec ? createFortGrid(card.gridSpec) : undefined
+  const cls = ['card', selected && 'selected', dimmed && 'dimmed']
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div
-      className={`card${selected ? ' selected' : ''}`}
-      onClick={() => onClick?.(card.id)}>
+    <div className={cls} onClick={() => onClick?.(card.id)}>
       <div className="card-title">{card.name}</div>
       <div className="card-type">{card.type}</div>
       {fortGrid && (

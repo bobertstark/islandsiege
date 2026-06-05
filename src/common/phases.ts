@@ -27,7 +27,7 @@ export type Phase =
   | 'colonize'
   | 'action'
   | 'draw'
-  | 'discard'
+  | 'drawPick'
   | 'buildFort'
   | 'buildBuilding'
   | 'buildShip'
@@ -55,7 +55,7 @@ export const GamePhases = {
   action: 'action',
   // Sub-actions
   draw: 'draw',
-  discard: 'discard',
+  drawPick: 'drawPick',
   buildFort: 'buildFort',
   buildBuilding: 'buildBuilding',
   buildShip: 'buildShip',
@@ -87,7 +87,7 @@ export const draw = () => ({
   type: GamePhases.draw,
 })
 
-export const discard = (targetPlayerIndex: number, cardID: string) => ({
-  type: GamePhases.discard,
-  payload: { targetPlayerIndex, cardID },
+export const drawPick = (cardID: string) => ({
+  type: GamePhases.drawPick,
+  payload: { cardID },
 })
