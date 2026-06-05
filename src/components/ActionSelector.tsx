@@ -15,13 +15,22 @@ import { FortGrid } from 'components/FortGrid'
 import Building from 'components/Building'
 import Ship from 'components/Ship'
 
+export interface FortTarget {
+  targetPlayerIndex: number
+  fortID: string
+  label: string
+  fort: IFort
+}
+
 interface ActionSelectorProps {
   player: IPlayerView
+  attackTargets: FortTarget[]
   onSelect: (
     action: string,
     cardID?: string,
     fortID?: string,
     repairAt?: [number, number],
+    targetPlayerIndex?: number,
   ) => void
 }
 
@@ -45,8 +54,10 @@ function buildableShips(hand: ICard[], forts: IFort[]): ICard[] {
 
 const ActionSelector: React.FC<ActionSelectorProps> = ({
   player,
+  attackTargets,
   onSelect,
 }) => {
+  const [showAttackPicker, setShowAttackPicker] = useState(false)
   const [showFortPicker, setShowFortPicker] = useState(false)
   const [showBuildingPicker, setShowBuildingPicker] = useState(false)
   const [showShipPicker, setShowShipPicker] = useState(false)
@@ -106,7 +117,9 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
       <h2>Choose your action:</h2>
       <div
         style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        <button onClick={() => onSelect('attack')}>Attack</button>
+        <button onClick={() => setShowAttackPicker(v => !v)}>
+          Attack{showAttackPicker ? ' ▲' : ' ▼'}
+        </button>
         <button onClick={() => onSelect('draw')}>Draw</button>
         {fortCards.length > 0 && (
           <button onClick={() => setShowFortPicker(v => !v)}>
@@ -124,6 +137,67 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
           </button>
         )}
       </div>
+
+      {showAttackPicker && (
+        <div style={{ padding: '12px 0' }}>
+          {attackTargets.length === 0 ? (
+            <button
+              onClick={() => {
+                setShowAttackPicker(false)
+                onSelect('attack', undefined, undefined, undefined, -1)
+              }}>
+              Open Waters
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              {attackTargets.map(t => (
+                <div
+                  key={`${t.targetPlayerIndex}-${t.fortID}`}
+                  onClick={() => {
+                    setShowAttackPicker(false)
+                    onSelect(
+                      'attack',
+                      undefined,
+                      t.fortID,
+                      undefined,
+                      t.targetPlayerIndex,
+                    )
+                  }}
+                  style={{
+                    cursor: 'pointer',
+                    outline: '2px solid transparent',
+                    borderRadius: 6,
+                    transition: 'outline-color 0.15s',
+                  }}
+                  onMouseEnter={e =>
+                    ((e.currentTarget as HTMLDivElement).style.outlineColor =
+                      '#c0392b')
+                  }
+                  onMouseLeave={e =>
+                    ((e.currentTarget as HTMLDivElement).style.outlineColor =
+                      'transparent')
+                  }>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: '#888',
+                      marginBottom: 4,
+                      textAlign: 'center',
+                    }}>
+                    {t.label}
+                  </div>
+                  <Fort fort={t.fort} />
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={() => setShowAttackPicker(false)}
+            style={{ marginTop: 8 }}>
+            ← Back
+          </button>
+        </div>
+      )}
 
       {showFortPicker && (
         <div

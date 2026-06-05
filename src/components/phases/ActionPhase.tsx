@@ -1,12 +1,34 @@
-// TODO
-// This should also render the GameBoard, but add additional checks for eligible actions
-// Should highlight: deck (draw), playable cards in hand (build), forts to attack (or open water).
-
 import React from 'react'
-import ActionSelector from 'components/ActionSelector'
+import ActionSelector, { FortTarget } from 'components/ActionSelector'
 import GameBoard from 'components/GameBoard'
 import IGameStateView from 'common/IGameStateView'
 import { TurnBanner } from 'components/TurnBanner'
+
+function buildAttackTargets(
+  view: IGameStateView,
+  currentPlayerIndex: number,
+): FortTarget[] {
+  const occupied = new Set<string>()
+  for (const loc of Object.values(view.shipLocations)) {
+    if (loc.targetPlayerIndex !== undefined && loc.fortID !== undefined) {
+      occupied.add(`${loc.targetPlayerIndex}:${loc.fortID}`)
+    }
+  }
+  const targets: FortTarget[] = []
+  view.players.forEach((player, idx) => {
+    if (idx === currentPlayerIndex) return
+    for (const fort of player.forts) {
+      if (occupied.has(`${idx}:${fort.id}`)) continue
+      targets.push({
+        targetPlayerIndex: idx,
+        fortID: fort.id,
+        label: `${player.name} — ${fort.name}`,
+        fort,
+      })
+    }
+  })
+  return targets
+}
 
 interface ActionPhaseProps {
   state: IGameStateView
@@ -23,6 +45,7 @@ export const ActionPhase: React.FC<ActionPhaseProps> = ({
 }) => {
   const activePlayerName = state.players[state.currentPlayerIndex]?.name ?? ''
   const currentPlayer = state.players[state.currentPlayerIndex]
+  const attackTargets = buildAttackTargets(state, state.currentPlayerIndex)
 
   return (
     <div>
@@ -34,10 +57,17 @@ export const ActionPhase: React.FC<ActionPhaseProps> = ({
       {isMyTurn && currentPlayer && (
         <ActionSelector
           player={currentPlayer}
-          onSelect={(action, cardID, fortID, repairAt) =>
+          attackTargets={attackTargets}
+          onSelect={(action, cardID, fortID, repairAt, targetPlayerIndex) =>
             dispatch({
               type: 'action',
-              payload: { actionChosen: action, cardID, fortID, repairAt },
+              payload: {
+                actionChosen: action,
+                cardID,
+                fortID,
+                repairAt,
+                targetPlayerIndex,
+              },
             })
           }
         />

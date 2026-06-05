@@ -216,7 +216,8 @@ describe('gameReducer', () => {
 
     payload.payload.actionChosen = 'attack'
     state = gameReducer(gs, payload)
-    expect(state.phase).toBe('attackStart')
+    expect(state.phase).toBe('attackRoll')
+    expect(state.attackIsOpenWater).toBe(true)
   })
 
   it('buildFort - will build a fort, add shells, give coins', () => {
@@ -260,25 +261,29 @@ describe('gameReducer', () => {
 
   test.todo('buildBuilding - will build a building, move coloinsts, give coins')
 
-  it('attackStart - will initiate attack', () => {
-    // ensure previous history is cleared
+  it('action/attack - will initiate attack', () => {
+    // previous ship location should be cleared
     gs.shipLocations[0] = { targetPlayerIndex: 1, fortID: 'testFort' }
 
-    let payload = {
-      type: GamePhases.attackStart,
-      payload: {
-        targetPlayerIndex: 1,
-        fortID: undefined as string | undefined,
-      },
-    }
-    let state = gameReducer(gs, payload)
+    // open water: player 1 has no forts
+    let state = gameReducer(gs, {
+      type: GamePhases.action,
+      payload: { actionChosen: 'attack' },
+    })
     expect(state.players[1].forts).toEqual([])
     expect(state.attackIsOpenWater).toBe(true)
     expect(state.phase).toBe('attackRoll')
 
+    // targeted attack: give player 1 a fort
     gs.players[1] = addFort(gs.players[1], createMockFort())
-    payload.payload.fortID = 'testFort'
-    state = gameReducer(gs, payload)
+    state = gameReducer(gs, {
+      type: GamePhases.action,
+      payload: {
+        actionChosen: 'attack',
+        targetPlayerIndex: 1,
+        fortID: 'testFort',
+      },
+    })
     expect(state.attackIsOpenWater).toBe(false)
     expect(state.shipLocations[0].targetPlayerIndex).toBe(1)
     expect(state.shipLocations[0].fortID).toBe('testFort')

@@ -14,7 +14,6 @@ import { handleAction } from 'common/handlers/action'
 import { handleBuildFort } from 'common/handlers/buildFort'
 import { handleBuildBuilding } from 'common/handlers/buildBuilding'
 import { handleBuildShip } from 'common/handlers/buildShip'
-import { handleAttackStart } from 'common/handlers/attackStart'
 import { handleAttackRoll } from 'common/handlers/attackRoll'
 import { handleAttackLeadership } from 'common/handlers/attackLeadership'
 import { handleAttackWave1 } from 'common/handlers/attackWave1'
@@ -53,8 +52,6 @@ export function gameReducer(
       return handleBuildBuilding(state, phase.payload)
     case GamePhases.buildShip:
       return handleBuildShip(state, phase.payload)
-    case GamePhases.attackStart:
-      return handleAttackStart(state, phase.payload)
     case GamePhases.attackRoll:
       return handleAttackRoll(state, phase.payload)
     case GamePhases.attackLeadership:
