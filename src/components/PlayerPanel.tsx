@@ -5,6 +5,9 @@ import Building from './Building'
 import Ship from './Ship'
 import Hand from './Hand'
 import PlayerShip from './PlayerShip'
+import MeepleIcon from './MeepleIcon'
+import CoinIcon from './CoinIcon'
+import { ShellColors, ShellColor } from 'common/colors'
 
 interface PlayerPanelProps {
   player: IPlayer
@@ -35,28 +38,65 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
         border: active ? '3px solid #222' : '1px solid #ccc',
         borderRadius: 8,
         padding: 16,
-        minWidth: 320,
+        width: 360,
+        flexShrink: 0,
+        boxSizing: 'border-box',
         boxShadow: active ? '0 0 10px #222' : undefined,
       }}>
-      <h2 style={{ color }}>{player.name}</h2>
-      <p>
-        Colonists:{' '}
-        <span style={{ color: player.colonists === 0 ? 'red' : undefined }}>
-          {player.colonists}
+      <h2 style={{ color, margin: '0 0 8px' }}>{player.name}</h2>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+          marginBottom: 8,
+        }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <MeepleIcon size={18} color={color} />
+          <span
+            style={{
+              color: player.colonists === 0 ? '#c0392b' : undefined,
+              fontWeight: 600,
+            }}>
+            {player.colonists}
+          </span>
         </span>
-      </p>
-      <p>
-        Coins:{' '}
-        <span style={{ color: player.coins >= 20 ? 'red' : undefined }}>
-          {player.coins}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <CoinIcon size={18} />
+          <span
+            style={{
+              color: player.coins >= 20 ? '#c0392b' : undefined,
+              fontWeight: 600,
+            }}>
+            {player.coins}
+          </span>
         </span>
-      </p>
-      <p>Shells:</p>
-      <ul>
-        <li>Black: {player.shells.black}</li>
-        <li>Gray: {player.shells.gray}</li>
-        <li>White: {player.shells.white}</li>
-      </ul>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          {(['black', 'gray', 'white'] as ShellColor[]).flatMap(shellColor =>
+            Array.from({ length: player.shells[shellColor] ?? 0 }).map(
+              (_, i) => (
+                <span
+                  key={`${shellColor}-${i}`}
+                  style={{
+                    display: 'inline-block',
+                    width: 14,
+                    height: 14,
+                    borderRadius: 3,
+                    background: ShellColors[shellColor],
+                    border:
+                      shellColor === 'white'
+                        ? '1px solid #bbb'
+                        : '1px solid transparent',
+                    boxSizing: 'border-box',
+                  }}
+                  title={shellColor}
+                />
+              ),
+            ),
+          )}
+        </span>
+      </div>
       <div
         style={{
           display: 'flex',
