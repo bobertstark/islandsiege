@@ -1,18 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "Node16",
+    "moduleResolution": "node16",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "strict": true,
+    "rootDir": "..",
     "outDir": "../dist-server",
-    "baseUrl": "..",
     "paths": {
-      "common/*": ["src/common/*"]
+      "common/*": ["../src/common/*"]
     }
   },
-  "include": ["**/*"],
+  "include": ["**/*", "../src/common/**/*"],
+  "exclude": ["../src/common/__tests__"],
   "ts-node": {
     "transpileOnly": true,
     "require": ["tsconfig-paths/register"]

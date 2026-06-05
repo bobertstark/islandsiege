@@ -4,33 +4,50 @@ This is an open-source online implementation of [Island Siege](https://boardgame
 **This implementation is not affiliated with APE Games in any way**.
 Please consider [buying the game](https://www.amazon.com/APE-Games-Island-Siege-Multi/dp/099942887X/) to show support to the creators.
 
-This project is built using typescript and react.
+This project is built using TypeScript, React, and Vite.
 
-## Building
+## Setup
 
-### npm installation
+```
+npm install
+```
 
-Use npm to install the required packages. From the project root run the following command:
+## Development
 
-`npm install`
+```
+npm run dev
+```
 
-## Running
-
-To run both the game server and the frontend together:
-
-`npm run dev`
-
-This starts the backend on port 3001 and the React frontend on port 3000. Open `http://localhost:3000` to play.
+Starts the Express backend on port 3001 and the Vite frontend on port 5173. Open `http://localhost:5173` to play. The frontend proxies `/api` and `/ws` to the backend automatically.
 
 To run them separately:
 
 - Frontend only: `npm start`
 - Server only: `npm run server:dev`
 
-You can also use `npm run` to list all available commands.
+## Production build
+
+```
+npm run build:all
+```
+
+Builds the React app to `dist/` and compiles the server to `dist-server/`. The server serves the frontend statically, so only one process needs to run:
+
+```
+node dist-server/index.js
+```
 
 ## Testing
 
-This project uses jester testing. npm can be used to run the unit tests. From the project root run the following command:
+```
+npm test
+```
 
-`npm run test`
+## Deployment
+
+The app is deployed as a single service on [Render](https://render.com):
+
+- **Build command:** `npm run build:all`
+- **Start command:** `node dist-server/index.js`
+
+Render injects the `PORT` environment variable automatically.

@@ -11,9 +11,11 @@ const app = express()
 app.use(express.json())
 app.use('/api', router)
 
-const buildDir = path.join(__dirname, '../../build')
+const buildDir = path.join(__dirname, '../dist')
 app.use(express.static(buildDir))
-app.get('*', (_req, res) => res.sendFile(path.join(buildDir, 'index.html')))
+app.get('/{*splat}', (_req, res) =>
+  res.sendFile(path.join(buildDir, 'index.html')),
+)
 
 const server = http.createServer(app)
 const wss = new WebSocketServer({ server, path: '/ws' })
