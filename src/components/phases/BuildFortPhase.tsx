@@ -5,6 +5,7 @@ import { createFortGrid } from 'common/fortGrid'
 import type { FortGridSpec } from 'common/fortGrid'
 import { ShellColor, ShellColors, colorToSymbol } from 'common/colors'
 import FortGrid from 'components/FortGrid'
+import ActionInstructions from 'components/ActionInstructions'
 
 interface BuildFortPhaseProps {
   view: IGameStateView
@@ -140,17 +141,21 @@ export const BuildFortPhase: React.FC<BuildFortPhaseProps> = ({
     return assignments[key] !== undefined || hasShells
   })
 
-  if (!isMyTurn || !selectedCard || !grid) return null
+  if (!isMyTurn || !selectedCard || !grid) {
+    return (
+      <ActionInstructions
+        title="Build a Fort"
+        description="Waiting for the active player to place shells on their fort."
+      />
+    )
+  }
 
   return (
     <div style={{ padding: '16px 20px' }}>
-      <h2>
-        Place shells on <strong>{selectedCard.name}</strong>
-      </h2>
-      <p style={{ color: '#666', fontSize: 13 }}>
-        Click a highlighted cell to assign a shell from your reserve. Click
-        again to cycle or remove.
-      </p>
+      <ActionInstructions
+        title={`Place Shells on ${selectedCard.name}`}
+        description="Click a highlighted cell to assign a shell from your reserve. Click again to cycle or remove."
+      />
       <div
         style={{
           display: 'flex',

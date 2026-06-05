@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import IGameStateView from 'common/IGameStateView'
 import AttackTargetDisplay from 'components/AttackTargetDisplay'
+import ActionInstructions from 'components/ActionInstructions'
 
 interface Props {
   view: IGameStateView
@@ -46,10 +47,17 @@ export const AttackReinforceOrWave2Phase: React.FC<Props> = ({
 
   return (
     <>
+      <ActionInstructions
+        title="Choose Next Action"
+        description={
+          isMyTurn
+            ? 'Launch a second wave or reinforce with remaining dice.'
+            : 'Waiting for the attacker to choose their next action.'
+        }
+      />
       <AttackTargetDisplay view={view} />
       {isMyTurn && (
         <div style={{ padding: '16px 0' }}>
-          <h2 style={{ marginBottom: 16 }}>Choose your next action</h2>
           {neitherPossible ? (
             <p style={{ color: '#c0392b', fontStyle: 'italic' }}>
               No actions available — advancing…

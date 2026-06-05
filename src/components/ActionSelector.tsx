@@ -2,16 +2,15 @@ import React, { useState } from 'react'
 import type { IPlayerView } from 'common/IGameStateView'
 import ICard from 'common/ICard'
 import IFort from 'common/IFort'
-import {
-  createFortById,
-  createBuildingById,
-  createShipById,
-} from 'common/cardRegistry'
+import IShip from 'common/IShip'
+import {} from 'common/cardRegistry'
 import { shellInfo } from 'common/fortGrid'
 import { colorToSymbol } from 'common/colors'
 import DescriptionText from 'components/DescriptionText'
+import ActionInstructions from 'components/ActionInstructions'
 import Fort from 'components/Fort'
 import { FortGrid } from 'components/FortGrid'
+import Card from 'components/Card'
 import Building from 'components/Building'
 import Ship from 'components/Ship'
 
@@ -21,6 +20,7 @@ export interface FortTarget {
   playerName: string
   playerColor?: string
   fort: IFort
+  playerShips: IShip[]
 }
 
 interface ActionSelectorProps {
@@ -58,10 +58,17 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
   attackTargets,
   onSelect,
 }) => {
-  const [showAttackPicker, setShowAttackPicker] = useState(false)
-  const [showFortPicker, setShowFortPicker] = useState(false)
-  const [showBuildingPicker, setShowBuildingPicker] = useState(false)
-  const [showShipPicker, setShowShipPicker] = useState(false)
+  type Picker = 'attack' | 'fort' | 'building' | 'ship'
+  const [activePicker, setActivePicker] = useState<Picker | null>(null)
+
+  const showAttackPicker = activePicker === 'attack'
+  const showFortPicker = activePicker === 'fort'
+  const showBuildingPicker = activePicker === 'building'
+  const showShipPicker = activePicker === 'ship'
+
+  function togglePicker(p: Picker) {
+    setActivePicker(v => (v === p ? null : p))
+  }
   const [pendingBuildAction, setPendingBuildAction] = useState<{
     action: string
     card: ICard
@@ -76,15 +83,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
   const shipCards = buildableShips(hand, forts)
 
   function pick(action: string, cardID: string) {
-    setShowFortPicker(false)
-    setShowBuildingPicker(false)
-    setShowShipPicker(false)
+    setActivePicker(null)
     onSelect(action, cardID)
   }
 
   function handleCardPicked(action: string, card: ICard) {
-    setShowBuildingPicker(false)
-    setShowShipPicker(false)
+    setActivePicker(null)
     setPendingBuildAction({ action, card })
   }
 
@@ -115,25 +119,77 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
 
   return (
     <div style={{ margin: '24px 0' }}>
-      <h2>Choose your action:</h2>
+      <ActionInstructions title="Choose Your Action" />
       <div
         style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        <button onClick={() => setShowAttackPicker(v => !v)}>
+        <button
+          onClick={() => togglePicker('attack')}
+          style={{
+            background: '#c0392b',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            padding: '8px 16px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}>
           Attack{showAttackPicker ? ' ▲' : ' ▼'}
         </button>
-        <button onClick={() => onSelect('draw')}>Draw</button>
+        <button
+          onClick={() => onSelect('draw')}
+          style={{
+            background: '#27ae60',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            padding: '8px 16px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}>
+          Draw
+        </button>
         {fortCards.length > 0 && (
-          <button onClick={() => setShowFortPicker(v => !v)}>
+          <button
+            onClick={() => togglePicker('fort')}
+            style={{
+              background: '#795548',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '8px 16px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}>
             Build Fort{showFortPicker ? ' ▲' : ' ▼'}
           </button>
         )}
         {buildingCards.length > 0 && (
-          <button onClick={() => setShowBuildingPicker(v => !v)}>
+          <button
+            onClick={() => togglePicker('building')}
+            style={{
+              background: '#795548',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '8px 16px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}>
             Build Building{showBuildingPicker ? ' ▲' : ' ▼'}
           </button>
         )}
         {shipCards.length > 0 && (
-          <button onClick={() => setShowShipPicker(v => !v)}>
+          <button
+            onClick={() => togglePicker('ship')}
+            style={{
+              background: '#795548',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '8px 16px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}>
             Build Ship{showShipPicker ? ' ▲' : ' ▼'}
           </button>
         )}
@@ -144,18 +200,18 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
           {attackTargets.length === 0 ? (
             <button
               onClick={() => {
-                setShowAttackPicker(false)
+                setActivePicker(null)
                 onSelect('attack', undefined, undefined, undefined, -1)
               }}>
               Open Waters
             </button>
           ) : (
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {attackTargets.map(t => (
                 <div
                   key={`${t.targetPlayerIndex}-${t.fortID}`}
                   onClick={() => {
-                    setShowAttackPicker(false)
+                    setActivePicker(null)
                     onSelect(
                       'attack',
                       undefined,
@@ -168,33 +224,49 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
                     cursor: 'pointer',
                     outline: '2px solid transparent',
                     borderRadius: 6,
-                    transition: 'outline-color 0.15s',
+                    padding: 8,
+                    transition: 'outline-color 0.15s, background 0.15s',
                   }}
-                  onMouseEnter={e =>
-                    ((e.currentTarget as HTMLDivElement).style.outlineColor =
-                      '#c0392b')
-                  }
-                  onMouseLeave={e =>
-                    ((e.currentTarget as HTMLDivElement).style.outlineColor =
-                      'transparent')
-                  }>
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.outlineColor = '#c0392b'
+                    el.style.background = '#fff5f5'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.outlineColor = 'transparent'
+                    el.style.background = 'transparent'
+                  }}>
                   <div
                     style={{
-                      fontSize: 12,
-                      marginBottom: 4,
-                      textAlign: 'center',
+                      fontWeight: 700,
+                      color: t.playerColor,
+                      marginBottom: 6,
+                      fontSize: 13,
                     }}>
-                    <strong style={{ color: t.playerColor }}>
-                      {t.playerName}
-                    </strong>
+                    {t.playerName}
                   </div>
-                  <Fort fort={t.fort} />
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      flexWrap: 'wrap',
+                      alignItems: 'flex-start',
+                    }}>
+                    <Fort fort={t.fort} />
+                    {t.fort.buildings.map(b => (
+                      <Building key={b.id} building={b} />
+                    ))}
+                    {t.playerShips.map(s => (
+                      <Ship key={s.id} ship={s} />
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
           )}
           <button
-            onClick={() => setShowAttackPicker(false)}
+            onClick={() => setActivePicker(null)}
             style={{ marginTop: 8 }}>
             ← Back
           </button>
@@ -210,12 +282,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
             padding: '12px 0',
           }}>
           {fortCards.map(card => (
-            <div
+            <Card
               key={card.id}
+              card={card}
+              hideType
               onClick={() => pick('buildFort', card.id)}
-              style={{ cursor: 'pointer' }}>
-              <Fort fort={createFortById(card.id)} />
-            </div>
+            />
           ))}
         </div>
       )}
@@ -229,12 +301,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
             padding: '12px 0',
           }}>
           {buildingCards.map(card => (
-            <div
+            <Card
               key={card.id}
+              card={card}
+              hideType
               onClick={() => handleCardPicked('buildBuilding', card)}
-              style={{ cursor: 'pointer' }}>
-              <Building building={createBuildingById(card.id)} preview />
-            </div>
+            />
           ))}
         </div>
       )}
@@ -248,12 +320,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
             padding: '12px 0',
           }}>
           {shipCards.map(card => (
-            <div
+            <Card
               key={card.id}
+              card={card}
+              hideType
               onClick={() => handleCardPicked('buildShip', card)}
-              style={{ cursor: 'pointer' }}>
-              <Ship ship={createShipById(card.id)} preview />
-            </div>
+            />
           ))}
         </div>
       )}

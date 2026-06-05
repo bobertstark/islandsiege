@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
 import Card from 'components/Card'
+import ActionInstructions from 'components/ActionInstructions'
 
 interface Props {
   view: IGameStateView
@@ -26,22 +27,25 @@ export const InitDrawPhase: React.FC<Props> = ({
     dispatch({ type: 'initDraw', payload: { cardID: selectedID } })
   }
 
-  if (!isMyTurn && !confirmed) return null
+  if (!isMyTurn && !confirmed) {
+    return (
+      <ActionInstructions
+        title="Pass a Card"
+        description="Waiting for all players to select a card to pass."
+      />
+    )
+  }
 
   return (
     <>
-      {isMyTurn && !confirmed && (
-        <>
-          <h2>Select card to give away</h2>
-          <p>
-            Select one card to give to{' '}
-            <strong style={{ color: nextPlayer?.color ?? undefined }}>
-              {nextPlayer?.name}
-            </strong>
-            .
-          </p>
-        </>
-      )}
+      <ActionInstructions
+        title="Pass a Card"
+        description={
+          isMyTurn && !confirmed
+            ? `Select one card to give to ${nextPlayer?.name ?? 'the next player'}.`
+            : 'Waiting for others…'
+        }
+      />
       <div
         style={{
           display: 'flex',

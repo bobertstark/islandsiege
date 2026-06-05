@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
 import Fort from 'components/Fort'
+import ActionInstructions from 'components/ActionInstructions'
 import AttackTargetDisplay, {
   useAttackTarget,
 } from 'components/AttackTargetDisplay'
@@ -66,6 +67,14 @@ export const AttackWave2Phase: React.FC<Props> = ({
 
   return (
     <div style={{ margin: '16px 0' }}>
+      <ActionInstructions
+        title="Second Wave Attack"
+        description={
+          isMyTurn
+            ? `Select ${numT} shell${numT !== 1 ? 's' : ''} to destroy.`
+            : 'Watching the attacker select shells to destroy.'
+        }
+      />
       <AttackTargetDisplay view={view}>
         <Fort
           fort={targetFort}

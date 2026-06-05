@@ -14,6 +14,7 @@ interface CardProps {
   card: ICard
   selected?: boolean
   dimmed?: boolean
+  hideType?: boolean
   onClick?: (cardID: string) => void
 }
 
@@ -21,7 +22,13 @@ const isBuilding = (card: ICard) => card.type === 'building'
 const isShip = (card: ICard) => card.type === 'ship'
 
 // TODO: Color coordinate card types for easier visual digest
-const Card: React.FC<CardProps> = ({ card, selected, dimmed, onClick }) => {
+const Card: React.FC<CardProps> = ({
+  card,
+  selected,
+  dimmed,
+  hideType,
+  onClick,
+}) => {
   const fortGrid = card.gridSpec ? createFortGrid(card.gridSpec) : undefined
   const cls = ['card', selected && 'selected', dimmed && 'dimmed']
     .filter(Boolean)
@@ -30,7 +37,7 @@ const Card: React.FC<CardProps> = ({ card, selected, dimmed, onClick }) => {
   return (
     <div className={cls} onClick={() => onClick?.(card.id)}>
       <div className="card-title">{card.name}</div>
-      <div className="card-type">{card.type}</div>
+      {!hideType && <div className="card-type">{card.type}</div>}
       {isBuilding(card) && (
         <div
           style={{

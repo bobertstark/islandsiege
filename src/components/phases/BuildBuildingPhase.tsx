@@ -3,6 +3,7 @@ import IGameStateView from 'common/IGameStateView'
 import ICard from 'common/ICard'
 import IFort from 'common/IFort'
 import Card from 'components/Card'
+import ActionInstructions from 'components/ActionInstructions'
 
 interface BuildBuildingPhaseProps {
   view: IGameStateView
@@ -49,13 +50,23 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
       : []
   const eligibleIds = new Set(eligible.map(f => f.id))
 
-  if (!isMyTurn) return null
+  if (!isMyTurn) {
+    return (
+      <ActionInstructions
+        title="Build a Building"
+        description="Waiting for the active player to construct a building."
+      />
+    )
+  }
 
   return (
     <>
       {!selectedCard && (
         <div style={{ padding: '16px 20px' }}>
-          <h2>Pick a building to construct</h2>
+          <ActionInstructions
+            title="Build a Building"
+            description="Pick a building card from your hand to construct."
+          />
           <div
             style={{
               display: 'flex',
@@ -86,12 +97,10 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
       )}
       {selectedCard && (
         <div style={{ padding: '16px 20px' }}>
-          <h2>
-            Choose a fort for <strong>{selectedCard.name}</strong>
-          </h2>
-          <p style={{ color: '#666', fontSize: 13 }}>
-            Requires {selectedCard.cost} colonists on fort
-          </p>
+          <ActionInstructions
+            title={`Choose a Fort for ${selectedCard.name}`}
+            description={`Requires ${selectedCard.cost} colonists on fort.`}
+          />
           <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
             {forts.map(fort => {
               const ok = eligibleIds.has(fort.id)

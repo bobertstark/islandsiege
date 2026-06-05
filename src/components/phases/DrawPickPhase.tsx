@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
 import Card from 'components/Card'
+import ActionInstructions from 'components/ActionInstructions'
 
 interface Props {
   view: IGameStateView
@@ -22,12 +23,21 @@ export const DrawPickPhase: React.FC<Props> = ({
     dispatch({ type: 'drawPick', payload: { cardID: selectedID } })
   }
 
-  if (!isMyTurn) return null
+  if (!isMyTurn) {
+    return (
+      <ActionInstructions
+        title="Pick a Card to Discard"
+        description="Waiting for the active player to discard a drawn card."
+      />
+    )
+  }
 
   return (
     <>
-      <h2>Pick a card to discard</h2>
-      <p>Select one of your drawn cards. The other two go to your hand.</p>
+      <ActionInstructions
+        title="Pick a Card to Discard"
+        description="Select one of your drawn cards. The other two go to your hand."
+      />
       <div
         style={{
           display: 'flex',

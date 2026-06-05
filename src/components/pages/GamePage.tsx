@@ -18,6 +18,7 @@ import { DrawPickPhase } from 'components/phases/DrawPickPhase'
 import { InitDrawPhase } from 'components/phases/InitDrawPhase'
 import AttackRollPanel from 'components/AttackRollPanel'
 import AttackTargetDisplay from 'components/AttackTargetDisplay'
+import ActionInstructions from 'components/ActionInstructions'
 import 'components/phases/Game.css'
 
 const SIMULTANEOUS_PHASES = new Set<string>(['initDraw'])
@@ -132,7 +133,16 @@ const ColonizePhase: React.FC<{
       playerIdx={playerIdx}
       isMyTurn={isMyTurn}
       waitingFor={waitingFor}
-      actionContent={isMyTurn ? <p>Placing colonists on your forts…</p> : null}
+      actionContent={
+        <ActionInstructions
+          title="Colonize"
+          description={
+            isMyTurn
+              ? 'Placing colonists on your forts…'
+              : 'Waiting for colonists to be placed.'
+          }
+        />
+      }
     />
   )
 }
@@ -168,6 +178,14 @@ const AttackRollPhase: React.FC<{
       waitingFor={waitingFor}
       actionContent={
         <>
+          <ActionInstructions
+            title="Attack Roll"
+            description={
+              isMyTurn
+                ? 'Rolling dice for your attack.'
+                : 'Waiting for the attacker to roll.'
+            }
+          />
           {isMyTurn && view.attackRoll !== undefined && (
             <AttackRollPanel
               dice={view.attackRoll}
@@ -209,10 +227,17 @@ const AttackLeadershipPhase: React.FC<{
       waitingFor={waitingFor}
       actionContent={
         <>
+          <ActionInstructions
+            title="Leadership"
+            description={
+              isMyTurn
+                ? 'Spend 2 L dice to destroy an enemy ship.'
+                : 'Waiting for the attacker to use leadership.'
+            }
+          />
           <AttackTargetDisplay view={view} />
           {isMyTurn && (
             <div style={{ padding: '16px 0' }}>
-              <h2>Leadership</h2>
               {canUseLeadership ? (
                 <>
                   <p>

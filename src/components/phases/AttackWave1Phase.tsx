@@ -4,6 +4,7 @@ import { ShellColor, colorToSymbol } from 'common/colors'
 import { shellInfo, traverseConnectedShells } from 'common/fortGrid'
 import type { FortGridCell } from 'common/fortGrid'
 import Fort from 'components/Fort'
+import ActionInstructions from 'components/ActionInstructions'
 import AttackTargetDisplay, {
   useAttackTarget,
 } from 'components/AttackTargetDisplay'
@@ -89,19 +90,22 @@ export const AttackWave1Phase: React.FC<Props> = ({
     })
   }
 
+  const instructions = !isMyTurn
+    ? 'Watching the attacker choose which shells to destroy.'
+    : !selectedColor
+      ? 'Select a colored attack die to use.'
+      : pendingLoc
+        ? 'Confirm to destroy the selected shells (outlined in red), or cancel.'
+        : noEligible
+          ? 'No shells can be destroyed with this die — confirm to spend it anyway.'
+          : 'Select a shell group on the fort to destroy.'
+
   return (
     <>
-      {isMyTurn && (
-        <p style={{ color: '#aaa', fontStyle: 'italic', margin: '4px 0 8px' }}>
-          {!selectedColor
-            ? 'Select a colored attack die to use.'
-            : pendingLoc
-              ? 'Confirm to destroy the selected shells (outlined in red), or cancel.'
-              : noEligible
-                ? 'No shells can be destroyed with this die — confirm to spend it anyway.'
-                : 'Select a shell group on the fort to destroy.'}
-        </p>
-      )}
+      <ActionInstructions
+        title="First Wave Attack"
+        description={instructions}
+      />
       <AttackTargetDisplay
         view={view}
         selectedColor={selectedColor}

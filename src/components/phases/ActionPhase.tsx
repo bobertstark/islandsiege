@@ -1,5 +1,6 @@
 import React from 'react'
 import ActionSelector, { FortTarget } from 'components/ActionSelector'
+import ActionInstructions from 'components/ActionInstructions'
 import IGameStateView from 'common/IGameStateView'
 
 function buildAttackTargets(
@@ -23,6 +24,7 @@ function buildAttackTargets(
         playerName: player.name,
         playerColor: player.color,
         fort,
+        playerShips: player.ships ?? [],
       })
     }
   })
@@ -45,24 +47,33 @@ export const ActionPhase: React.FC<ActionPhaseProps> = ({
   const currentPlayer = state.players[state.currentPlayerIndex]
   const attackTargets = buildAttackTargets(state, state.currentPlayerIndex)
 
-  if (!isMyTurn || !currentPlayer) return null
+  if (!isMyTurn || !currentPlayer) {
+    return (
+      <ActionInstructions
+        title="Action Phase"
+        description="Waiting for the active player to choose an action."
+      />
+    )
+  }
 
   return (
-    <ActionSelector
-      player={currentPlayer}
-      attackTargets={attackTargets}
-      onSelect={(action, cardID, fortID, repairAt, targetPlayerIndex) =>
-        dispatch({
-          type: 'action',
-          payload: {
-            actionChosen: action,
-            cardID,
-            fortID,
-            repairAt,
-            targetPlayerIndex,
-          },
-        })
-      }
-    />
+    <>
+      <ActionSelector
+        player={currentPlayer}
+        attackTargets={attackTargets}
+        onSelect={(action, cardID, fortID, repairAt, targetPlayerIndex) =>
+          dispatch({
+            type: 'action',
+            payload: {
+              actionChosen: action,
+              cardID,
+              fortID,
+              repairAt,
+              targetPlayerIndex,
+            },
+          })
+        }
+      />
+    </>
   )
 }
