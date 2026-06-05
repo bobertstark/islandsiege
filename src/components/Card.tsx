@@ -4,6 +4,9 @@ import { createFortGrid } from 'common/fortGrid'
 import { colorToSymbol } from 'common/colors'
 import { DIE_STYLE } from 'common/die'
 import FortGrid from 'components/FortGrid'
+import MeepleIcon from 'components/MeepleIcon'
+import CoinIcon from 'components/CoinIcon'
+import HammerIcon from 'components/HammerIcon'
 import DescriptionText from 'components/DescriptionText'
 import './shared.css'
 
@@ -13,6 +16,8 @@ interface CardProps {
   dimmed?: boolean
   onClick?: (cardID: string) => void
 }
+
+const isBuilding = (card: ICard) => card.type === 'building'
 
 // TODO: Color coordinate card types for easier visual digest
 const Card: React.FC<CardProps> = ({ card, selected, dimmed, onClick }) => {
@@ -25,6 +30,61 @@ const Card: React.FC<CardProps> = ({ card, selected, dimmed, onClick }) => {
     <div className={cls} onClick={() => onClick?.(card.id)}>
       <div className="card-title">{card.name}</div>
       <div className="card-type">{card.type}</div>
+      {isBuilding(card) && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            margin: '8px 0',
+          }}>
+          {typeof card.cost === 'number' && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <MeepleIcon size={16} color="#555" />
+              <span style={{ fontSize: 13, fontWeight: 'bold' }}>
+                {card.cost}
+              </span>
+            </span>
+          )}
+          {typeof card.coins === 'number' && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <CoinIcon size={16} />
+              <span style={{ fontSize: 13, fontWeight: 'bold' }}>
+                {card.coins}
+              </span>
+            </span>
+          )}
+          {card.repair && card.repair.length > 0 && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <HammerIcon size={16} />
+              {card.repair.map((color, i) => {
+                const sym = colorToSymbol(color)
+                const s = DIE_STYLE[sym as keyof typeof DIE_STYLE]
+                return (
+                  <span
+                    key={i}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 16,
+                      height: 16,
+                      background: s?.bg ?? '#ccc',
+                      color: s?.text ?? '#000',
+                      border: '1px solid #555',
+                      borderRadius: 3,
+                      fontWeight: 'bold',
+                      fontSize: 10,
+                    }}>
+                    {sym}
+                  </span>
+                )
+              })}
+            </span>
+          )}
+        </div>
+      )}
       {fortGrid && (
         <div
           style={{
@@ -56,50 +116,6 @@ const Card: React.FC<CardProps> = ({ card, selected, dimmed, onClick }) => {
               }}
             />
           ))}
-        </div>
-      )}
-      {typeof card.cost === 'number' && (
-        <div className="card-cost">
-          <strong>Cost:</strong> {card.cost}
-        </div>
-      )}
-      {typeof card.coins === 'number' && (
-        <div>
-          <strong>Coins:</strong> {card.coins}
-        </div>
-      )}
-      {card.repair && card.repair.length > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            margin: '4px 0',
-          }}>
-          <strong>Repair:</strong>
-          {card.repair.map((color, i) => {
-            const sym = colorToSymbol(color)
-            const s = DIE_STYLE[sym as keyof typeof DIE_STYLE]
-            return (
-              <span
-                key={i}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 18,
-                  height: 18,
-                  background: s?.bg ?? '#ccc',
-                  color: s?.text ?? '#000',
-                  border: '1px solid #555',
-                  borderRadius: 3,
-                  fontWeight: 'bold',
-                  fontSize: 11,
-                }}>
-                {sym}
-              </span>
-            )
-          })}
         </div>
       )}
       <div className="card-description">
