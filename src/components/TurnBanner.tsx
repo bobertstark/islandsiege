@@ -6,10 +6,15 @@ interface BuildContext {
   fortID?: string
 }
 
+export interface WaitingForPlayer {
+  name: string
+  color?: string
+}
+
 interface TurnBannerProps {
   phase: string
   isMyTurn: boolean
-  waitingFor: string[]
+  waitingFor: WaitingForPlayer[]
   buildContext?: BuildContext
 }
 
@@ -41,7 +46,19 @@ export const TurnBanner: React.FC<TurnBannerProps> = ({
         fontWeight: 600,
       }}>
       <span>
-        {isMyTurn ? 'Your turn' : `Waiting for ${waitingFor.join(', ')}`}
+        {isMyTurn ? (
+          'Your turn'
+        ) : (
+          <>
+            Waiting for{' '}
+            {waitingFor.map((p, i) => (
+              <React.Fragment key={p.name}>
+                {i > 0 && ', '}
+                <span style={{ color: p.color }}>{p.name}</span>
+              </React.Fragment>
+            ))}
+          </>
+        )}
       </span>
       <span style={{ color: '#666', fontWeight: 400, fontSize: 13 }}>
         Phase: {phaseLabel}

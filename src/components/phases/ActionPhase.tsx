@@ -1,8 +1,6 @@
 import React from 'react'
 import ActionSelector, { FortTarget } from 'components/ActionSelector'
-import GameBoard from 'components/GameBoard'
 import IGameStateView from 'common/IGameStateView'
-import { TurnBanner } from 'components/TurnBanner'
 
 function buildAttackTargets(
   view: IGameStateView,
@@ -44,36 +42,27 @@ export const ActionPhase: React.FC<ActionPhaseProps> = ({
   isMyTurn,
   dispatch,
 }) => {
-  const activePlayerName = state.players[state.currentPlayerIndex]?.name ?? ''
   const currentPlayer = state.players[state.currentPlayerIndex]
   const attackTargets = buildAttackTargets(state, state.currentPlayerIndex)
 
+  if (!isMyTurn || !currentPlayer) return null
+
   return (
-    <div>
-      <TurnBanner
-        phase={state.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={[activePlayerName]}
-      />
-      {isMyTurn && currentPlayer && (
-        <ActionSelector
-          player={currentPlayer}
-          attackTargets={attackTargets}
-          onSelect={(action, cardID, fortID, repairAt, targetPlayerIndex) =>
-            dispatch({
-              type: 'action',
-              payload: {
-                actionChosen: action,
-                cardID,
-                fortID,
-                repairAt,
-                targetPlayerIndex,
-              },
-            })
-          }
-        />
-      )}
-      <GameBoard state={state} dispatch={dispatch} />
-    </div>
+    <ActionSelector
+      player={currentPlayer}
+      attackTargets={attackTargets}
+      onSelect={(action, cardID, fortID, repairAt, targetPlayerIndex) =>
+        dispatch({
+          type: 'action',
+          payload: {
+            actionChosen: action,
+            cardID,
+            fortID,
+            repairAt,
+            targetPlayerIndex,
+          },
+        })
+      }
+    />
   )
 }

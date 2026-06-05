@@ -3,13 +3,10 @@ import IGameStateView from 'common/IGameStateView'
 import ICard from 'common/ICard'
 import IFort from 'common/IFort'
 import Card from 'components/Card'
-import { TurnBanner } from 'components/TurnBanner'
-import GameBoard from 'components/GameBoard'
 
 interface BuildShipPhaseProps {
   view: IGameStateView
   isMyTurn: boolean
-  waitingFor: string[]
   dispatch: (action: { type: string; payload?: unknown }) => void
 }
 
@@ -20,7 +17,6 @@ function eligibleForts(forts: IFort[], cost: number): IFort[] {
 export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
   view,
   isMyTurn,
-  waitingFor,
   dispatch,
 }) => {
   const player = view.players[view.currentPlayerIndex]
@@ -53,15 +49,11 @@ export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
       : []
   const eligibleIds = new Set(eligible.map(f => f.id))
 
+  if (!isMyTurn) return null
+
   return (
-    <div>
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-        buildContext={view.buildContext}
-      />
-      {isMyTurn && !selectedCard && (
+    <>
+      {!selectedCard && (
         <div style={{ padding: '16px 20px' }}>
           <h2>Pick a ship to build</h2>
           <div
@@ -92,7 +84,7 @@ export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
           </div>
         </div>
       )}
-      {isMyTurn && selectedCard && (
+      {selectedCard && (
         <div style={{ padding: '16px 20px' }}>
           <h2>
             Choose a fort to launch <strong>{selectedCard.name}</strong> from
@@ -118,7 +110,6 @@ export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
           <button onClick={() => setSelectedCard(null)}>← Back</button>
         </div>
       )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
+    </>
   )
 }

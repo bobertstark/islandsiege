@@ -1,13 +1,10 @@
 import React, { useEffect } from 'react'
 import IGameStateView from 'common/IGameStateView'
-import { TurnBanner } from 'components/TurnBanner'
-import GameBoard from 'components/GameBoard'
 import AttackTargetDisplay from 'components/AttackTargetDisplay'
 
 interface Props {
   view: IGameStateView
   isMyTurn: boolean
-  waitingFor: string[]
   dispatch: (action: { type: string; payload?: unknown }) => void
 }
 
@@ -27,7 +24,6 @@ function reinforceGains(diceBank: IGameStateView['diceBank']): string {
 export const AttackReinforceOrWave2Phase: React.FC<Props> = ({
   view,
   isMyTurn,
-  waitingFor,
   dispatch,
 }) => {
   const canWave2 = (view.diceBank['T'] ?? 0) > 0
@@ -49,12 +45,7 @@ export const AttackReinforceOrWave2Phase: React.FC<Props> = ({
   }, [isMyTurn, neitherPossible])
 
   return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
+    <>
       <AttackTargetDisplay view={view} />
       {isMyTurn && (
         <div style={{ padding: '16px 0' }}>
@@ -123,7 +114,6 @@ export const AttackReinforceOrWave2Phase: React.FC<Props> = ({
           )}
         </div>
       )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
+    </>
   )
 }

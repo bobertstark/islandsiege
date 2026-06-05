@@ -5,13 +5,10 @@ import { createFortGrid } from 'common/fortGrid'
 import type { FortGridSpec } from 'common/fortGrid'
 import { ShellColor, ShellColors, colorToSymbol } from 'common/colors'
 import FortGrid from 'components/FortGrid'
-import { TurnBanner } from 'components/TurnBanner'
-import GameBoard from 'components/GameBoard'
 
 interface BuildFortPhaseProps {
   view: IGameStateView
   isMyTurn: boolean
-  waitingFor: string[]
   dispatch: (action: { type: string; payload?: unknown }) => void
 }
 
@@ -48,7 +45,6 @@ function summaryText(
 export const BuildFortPhase: React.FC<BuildFortPhaseProps> = ({
   view,
   isMyTurn,
-  waitingFor,
   dispatch,
 }) => {
   const player = view.players[view.currentPlayerIndex]
@@ -79,7 +75,6 @@ export const BuildFortPhase: React.FC<BuildFortPhaseProps> = ({
     const key = `${loc[0]},${loc[1]}`
     const current = assignments[key]
 
-    // Compute reserve excluding this cell's current assignment so cycling works
     const reserveWithoutThis = { ...(player?.shells ?? {}) }
     for (const [k, color] of Object.entries(assignments)) {
       if (k !== key) {
@@ -145,71 +140,62 @@ export const BuildFortPhase: React.FC<BuildFortPhaseProps> = ({
     return assignments[key] !== undefined || hasShells
   })
 
+  if (!isMyTurn || !selectedCard || !grid) return null
+
   return (
-    <div>
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-        buildContext={view.buildContext}
-      />
-      {isMyTurn && selectedCard && grid && (
-        <div style={{ padding: '16px 20px' }}>
-          <h2>
-            Place shells on <strong>{selectedCard.name}</strong>
-          </h2>
-          <p style={{ color: '#666', fontSize: 13 }}>
-            Click a highlighted cell to assign a shell from your reserve. Click
-            again to cycle or remove.
+    <div style={{ padding: '16px 20px' }}>
+      <h2>
+        Place shells on <strong>{selectedCard.name}</strong>
+      </h2>
+      <p style={{ color: '#666', fontSize: 13 }}>
+        Click a highlighted cell to assign a shell from your reserve. Click
+        again to cycle or remove.
+      </p>
+      <div
+        style={{
+          display: 'flex',
+          gap: 24,
+          alignItems: 'flex-start',
+          margin: '16px 0',
+        }}>
+        <FortGrid
+          grid={grid}
+          view="tableau"
+          showLabels
+          highlights={highlights}
+          onCellClick={handleCellClick}
+        />
+        <div>
+          <p style={{ margin: '0 0 8px', fontWeight: 600 }}>
+            Your shell reserve:
           </p>
-          <div
-            style={{
-              display: 'flex',
-              gap: 24,
-              alignItems: 'flex-start',
-              margin: '16px 0',
-            }}>
-            <FortGrid
-              grid={grid}
-              view="tableau"
-              showLabels
-              highlights={highlights}
-              onCellClick={handleCellClick}
-            />
-            <div>
-              <p style={{ margin: '0 0 8px', fontWeight: 600 }}>
-                Your shell reserve:
-              </p>
-              {SHELL_COLORS.map(color => (
-                <div key={color} style={{ marginBottom: 4 }}>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      width: 14,
-                      height: 14,
-                      background: ShellColors[color],
-                      border: '1px solid #ccc',
-                      marginRight: 6,
-                      verticalAlign: 'middle',
-                    }}
-                  />
-                  {color}: {reserve[color] ?? 0}
-                </div>
-              ))}
+          {SHELL_COLORS.map(color => (
+            <div key={color} style={{ marginBottom: 4 }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 14,
+                  height: 14,
+                  background: ShellColors[color],
+                  border: '1px solid #ccc',
+                  marginRight: 6,
+                  verticalAlign: 'middle',
+                }}
+              />
+              {color}: {reserve[color] ?? 0}
             </div>
-          </div>
-          {coinsEarned > 0 && (
-            <p style={{ fontWeight: 600 }}>
-              {summaryText(assignments, coinsEarned)}
-            </p>
-          )}
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button onClick={handleConfirm}>Confirm</button>
-            {coinsEarned > 0 && <button onClick={handleUndo}>Undo</button>}
-          </div>
+          ))}
         </div>
+      </div>
+      {coinsEarned > 0 && (
+        <p style={{ fontWeight: 600 }}>
+          {summaryText(assignments, coinsEarned)}
+        </p>
       )}
-      <GameBoard state={view} dispatch={dispatch} />
+      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <button onClick={handleConfirm}>Confirm</button>
+        {coinsEarned > 0 && <button onClick={handleUndo}>Undo</button>}
+      </div>
     </div>
   )
 }

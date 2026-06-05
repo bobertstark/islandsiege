@@ -3,8 +3,6 @@ import IGameStateView from 'common/IGameStateView'
 import { ShellColor, colorToSymbol } from 'common/colors'
 import { shellInfo, traverseConnectedShells } from 'common/fortGrid'
 import type { FortGridCell } from 'common/fortGrid'
-import { TurnBanner } from 'components/TurnBanner'
-import GameBoard from 'components/GameBoard'
 import Fort from 'components/Fort'
 import AttackTargetDisplay, {
   useAttackTarget,
@@ -37,20 +35,18 @@ function ineligibleForColor(
 interface Props {
   view: IGameStateView
   isMyTurn: boolean
-  waitingFor: string[]
   dispatch: (action: { type: string; payload?: unknown }) => void
 }
 
 export const AttackWave1Phase: React.FC<Props> = ({
   view,
   isMyTurn,
-  waitingFor,
   dispatch,
 }) => {
   const [selectedColor, setSelectedColor] = useState<ShellColor | null>(null)
   const [pendingLoc, setPendingLoc] = useState<[number, number] | null>(null)
 
-  const { targetPlayer, targetFort } = useAttackTarget(view)
+  const { targetFort } = useAttackTarget(view)
 
   const diceCount = selectedColor
     ? (view.diceBank[colorToSymbol(selectedColor) as 'B' | 'W' | 'G'] ?? 0)
@@ -94,12 +90,7 @@ export const AttackWave1Phase: React.FC<Props> = ({
   }
 
   return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
+    <>
       {isMyTurn && (
         <p style={{ color: '#aaa', fontStyle: 'italic', margin: '4px 0 8px' }}>
           {!selectedColor
@@ -182,7 +173,6 @@ export const AttackWave1Phase: React.FC<Props> = ({
           </button>
         </div>
       )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
+    </>
   )
 }

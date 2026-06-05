@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
-import { TurnBanner } from 'components/TurnBanner'
-import GameBoard from 'components/GameBoard'
 import Fort from 'components/Fort'
 import AttackTargetDisplay, {
   useAttackTarget,
@@ -10,7 +8,6 @@ import AttackTargetDisplay, {
 interface Props {
   view: IGameStateView
   isMyTurn: boolean
-  waitingFor: string[]
   dispatch: (action: { type: string; payload?: unknown }) => void
 }
 
@@ -21,7 +18,6 @@ function locKey(r: number, c: number) {
 export const AttackWave2Phase: React.FC<Props> = ({
   view,
   isMyTurn,
-  waitingFor,
   dispatch,
 }) => {
   const [selected, setSelected] = useState<[number, number][]>([])
@@ -51,7 +47,6 @@ export const AttackWave2Phase: React.FC<Props> = ({
     })
   }
 
-  // All non-empty shell cells are valid targets
   const allShellLocs: [number, number][] = targetFort
     ? targetFort.grid.flatMap((row, r) =>
         row.flatMap((cell, c) =>
@@ -63,65 +58,55 @@ export const AttackWave2Phase: React.FC<Props> = ({
     : []
 
   const selectedKeys = new Set(selected.map(([r, c]) => locKey(r, c)))
-  // Unselected valid targets are eligible to click (shown as highlights)
   const highlights = allShellLocs.filter(
     ([r, c]) => !selectedKeys.has(locKey(r, c)),
   )
 
+  if (!targetFort) return null
+
   return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
-      {targetFort && (
-        <div style={{ margin: '16px 0' }}>
-          <AttackTargetDisplay view={view}>
-            <Fort
-              fort={targetFort}
-              highlights={isMyTurn && !ready ? highlights : undefined}
-              selectedGroup={isMyTurn ? selected : undefined}
-              onCellClick={isMyTurn ? handleCellClick : undefined}
-            />
-          </AttackTargetDisplay>
-          {isMyTurn && (
-            <div style={{ marginTop: 12 }}>
-              <p
-                style={{ marginBottom: 8, fontStyle: 'italic', color: '#555' }}>
-                {ready
-                  ? `${numT} shell${numT !== 1 ? 's' : ''} selected — ready to confirm.`
-                  : `Select ${remaining} more shell${remaining !== 1 ? 's' : ''} to destroy.`}
-              </p>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <button
-                  onClick={handleConfirm}
-                  disabled={!ready}
-                  style={{
-                    padding: '8px 20px',
-                    background: ready ? '#e74c3c' : '#ccc',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 6,
-                    fontWeight: 'bold',
-                    cursor: ready ? 'pointer' : 'not-allowed',
-                    fontSize: 15,
-                  }}>
-                  Confirm Second Wave
-                </button>
-                {selected.length > 0 && (
-                  <button
-                    onClick={() => setSelected([])}
-                    style={{ padding: '8px 14px', cursor: 'pointer' }}>
-                    Clear selection
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+    <div style={{ margin: '16px 0' }}>
+      <AttackTargetDisplay view={view}>
+        <Fort
+          fort={targetFort}
+          highlights={isMyTurn && !ready ? highlights : undefined}
+          selectedGroup={isMyTurn ? selected : undefined}
+          onCellClick={isMyTurn ? handleCellClick : undefined}
+        />
+      </AttackTargetDisplay>
+      {isMyTurn && (
+        <div style={{ marginTop: 12 }}>
+          <p style={{ marginBottom: 8, fontStyle: 'italic', color: '#555' }}>
+            {ready
+              ? `${numT} shell${numT !== 1 ? 's' : ''} selected — ready to confirm.`
+              : `Select ${remaining} more shell${remaining !== 1 ? 's' : ''} to destroy.`}
+          </p>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <button
+              onClick={handleConfirm}
+              disabled={!ready}
+              style={{
+                padding: '8px 20px',
+                background: ready ? '#e74c3c' : '#ccc',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 6,
+                fontWeight: 'bold',
+                cursor: ready ? 'pointer' : 'not-allowed',
+                fontSize: 15,
+              }}>
+              Confirm Second Wave
+            </button>
+            {selected.length > 0 && (
+              <button
+                onClick={() => setSelected([])}
+                style={{ padding: '8px 14px', cursor: 'pointer' }}>
+                Clear selection
+              </button>
+            )}
+          </div>
         </div>
       )}
-      <GameBoard state={view} dispatch={dispatch} />
     </div>
   )
 }
