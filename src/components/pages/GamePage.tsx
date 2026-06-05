@@ -113,11 +113,11 @@ const GameOverPhase: React.FC<{
 }
 
 const ColonizePhase: React.FC<{
+  view: IGameStateView
   isMyTurn: boolean
   waitingFor: string[]
-  phase: string
   dispatch: (action: { type: string }) => void
-}> = ({ isMyTurn, waitingFor, phase, dispatch }) => {
+}> = ({ view, isMyTurn, waitingFor, dispatch }) => {
   useEffect(() => {
     if (!isMyTurn) return
     const timer = setTimeout(() => dispatch({ type: 'colonize' }), 1500)
@@ -125,11 +125,16 @@ const ColonizePhase: React.FC<{
   }, [isMyTurn, dispatch])
 
   return (
-    <div
-      className="game-container"
-      style={{ textAlign: 'center', paddingTop: 80 }}>
-      <TurnBanner phase={phase} isMyTurn={isMyTurn} waitingFor={waitingFor} />
-      {isMyTurn && <p>Placing colonists on your forts.</p>}
+    <div className="game-container">
+      <TurnBanner
+        phase={view.phase}
+        isMyTurn={isMyTurn}
+        waitingFor={waitingFor}
+      />
+      {isMyTurn && (
+        <p style={{ padding: '4px 0' }}>Placing colonists on your forts…</p>
+      )}
+      <GameBoard state={view} dispatch={dispatch} />
     </div>
   )
 }
@@ -400,9 +405,9 @@ export const GamePage: React.FC = () => {
     case GamePhases.colonize:
       return (
         <ColonizePhase
+          view={view}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
-          phase={view.phase}
           dispatch={dispatch}
         />
       )
