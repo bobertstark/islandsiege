@@ -17,6 +17,7 @@ import { BuildFortPhase } from 'components/phases/BuildFortPhase'
 import { BuildBuildingPhase } from 'components/phases/BuildBuildingPhase'
 import { BuildShipPhase } from 'components/phases/BuildShipPhase'
 import AttackRollPanel from 'components/AttackRollPanel'
+import Fort from 'components/Fort'
 import { TurnBanner } from 'components/TurnBanner'
 import 'components/phases/Game.css'
 
@@ -268,6 +269,13 @@ const AttackRollPhase: React.FC<{
     }
   }, [isMyTurn, view.attackRoll, view.attackRerollsRemaining, dispatch])
 
+  const shipLoc = view.shipLocations[view.currentPlayerIndex]
+  const targetPlayer =
+    shipLoc?.targetPlayerIndex !== undefined
+      ? view.players[shipLoc.targetPlayerIndex]
+      : undefined
+  const targetFort = targetPlayer?.forts.find(f => f.id === shipLoc?.fortID)
+
   return (
     <div className="game-container">
       <TurnBanner
@@ -281,6 +289,14 @@ const AttackRollPhase: React.FC<{
           rerollsRemaining={view.attackRerollsRemaining}
           dispatch={dispatch}
         />
+      )}
+      {targetFort && (
+        <div style={{ padding: '8px 20px' }}>
+          <p style={{ marginBottom: 6 }}>
+            Attacking <strong>{targetPlayer?.name}</strong> — {targetFort.name}
+          </p>
+          <Fort fort={targetFort} />
+        </div>
       )}
       <GameBoard state={view} dispatch={dispatch} />
     </div>
