@@ -55,17 +55,17 @@ const TableauPanel: React.FC<TableauPanelProps> = ({ view }) => {
                   color: player.color ?? undefined,
                   fontSize: 15,
                 }}>
-                {player.name}
+                {player.name}'s Tableau
               </span>
               {shipIsHome && <PlayerShip color={player.color} size={24} />}
             </div>
             {/* Fort groups */}
             <div
               style={{
-                display: 'flex',
-                flexDirection: 'row',
+                display: 'grid',
+                gridTemplateColumns:
+                  'repeat(auto-fill, minmax(160px, max-content))',
                 gap: 8,
-                flexWrap: 'wrap',
               }}>
               {player.forts.map(fort => {
                 const key = `${idx}:${fort.id}`

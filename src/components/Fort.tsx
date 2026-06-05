@@ -5,6 +5,8 @@ import DescriptionText from 'components/DescriptionText'
 
 interface FortProps {
   fort: IFort
+  // highlighted by an enclosing group (e.g. hover) — fort and its buildings light up together
+  highlighted?: boolean
   // interactive grid props — when provided the grid becomes clickable (e.g. wave phases)
   highlights?: [number, number][]
   dims?: [number, number][]
@@ -14,6 +16,7 @@ interface FortProps {
 
 const Fort: React.FC<FortProps> = ({
   fort,
+  highlighted,
   highlights,
   dims,
   selectedGroup,
@@ -21,13 +24,15 @@ const Fort: React.FC<FortProps> = ({
 }) => (
   <div
     style={{
-      border: '1px solid #888',
+      border: highlighted ? '1px solid #aac' : '1px solid #888',
       borderRadius: 6,
       padding: 8,
       marginBottom: 8,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
+      background: highlighted ? '#f0f4ff' : '#fff',
+      transition: 'background 0.15s, border-color 0.15s',
     }}>
     <strong>{fort.name}</strong>
     <div
@@ -36,10 +41,17 @@ const Fort: React.FC<FortProps> = ({
         wordBreak: 'break-word',
         fontFamily: 'Georgia, serif',
         fontSize: 13,
+        lineHeight: 1.35,
         color: '#555',
         marginBottom: 6,
         textAlign: 'center',
-        maxWidth: 220,
+        // fixed width + reserved height so every fort wraps identically and
+        // cards align in height regardless of an attached building's pressure
+        width: 200,
+        minHeight: 74,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
       <DescriptionText text={fort.description} />
     </div>
@@ -77,16 +89,6 @@ const Fort: React.FC<FortProps> = ({
         />
       ))}
     </div>
-    {fort.buildings && fort.buildings.length > 0 && (
-      <div style={{ marginTop: 8 }}>
-        <em>Buildings in Fort:</em>
-        <ul>
-          {fort.buildings.map(b => (
-            <li key={b.id}>{b.name}</li>
-          ))}
-        </ul>
-      </div>
-    )}
   </div>
 )
 

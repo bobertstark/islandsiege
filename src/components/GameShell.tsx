@@ -56,6 +56,15 @@ const GameShell: React.FC<GameShellProps> = ({
             borderBottom: '1px solid #ddd',
             overflowX: 'auto',
           }}>
+          <div
+            style={{
+              fontWeight: 600,
+              fontSize: 13,
+              color: '#666',
+              marginBottom: 8,
+            }}>
+            Your Hand
+          </div>
           <Hand cards={handCards} />
         </div>
       )}

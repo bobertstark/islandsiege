@@ -5,15 +5,22 @@ import DescriptionText from 'components/DescriptionText'
 interface BuildingProps {
   building: IBuilding
   preview?: boolean
+  highlighted?: boolean
 }
 
-const Building: React.FC<BuildingProps> = ({ building, preview }) => (
+const Building: React.FC<BuildingProps> = ({
+  building,
+  preview,
+  highlighted,
+}) => (
   <div
     style={{
-      border: '1px solid #aaa',
+      border: highlighted ? '1px solid #aac' : '1px solid #aaa',
       borderRadius: 6,
       padding: 8,
       marginBottom: 8,
+      background: highlighted ? '#f0f4ff' : '#fff',
+      transition: 'background 0.15s, border-color 0.15s',
     }}>
     <strong>{building.name}</strong>
     <div style={{ fontSize: 13, color: '#555', margin: '4px 0' }}>

@@ -3,7 +3,7 @@ import { IPlayerView } from 'common/IGameStateView'
 import MeepleIcon from './MeepleIcon'
 import CoinIcon from './CoinIcon'
 import HandIcon from './HandIcon'
-import { ShellColors, ShellColor } from 'common/colors'
+import { ShellColor, ShellColors } from 'common/colors'
 
 interface PlayerSummaryRowProps {
   players: IPlayerView[]
@@ -44,20 +44,19 @@ const PlayerSummaryRow: React.FC<PlayerSummaryRowProps> = ({
           }}>
           <div
             style={{
-              fontWeight: 700,
-              color: player.color ?? undefined,
-              marginBottom: 6,
-              fontSize: 14,
-            }}>
-            {player.name}
-          </div>
-          <div
-            style={{
               display: 'flex',
               gap: 10,
               alignItems: 'center',
               flexWrap: 'wrap',
             }}>
+            <span
+              style={{
+                fontWeight: 700,
+                color: player.color ?? undefined,
+                fontSize: 14,
+              }}>
+              {player.name}
+            </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
               <MeepleIcon size={16} color={player.color} />
               <span
@@ -84,30 +83,33 @@ const PlayerSummaryRow: React.FC<PlayerSummaryRowProps> = ({
               <HandIcon size={16} />
               <span style={{ fontWeight: 600, fontSize: 13 }}>{handCount}</span>
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              {(['black', 'gray', 'white'] as ShellColor[]).flatMap(
-                shellColor =>
-                  Array.from({ length: player.shells[shellColor] ?? 0 }).map(
-                    (_, i) => (
-                      <span
-                        key={`${shellColor}-${i}`}
-                        style={{
-                          display: 'inline-block',
-                          width: 10,
-                          height: 10,
-                          borderRadius: 2,
-                          background: ShellColors[shellColor],
-                          border:
-                            shellColor === 'white'
-                              ? '1px solid #bbb'
-                              : '1px solid transparent',
-                          boxSizing: 'border-box',
-                        }}
-                        title={shellColor}
-                      />
-                    ),
-                  ),
-              )}
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {(['black', 'gray', 'white'] as ShellColor[]).map(shellColor => (
+                <span
+                  key={shellColor}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: '#333',
+                  }}>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 10,
+                      height: 10,
+                      borderRadius: 2,
+                      background: ShellColors[shellColor],
+                      border:
+                        shellColor === 'white' ? '1px solid #bbb' : undefined,
+                      flexShrink: 0,
+                    }}
+                  />
+                  ×{player.shells[shellColor] ?? 0}
+                </span>
+              ))}
             </span>
           </div>
         </div>
