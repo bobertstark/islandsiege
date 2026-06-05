@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { DieValue } from 'common/die'
+import { DieValue, DIE_STYLE } from 'common/die'
 
 interface AttackRollPanelProps {
   dice: DieValue[]
@@ -55,29 +55,36 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
       {!readonly && <p>Rerolls remaining: {rerollsRemaining}</p>}
       <div
         style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '12px 0' }}>
-        {dice.map((face, idx) => (
-          <button
-            key={idx}
-            onClick={() => toggleDie(idx)}
-            title={DIE_LABEL[face]}
-            disabled={readonly}
-            style={{
-              width: 48,
-              height: 48,
-              fontWeight: 'bold',
-              fontSize: 18,
-              cursor: readonly ? 'default' : 'pointer',
-              border:
-                !readonly && selectedIndices.has(idx)
-                  ? '3px solid #e74c3c'
-                  : '2px solid #555',
-              borderRadius: 8,
-              background:
-                !readonly && selectedIndices.has(idx) ? '#fdecea' : '#fff',
-            }}>
-            {face}
-          </button>
-        ))}
+        {dice.map((face, idx) => {
+          const s = DIE_STYLE[face]
+          const selected = !readonly && selectedIndices.has(idx)
+          return (
+            <div
+              key={idx}
+              onClick={() => toggleDie(idx)}
+              title={DIE_LABEL[face]}
+              style={{
+                width: 48,
+                height: 48,
+                fontWeight: 'bold',
+                fontSize: 18,
+                cursor: readonly ? 'default' : 'pointer',
+                border: selected ? '3px solid #e74c3c' : '2px solid #555',
+                borderRadius: 8,
+                background: s.bg,
+                color: s.text,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxSizing: 'border-box',
+                outline: selected ? '2px solid #e74c3c' : 'none',
+                outlineOffset: 2,
+                userSelect: 'none',
+              }}>
+              {face}
+            </div>
+          )
+        })}
       </div>
       {!readonly && (
         <div style={{ display: 'flex', gap: 12 }}>

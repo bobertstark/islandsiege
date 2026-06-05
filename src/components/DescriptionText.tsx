@@ -1,13 +1,5 @@
 import React from 'react'
-import { DieValue } from 'common/die'
-
-const DIE_STYLE: Record<DieValue, { bg: string; text: string }> = {
-  B: { bg: '#222222', text: '#ffffff' },
-  W: { bg: '#eeeeee', text: '#222222' },
-  G: { bg: '#888888', text: '#ffffff' },
-  L: { bg: '#e8d44d', text: '#222222' },
-  T: { bg: '#e74c3c', text: '#ffffff' },
-}
+import { DieValue, DIE_STYLE } from 'common/die'
 
 const DIE_PATTERN = /\[([BWGLT])\]/g
 
