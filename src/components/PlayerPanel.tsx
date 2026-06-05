@@ -14,6 +14,7 @@ interface PlayerPanelProps {
   selectedCardID?: string
   shipIsAway?: boolean
   dockedShips?: { color?: string }[]
+  handCount?: number
 }
 
 const PlayerPanel: React.FC<PlayerPanelProps> = ({
@@ -24,6 +25,7 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
   selectedCardID,
   shipIsAway = false,
   dockedShips = [],
+  handCount,
 }) => {
   const buildings = player.forts.flatMap(f => f.buildings)
 
@@ -60,7 +62,11 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
       <div style={{ marginTop: 16 }}>
         <h3>
           Hand (
-          {typeof player.hand === 'number' ? player.hand : player.hand.length})
+          {handCount ??
+            (typeof player.hand === 'number'
+              ? player.hand
+              : player.hand.length)}
+          )
         </h3>
         <Hand
           cards={typeof player.hand === 'number' ? [] : player.hand}

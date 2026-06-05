@@ -8,7 +8,7 @@ interface GameBoardProps {
   dispatch: React.Dispatch<any>
 }
 
-// Normalize IPlayerView to IPlayer by coercing hand to an array
+// Normalize IPlayerView to IPlayer, coercing opponent hand count to empty array
 function toIPlayer(p: IPlayerView, idx: number): IPlayer {
   return { ...p, id: String(idx), hand: Array.isArray(p.hand) ? p.hand : [] }
 }
@@ -63,6 +63,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
               selectedCardID={selectedCardIDs[idx]}
               shipIsAway={shipIsAway}
               dockedShips={dockedShips}
+              handCount={
+                typeof player.hand === 'number' ? player.hand : undefined
+              }
             />
           )
         })}
