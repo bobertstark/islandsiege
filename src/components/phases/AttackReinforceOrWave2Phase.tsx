@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import IGameStateView from 'common/IGameStateView'
 import { TurnBanner } from 'components/TurnBanner'
 import GameBoard from 'components/GameBoard'
+import { DiceBankDisplay } from 'components/DiceBankDisplay'
 
 interface Props {
   view: IGameStateView
@@ -54,6 +55,10 @@ export const AttackReinforceOrWave2Phase: React.FC<Props> = ({
         isMyTurn={isMyTurn}
         waitingFor={waitingFor}
       />
+      <div style={{ padding: '8px 0' }}>
+        <strong>Attack dice:</strong>
+        <DiceBankDisplay bank={view.diceBank} />
+      </div>
       {isMyTurn && (
         <div style={{ padding: '16px 0' }}>
           <h2 style={{ marginBottom: 16 }}>Choose your next action</h2>

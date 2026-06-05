@@ -58,9 +58,12 @@ const PlayerPanel: React.FC<PlayerPanelProps> = ({
         ))}
       </div>
       <div style={{ marginTop: 16 }}>
-        <h3>Hand ({player.hand.length})</h3>
+        <h3>
+          Hand (
+          {typeof player.hand === 'number' ? player.hand : player.hand.length})
+        </h3>
         <Hand
-          cards={player.hand ?? []}
+          cards={typeof player.hand === 'number' ? [] : player.hand}
           onCardSelect={onCardSelect}
           selectedCardID={selectedCardID}
         />

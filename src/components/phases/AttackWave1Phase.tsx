@@ -1,82 +1,18 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
 import { ShellColor, colorToSymbol } from 'common/colors'
 import { shellInfo, traverseConnectedShells } from 'common/fortGrid'
 import type { FortGridCell } from 'common/fortGrid'
-import { rollCounts } from 'common/attackRoll'
-import { DieValue } from 'common/die'
 import { TurnBanner } from 'components/TurnBanner'
 import GameBoard from 'components/GameBoard'
 import { FortGrid } from 'components/FortGrid'
+import { DiceBankDisplay } from 'components/DiceBankDisplay'
 
 const WAVE_COLORS: Array<{ symbol: 'B' | 'W' | 'G'; color: ShellColor }> = [
   { symbol: 'B', color: 'black' },
   { symbol: 'W', color: 'white' },
   { symbol: 'G', color: 'gray' },
 ]
-
-const DIE_STYLE: Record<DieValue, { bg: string; text: string }> = {
-  B: { bg: '#222222', text: '#ffffff' },
-  W: { bg: '#eeeeee', text: '#222222' },
-  G: { bg: '#888888', text: '#ffffff' },
-  L: { bg: '#e8d44d', text: '#222222' },
-  T: { bg: '#e74c3c', text: '#ffffff' },
-}
-
-const WAVE_DIE_COLORS = new Set<DieValue>(['B', 'W', 'G'])
-
-function DiceBankDisplay({
-  bank,
-  selectedColor,
-  onSelect,
-}: {
-  bank: rollCounts
-  selectedColor: ShellColor | null
-  onSelect?: (color: ShellColor) => void
-}) {
-  const entries = (Object.entries(bank) as [DieValue, number][]).filter(
-    ([, count]) => count > 0,
-  )
-  if (entries.length === 0) return null
-  return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '8px 0' }}>
-      {entries.map(([face, count]) => {
-        const s = DIE_STYLE[face]
-        const isSelectable = onSelect && WAVE_DIE_COLORS.has(face)
-        const color = WAVE_COLORS.find(c => c.symbol === face)?.color ?? null
-        const isSelected = color !== null && selectedColor === color
-        return (
-          <div
-            key={face}
-            style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div
-              onClick={
-                isSelectable && color ? () => onSelect(color) : undefined
-              }
-              style={{
-                width: 32,
-                height: 32,
-                background: s.bg,
-                color: s.text,
-                border: isSelected ? '3px solid #2980b9' : '2px solid #555',
-                borderRadius: 6,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold',
-                fontSize: 14,
-                cursor: isSelectable ? 'pointer' : 'default',
-                boxShadow: isSelected ? '0 0 0 2px #2980b9' : 'none',
-              }}>
-              {face}
-            </div>
-            <span style={{ fontSize: 14, fontWeight: 'bold' }}>×{count}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
 
 function eligibleForColor(
   grid: FortGridCell[][],
@@ -145,19 +81,6 @@ export const AttackWave1Phase: React.FC<Props> = ({
     pendingLoc && targetFort
       ? traverseConnectedShells(targetFort.grid, pendingLoc)
       : []
-
-  // dispatch is stable (useCallback in useGameSocket), safe to omit from deps
-  useEffect(() => {
-    if (!isMyTurn || !noEligible || !selectedColor) return
-    const timer = setTimeout(() => {
-      dispatch({
-        type: 'attackWave1',
-        payload: { attackColor: colorToSymbol(selectedColor) },
-      })
-    }, 1500)
-    return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMyTurn, noEligible, selectedColor])
 
   function handleColorSelect(color: ShellColor) {
     setSelectedColor(color)
@@ -238,9 +161,30 @@ export const AttackWave1Phase: React.FC<Props> = ({
         </div>
       )}
       {isMyTurn && noEligible && (
-        <p style={{ color: '#c0392b', fontStyle: 'italic' }}>
-          Nothing can be destroyed — advancing…
-        </p>
+        <div style={{ marginTop: 8 }}>
+          <p style={{ color: '#c0392b', fontStyle: 'italic', marginBottom: 8 }}>
+            Nothing can be destroyed with this color.
+          </p>
+          <button
+            onClick={() =>
+              dispatch({
+                type: 'attackWave1',
+                payload: { attackColor: colorToSymbol(selectedColor!) },
+              })
+            }
+            style={{
+              padding: '8px 20px',
+              background: '#7f8c8d',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontSize: 15,
+            }}>
+            Confirm (spend dice, no attack)
+          </button>
+        </div>
       )}
       <GameBoard state={view} dispatch={dispatch} />
     </div>
