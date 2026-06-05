@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
 
-const WS_HOST = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:3001`
+const WS_HOST = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`
 
 export function useGameSocket(
   gameId: string,

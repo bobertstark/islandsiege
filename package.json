@@ -26,7 +26,8 @@
     "test:debug": "npx --node-options='--inspect-brk' jest",
     "server:dev": "ts-node-dev --project server/tsconfig.json --require tsconfig-paths/register --respawn --transpile-only server/index.ts",
     "server:build": "tsc --project server/tsconfig.json",
-    "dev": "concurrently -n server,client -c cyan,green \"npm run server:dev\" \"npm start\""
+    "dev": "concurrently -n server,client -c cyan,green \"npm run server:dev\" \"npm start\"",
+    "build:all": "npm run build && npm run server:build"
   },
   "eslintConfig": {
     "extends": [
