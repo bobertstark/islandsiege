@@ -34,7 +34,7 @@ npm run build:all
 Builds the React app to `dist/` and compiles the server to `dist-server/`. The server serves the frontend statically, so only one process needs to run:
 
 ```
-node dist-server/index.js
+node dist-server/server/index.js
 ```
 
 ## Testing
@@ -48,6 +48,6 @@ npm test
 The app is deployed as a single service on [Render](https://render.com):
 
 - **Build command:** `npm run build:all`
-- **Start command:** `node dist-server/index.js`
+- **Start command:** `node dist-server/server/index.js`
 
 Render injects the `PORT` environment variable automatically.

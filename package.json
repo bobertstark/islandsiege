@@ -7,17 +7,17 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "@vitejs/plugin-react": "^6.0.2",
     "express": "^5.2.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.17.0",
-    "web-vitals": "^2.1.4",
-    "ws": "^8.21.0",
-    "@vitejs/plugin-react": "^6.0.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "web-vitals": "^2.1.4",
+    "ws": "^8.21.0"
   },
   "scripts": {
     "start": "vite",
@@ -28,9 +28,10 @@
     "test:debug": "npx --node-options='--inspect-brk' jest",
     "preview": "vite preview",
     "server:dev": "ts-node-dev --project server/tsconfig.json --require tsconfig-paths/register --respawn --transpile-only server/index.ts",
-    "server:build": "tsc --project server/tsconfig.json",
+    "server:build": "tsc --project server/tsconfig.json && tsc-alias --project server/tsconfig.json",
     "dev": "concurrently -n server,client -c cyan,green \"npm run server:dev\" \"npm start\"",
-    "build:all": "npm run build && npm run server:build"
+    "build:all": "npm run build && npm run server:build",
+    "server:start": "node dist-server/server/index.js"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
@@ -44,6 +45,7 @@
     "pretty-quick": "^4.2.2",
     "simple-git-hooks": "^2.13.0",
     "ts-jest": "^29.4.11",
-    "ts-node-dev": "^2.0.0"
+    "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.17"
   }
 }

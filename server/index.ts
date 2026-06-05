@@ -11,7 +11,7 @@ const app = express()
 app.use(express.json())
 app.use('/api', router)
 
-const buildDir = path.join(__dirname, '../dist')
+const buildDir = path.join(process.cwd(), 'dist')
 app.use(express.static(buildDir))
 app.get('/{*splat}', (_req, res) =>
   res.sendFile(path.join(buildDir, 'index.html')),
