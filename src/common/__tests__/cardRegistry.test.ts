@@ -19,7 +19,7 @@ describe('cardRegistry', () => {
     expect(building.type).toBe('building')
     expect(building.cost).toBe(2)
     expect(building.coins).toBe(2)
-    expect(building.repairColor).toBe('black')
+    expect(building.repair).toEqual(['black'])
   })
 
   it('normalizes a ship', () => {

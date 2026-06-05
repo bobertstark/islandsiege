@@ -18,9 +18,12 @@ function lobbyState() {
 }
 
 describe('handleStartGame', () => {
-  it('deals 3 cards to each player', () => {
+  it('deals 3 cards to each player into initDrawCards', () => {
     const result = handleStartGame(lobbyState())
-    result.players.forEach(p => expect(p.hand).toHaveLength(3))
+    result.players.forEach((_, i) =>
+      expect(result.initDrawCards?.[i]).toHaveLength(3),
+    )
+    result.players.forEach(p => expect(p.hand).toHaveLength(0))
   })
 
   it('gives each player a Starting Fort', () => {
@@ -31,9 +34,9 @@ describe('handleStartGame', () => {
     })
   })
 
-  it('transitions to initDiscard phase', () => {
+  it('transitions to initDraw phase', () => {
     const result = handleStartGame(lobbyState())
-    expect(result.phase).toBe(GamePhases.initDiscard)
+    expect(result.phase).toBe(GamePhases.initDraw)
   })
 
   it('preserves player ids and names', () => {
@@ -94,8 +97,10 @@ describe('handleStartGame', () => {
   it('starts the game when the last player goes ready', () => {
     const state = { ...lobbyState(), readyPlayers: [0] }
     const result = handleStartGame(state, { playerIdx: 1 })
-    expect(result.phase).toBe(GamePhases.initDiscard)
-    result.players.forEach(p => expect(p.hand).toHaveLength(3))
+    expect(result.phase).toBe(GamePhases.initDraw)
+    result.players.forEach((_, i) =>
+      expect(result.initDrawCards?.[i]).toHaveLength(3),
+    )
   })
 
   it('is deterministic for a fixed rngSeed', () => {

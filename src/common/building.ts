@@ -7,7 +7,7 @@ export interface BuildingData {
   description: string
   cost: number
   coins: number
-  repairColor: ShellColor
+  repair: ShellColor[]
 }
 
 export function createBuilding(data: BuildingData): IBuilding {
@@ -18,7 +18,7 @@ export function createBuilding(data: BuildingData): IBuilding {
     description: data.description,
     cost: data.cost,
     coins: data.coins,
-    repairColor: data.repairColor,
+    repair: data.repair,
     colonists: 0,
   }
 }

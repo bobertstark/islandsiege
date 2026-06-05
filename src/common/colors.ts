@@ -21,8 +21,8 @@ const SYMBOL_COLORS: Record<string, ShellColor> = {
 }
 
 export const PLAYER_COLORS = [
-  { name: 'Blue', value: '#1e90ff' },
-  { name: 'Orange', value: '#e67e22' },
+  { name: 'Red', value: '#c0392b' },
+  { name: 'Yellow', value: '#f1c40f' },
   { name: 'Green', value: '#27ae60' },
   { name: 'Purple', value: '#8e44ad' },
 ]

@@ -11,7 +11,7 @@ const buildingData: BuildingData = {
   description: 'Testing',
   cost: 2,
   coins: 3,
-  repairColor: 'black',
+  repair: ['black'],
 }
 
 describe('building', () => {

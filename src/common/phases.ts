@@ -22,16 +22,15 @@ export type Phase =
   | 'setColor'
   | 'initGame'
   | 'resetGame'
-  | 'initDiscard'
+  | 'initDraw'
   | 'victory'
   | 'colonize'
   | 'action'
   | 'draw'
-  | 'discard'
+  | 'drawPick'
   | 'buildFort'
   | 'buildBuilding'
   | 'buildShip'
-  | 'attackStart'
   | 'attackRoll'
   | 'attackLeadership'
   | 'attackWave1'
@@ -49,18 +48,17 @@ export const GamePhases = {
   setColor: 'setColor',
   initGame: 'initGame',
   resetGame: 'resetGame',
-  initDiscard: 'initDiscard',
+  initDraw: 'initDraw',
   // Automatic Phases
   victory: 'victory',
   colonize: 'colonize',
   action: 'action',
   // Sub-actions
   draw: 'draw',
-  discard: 'discard',
+  drawPick: 'drawPick',
   buildFort: 'buildFort',
   buildBuilding: 'buildBuilding',
   buildShip: 'buildShip',
-  attackStart: 'attackStart',
   attackRoll: 'attackRoll',
   attackLeadership: 'attackLeadership',
   attackWave1: 'attackWave1',
@@ -80,8 +78,8 @@ export const initGame = (playerNames: string[]) => ({
   payload: { playerNames },
 })
 
-export const initDiscard = (playerIdx: number, cardID: string) => ({
-  type: GamePhases.initDiscard,
+export const initDraw = (playerIdx: number, cardID: string) => ({
+  type: GamePhases.initDraw,
   payload: { playerIdx, cardID },
 })
 
@@ -89,7 +87,7 @@ export const draw = () => ({
   type: GamePhases.draw,
 })
 
-export const discard = (targetPlayerIndex: number, cardID: string) => ({
-  type: GamePhases.discard,
-  payload: { targetPlayerIndex, cardID },
+export const drawPick = (cardID: string) => ({
+  type: GamePhases.drawPick,
+  payload: { cardID },
 })

@@ -53,7 +53,7 @@ describe('gameReducer', () => {
     expect(state.players[0].name).toBe('Cpt')
     expect(state.players[1].name).toBe('Arg')
     expect(state.players[2].name).toBe('Matey')
-    expect(state.phase).toBe('initDiscard')
+    expect(state.phase).toBe('initDraw')
     expect(state.deck.length).toBe(27) // 3 per player drawn
     expect(state.players.every(player => player.forts.length === 1))
     expect(state.players.every(player => player.shells.black === 1))
@@ -78,7 +78,7 @@ describe('gameReducer', () => {
     )
   })
 
-  it('initDiscard - collects selections and distributes on last submit', () => {
+  it('initDraw - collects selections and distributes on last submit', () => {
     const cardA = {
       name: 'A',
       id: 'a',
@@ -91,21 +91,20 @@ describe('gameReducer', () => {
       type: 'ship' as CardType,
       description: 'test',
     }
-    gs.players[0].hand = [cardA]
-    gs.players[1].hand = [cardB]
+    gs.initDrawCards = { 0: [cardA], 1: [cardB] }
 
     // First player submits — not yet resolved
     let state = gameReducer(gs, {
-      type: GamePhases.initDiscard,
+      type: GamePhases.initDraw,
       payload: { playerIdx: 0, cardID: 'a' },
     })
-    expect(state.phase).toBe('initDiscard')
+    expect(state.phase).toBe('initDraw')
     expect(state.pending).toMatchObject({ 0: 'a' })
-    expect(state.players[0].hand[0].id).toBe('a') // card still in hand
+    expect(state.initDrawCards?.[0]?.[0].id).toBe('a') // card still in temp holder
 
     // Last player submits — resolves immediately
     state = gameReducer(state, {
-      type: GamePhases.initDiscard,
+      type: GamePhases.initDraw,
       payload: { playerIdx: 1, cardID: 'b' },
     })
     expect(state.phase).toBe('action')
@@ -119,12 +118,12 @@ describe('gameReducer', () => {
     const payload = { type: GamePhases.draw }
     const state = gameReducer(gs, payload)
     expect(state.drawnCards).toHaveLength(3)
-    expect(state.players[0].hand).toHaveLength(0) // hand unchanged until discard
+    expect(state.players[0].hand).toHaveLength(0) // hand unchanged until draw pick
     expect(state.deck.length).toBe(33)
-    expect(state.phase).toBe('discard')
+    expect(state.phase).toBe('drawPick')
   })
 
-  it('discard - selected card goes to pile; remaining 2 go to hand', () => {
+  it('drawPick - selected card goes to pile; remaining 2 go to hand', () => {
     const drawn = [
       { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
       { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
@@ -133,7 +132,7 @@ describe('gameReducer', () => {
     gs.drawnCards = drawn
 
     const state = gameReducer(gs, {
-      type: GamePhases.discard,
+      type: GamePhases.drawPick,
       payload: { cardID: 'b' },
     })
     expect(state.players[0].hand.map(c => c.id)).toEqual(
@@ -145,7 +144,7 @@ describe('gameReducer', () => {
     expect(state.phase).toBe('endTurn')
   })
 
-  it('discard - optional targetPlayerIndex sends card to player instead of pile', () => {
+  it('drawPick - optional targetPlayerIndex sends card to player instead of pile', () => {
     const drawn = [
       { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
       { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
@@ -154,7 +153,7 @@ describe('gameReducer', () => {
     gs.drawnCards = drawn
 
     const state = gameReducer(gs, {
-      type: GamePhases.discard,
+      type: GamePhases.drawPick,
       payload: { cardID: 'b', targetPlayerIndex: 1 },
     })
     expect(state.players[1].hand.map(c => c.id)).toContain('b')
@@ -216,7 +215,8 @@ describe('gameReducer', () => {
 
     payload.payload.actionChosen = 'attack'
     state = gameReducer(gs, payload)
-    expect(state.phase).toBe('attackStart')
+    expect(state.phase).toBe('attackRoll')
+    expect(state.attackIsOpenWater).toBe(true)
   })
 
   it('buildFort - will build a fort, add shells, give coins', () => {
@@ -260,25 +260,29 @@ describe('gameReducer', () => {
 
   test.todo('buildBuilding - will build a building, move coloinsts, give coins')
 
-  it('attackStart - will initiate attack', () => {
-    // ensure previous history is cleared
+  it('action/attack - will initiate attack', () => {
+    // previous ship location should be cleared
     gs.shipLocations[0] = { targetPlayerIndex: 1, fortID: 'testFort' }
 
-    let payload = {
-      type: GamePhases.attackStart,
-      payload: {
-        targetPlayerIndex: 1,
-        fortID: undefined as string | undefined,
-      },
-    }
-    let state = gameReducer(gs, payload)
+    // open water: player 1 has no forts
+    let state = gameReducer(gs, {
+      type: GamePhases.action,
+      payload: { actionChosen: 'attack' },
+    })
     expect(state.players[1].forts).toEqual([])
     expect(state.attackIsOpenWater).toBe(true)
     expect(state.phase).toBe('attackRoll')
 
+    // targeted attack: give player 1 a fort
     gs.players[1] = addFort(gs.players[1], createMockFort())
-    payload.payload.fortID = 'testFort'
-    state = gameReducer(gs, payload)
+    state = gameReducer(gs, {
+      type: GamePhases.action,
+      payload: {
+        actionChosen: 'attack',
+        targetPlayerIndex: 1,
+        fortID: 'testFort',
+      },
+    })
     expect(state.attackIsOpenWater).toBe(false)
     expect(state.shipLocations[0].targetPlayerIndex).toBe(1)
     expect(state.shipLocations[0].fortID).toBe('testFort')
@@ -525,7 +529,7 @@ describe('gameReducer', () => {
   })
 
   describe('startGame', () => {
-    it('transitions lobby state to initDiscard and deals cards', () => {
+    it('transitions lobby state to initDraw and deals cards', () => {
       const lobby: IGameState = {
         ...gs,
         phase: GamePhases.lobby,
@@ -538,8 +542,10 @@ describe('gameReducer', () => {
         readyPlayers: [],
       }
       const result = gameReducer(lobby, { type: GamePhases.startGame })
-      expect(result.phase).toBe(GamePhases.initDiscard)
-      result.players.forEach(p => expect(p.hand).toHaveLength(3))
+      expect(result.phase).toBe(GamePhases.initDraw)
+      result.players.forEach((_, i) =>
+        expect(result.initDrawCards?.[i]).toHaveLength(3),
+      )
     })
   })
 

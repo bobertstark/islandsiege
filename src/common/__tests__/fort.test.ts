@@ -29,7 +29,7 @@ const buildingData: BuildingData = {
   description: 'Testing',
   cost: 2,
   coins: 3,
-  repairColor: 'black',
+  repair: ['black'],
 }
 
 describe('fort', () => {
@@ -86,7 +86,7 @@ describe('fort', () => {
   it('adds and repairs a building', () => {
     let fort = createFort(fortData)
     const building = createBuilding(buildingData)
-    expect(building.repairColor).toBe('black')
+    expect(building.repair).toEqual(['black'])
     expect((cellAt(fort.grid, [0, 1]) as FortGridShell).color).toBeNull()
 
     fort = placeColonists(fort, 2).fort

@@ -9,6 +9,7 @@ export function handleAction(
     cardID?: string
     fortID?: string
     repairAt?: [number, number]
+    targetPlayerIndex?: number
   },
 ): IGameState {
   const action = payload.actionChosen
@@ -18,8 +19,6 @@ export function handleAction(
     pendingBuildCardID: payload.cardID,
   }
   switch (action) {
-    // TODO: Verify action is valid for player prior to returning
-    // TODO: Check if any opponents block actions
     case 'draw':
       return { ...base, phase: 'draw' }
     case 'buildFort':
@@ -41,8 +40,43 @@ export function handleAction(
         })
       }
       return { ...base, phase: 'buildShip' }
-    case 'attack':
-      return { ...base, phase: 'attackStart' }
+    case 'attack': {
+      const shipLocations: IGameState['shipLocations'] = {
+        ...state.shipLocations,
+        [state.currentPlayerIndex]: {},
+      }
+      const openWaterAttack = !state.players.some(p => p.forts.length >= 1)
+      if (openWaterAttack) {
+        return {
+          ...base,
+          shipLocations,
+          attackIsOpenWater: true,
+          phase: 'attackRoll',
+        }
+      }
+      const targetPlayerIndex = payload.targetPlayerIndex
+      if (targetPlayerIndex === undefined || targetPlayerIndex < 0) {
+        throw new Error('Attack requires a target')
+      }
+      const alreadyTargeted = Object.values(shipLocations).some(
+        loc => loc.targetPlayerIndex === targetPlayerIndex,
+      )
+      if (alreadyTargeted) {
+        throw new Error(`${targetPlayerIndex} cannot be attacked.`)
+      }
+      return {
+        ...base,
+        attackIsOpenWater: false,
+        shipLocations: {
+          ...shipLocations,
+          [state.currentPlayerIndex]: {
+            targetPlayerIndex,
+            fortID: payload.fortID ?? '',
+          },
+        },
+        phase: 'attackRoll',
+      }
+    }
     default:
       throw new Error(`Invalid action: ${action}`)
   }

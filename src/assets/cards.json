@@ -252,7 +252,7 @@
       "name": "Academy",
       "cost": 2,
       "coins": 2,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "Whenever you attack, you may remove one colonist from this building to re-roll 1 additional time.",
       "id": "academy"
     },
@@ -261,7 +261,7 @@
       "name": "Armory",
       "cost": 1,
       "coins": 1,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "Whenever you attack, add 1 [G] to your result.",
       "id": "armory"
     },
@@ -270,7 +270,7 @@
       "name": "Cannon Smith",
       "cost": 1,
       "coins": 1,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "Whenever you attack, add 1 [B] to your result.",
       "id": "cannonSmith"
     },
@@ -279,7 +279,7 @@
       "name": "Cannonball Forge",
       "cost": 1,
       "coins": 1,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "Whenever you attack, add 1 [W] to your result.",
       "id": "cannonballForge"
     },
@@ -288,7 +288,7 @@
       "name": "Governor's Mansion",
       "cost": 3,
       "coins": 3,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "When built, discard 1 random card from an opponent's hand. Your opponents cannot take Draw actions.",
       "id": "governorsMansion"
     },
@@ -297,7 +297,7 @@
       "name": "Gunpowder House",
       "cost": 1,
       "coins": 1,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "Whenever you attack, add 1 [T] to your result.",
       "id": "gunpowderHouse"
     },
@@ -306,7 +306,7 @@
       "name": "Infirmary",
       "cost": 2,
       "coins": 2,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "Whenever 1 of your forts, buildings, or ships is destroyed, you may move its colonists to this building. (Limit 2 per turn)",
       "id": "infirmary"
     },
@@ -315,7 +315,7 @@
       "name": "Observatory",
       "cost": 2,
       "coins": 2,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "Whenever you take a Draw action, discard the card you would have given an opponent.",
       "id": "observatory"
     },
@@ -324,7 +324,7 @@
       "name": "Prison",
       "cost": 3,
       "coins": 3,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "When built, return 1 colonist from each of your opponents' forts. Your opponents' forts cannot gain colonists.",
       "id": "prison"
     },
@@ -333,7 +333,7 @@
       "name": "Silver Smelter",
       "cost": 2,
       "coins": 2,
-      "repairColor": "black",
+      "repair": ["black"],
       "description": "When built, remove any number of colonists from your other forts to score that many coins.",
       "id": "silverSmelter"
     },
@@ -343,7 +343,7 @@
       "cost": 3,
       "coins": 3,
       "description": "When built, destroy an opponent's building. Your opponents cannot build any buildings.",
-      "repairColor": "black",
+      "repair": ["black"],
       "id": "tradeCompany"
     },
     {
@@ -352,7 +352,7 @@
       "cost": 3,
       "coins": 3,
       "description": "When built, destroy an opponent's ship. Your opponents cannot build any ships.",
-      "repairColor": "black",
+      "repair": ["black"],
       "id": "watchtower"
     },
     {

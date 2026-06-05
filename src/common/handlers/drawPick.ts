@@ -1,8 +1,7 @@
 import IGameState from 'common/IGameState'
-import { removeCardInHand, addCardsToHand } from 'common/player'
-import ICard from 'common/ICard'
+import { addCardsToHand } from 'common/player'
 
-export function handleDiscard(
+export function handleDrawPick(
   state: IGameState,
   payload: { cardID: string; targetPlayerIndex?: number },
 ): IGameState {
@@ -12,7 +11,6 @@ export function handleDiscard(
   const kept = state.drawnCards.filter(c => c.id !== payload.cardID)
   let players = [...state.players]
 
-  // Add the 2 kept cards to the current player's hand
   players[state.currentPlayerIndex] = addCardsToHand(
     players[state.currentPlayerIndex],
     kept,
@@ -20,7 +18,6 @@ export function handleDiscard(
 
   let discard = state.discard
   if (payload.targetPlayerIndex !== undefined) {
-    // Special card ability: pass to another player instead of pile
     players[payload.targetPlayerIndex] = addCardsToHand(
       players[payload.targetPlayerIndex],
       [discarded],

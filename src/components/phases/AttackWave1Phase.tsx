@@ -3,10 +3,11 @@ import IGameStateView from 'common/IGameStateView'
 import { ShellColor, colorToSymbol } from 'common/colors'
 import { shellInfo, traverseConnectedShells } from 'common/fortGrid'
 import type { FortGridCell } from 'common/fortGrid'
-import { TurnBanner } from 'components/TurnBanner'
-import GameBoard from 'components/GameBoard'
-import { FortGrid } from 'components/FortGrid'
-import { DiceBankDisplay } from 'components/DiceBankDisplay'
+import Fort from 'components/Fort'
+import ActionInstructions from 'components/ActionInstructions'
+import AttackTargetDisplay, {
+  useAttackTarget,
+} from 'components/AttackTargetDisplay'
 
 function eligibleForColor(
   grid: FortGridCell[][],
@@ -35,25 +36,18 @@ function ineligibleForColor(
 interface Props {
   view: IGameStateView
   isMyTurn: boolean
-  waitingFor: string[]
   dispatch: (action: { type: string; payload?: unknown }) => void
 }
 
 export const AttackWave1Phase: React.FC<Props> = ({
   view,
   isMyTurn,
-  waitingFor,
   dispatch,
 }) => {
   const [selectedColor, setSelectedColor] = useState<ShellColor | null>(null)
   const [pendingLoc, setPendingLoc] = useState<[number, number] | null>(null)
 
-  const shipLoc = view.shipLocations[view.currentPlayerIndex]
-  const targetPlayer =
-    shipLoc?.targetPlayerIndex !== undefined
-      ? view.players[shipLoc.targetPlayerIndex]
-      : undefined
-  const targetFort = targetPlayer?.forts.find(f => f.id === shipLoc?.fortID)
+  const { targetFort } = useAttackTarget(view)
 
   const diceCount = selectedColor
     ? (view.diceBank[colorToSymbol(selectedColor) as 'B' | 'W' | 'G'] ?? 0)
@@ -96,46 +90,38 @@ export const AttackWave1Phase: React.FC<Props> = ({
     })
   }
 
+  const instructions = !isMyTurn
+    ? 'Watching the attacker choose which shells to destroy.'
+    : !selectedColor
+      ? 'Select a colored attack die to use.'
+      : pendingLoc
+        ? 'Confirm to destroy the selected shells (outlined in red), or cancel.'
+        : noEligible
+          ? 'No shells can be destroyed with this die — confirm to spend it anyway.'
+          : 'Select a shell group on the fort to destroy.'
+
   return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
+    <>
+      <ActionInstructions
+        title="First Wave Attack"
+        description={instructions}
       />
-      {isMyTurn && (
-        <p style={{ color: '#aaa', fontStyle: 'italic', margin: '4px 0 8px' }}>
-          {!selectedColor
-            ? 'Select a colored attack die to use.'
-            : pendingLoc
-              ? 'Confirm to destroy the selected shells (outlined in red), or cancel.'
-              : noEligible
-                ? 'No shells can be destroyed with this die — confirm to spend it anyway.'
-                : 'Select a shell group on the fort to destroy.'}
-        </p>
-      )}
-      <div style={{ padding: '8px 0' }}>
-        <strong>Attack dice:</strong>
-        <DiceBankDisplay
-          bank={view.diceBank}
-          selectedColor={selectedColor}
-          onSelect={isMyTurn ? handleColorSelect : undefined}
-        />
-      </div>
-      {targetFort && (
-        <div style={{ margin: '16px 0' }}>
-          <p style={{ marginBottom: 8 }}>
-            <strong>{targetPlayer?.name}</strong> — {targetFort.name}
-          </p>
-          <FortGrid
-            grid={targetFort.grid}
-            view="tableau"
-            showLabels
+      <AttackTargetDisplay
+        view={view}
+        selectedColor={selectedColor}
+        onDiceColorSelect={isMyTurn ? handleColorSelect : undefined}>
+        {targetFort && (
+          <Fort
+            fort={targetFort}
             highlights={isMyTurn ? highlights : undefined}
             dims={isMyTurn ? dims : undefined}
             selectedGroup={isMyTurn ? pendingGroup : undefined}
             onCellClick={isMyTurn ? handleCellClick : undefined}
           />
+        )}
+      </AttackTargetDisplay>
+      {targetFort && (
+        <div style={{ margin: '16px 0' }}>
           {isMyTurn && pendingLoc && (
             <div style={{ marginTop: 12 }}>
               <button
@@ -191,7 +177,6 @@ export const AttackWave1Phase: React.FC<Props> = ({
           </button>
         </div>
       )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
+    </>
   )
 }

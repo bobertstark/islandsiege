@@ -5,16 +5,15 @@ import { GamePhases } from 'common/phases'
 import { handleInitGame } from 'common/handlers/initGame'
 import { handleStartGame } from 'common/handlers/startGame'
 import { handleSetColor } from 'common/handlers/setColor'
-import { handleInitDiscard } from 'common/handlers/initDiscard'
+import { handleInitDraw } from 'common/handlers/initDraw'
 import { handleDraw } from 'common/handlers/draw'
-import { handleDiscard } from 'common/handlers/discard'
+import { handleDrawPick } from 'common/handlers/drawPick'
 import { handleVictory } from 'common/handlers/victory'
 import { handleColonize } from 'common/handlers/colonize'
 import { handleAction } from 'common/handlers/action'
 import { handleBuildFort } from 'common/handlers/buildFort'
 import { handleBuildBuilding } from 'common/handlers/buildBuilding'
 import { handleBuildShip } from 'common/handlers/buildShip'
-import { handleAttackStart } from 'common/handlers/attackStart'
 import { handleAttackRoll } from 'common/handlers/attackRoll'
 import { handleAttackLeadership } from 'common/handlers/attackLeadership'
 import { handleAttackWave1 } from 'common/handlers/attackWave1'
@@ -35,12 +34,12 @@ export function gameReducer(
       return handleSetColor(state, phase.payload)
     case GamePhases.initGame:
       return handleInitGame(state, phase.payload)
-    case GamePhases.initDiscard:
-      return handleInitDiscard(state, phase.payload)
+    case GamePhases.initDraw:
+      return handleInitDraw(state, phase.payload)
     case GamePhases.draw:
       return handleDraw(state)
-    case GamePhases.discard:
-      return handleDiscard(state, phase.payload)
+    case GamePhases.drawPick:
+      return handleDrawPick(state, phase.payload)
     case GamePhases.victory:
       return handleVictory(state)
     case GamePhases.colonize:
@@ -53,8 +52,6 @@ export function gameReducer(
       return handleBuildBuilding(state, phase.payload)
     case GamePhases.buildShip:
       return handleBuildShip(state, phase.payload)
-    case GamePhases.attackStart:
-      return handleAttackStart(state, phase.payload)
     case GamePhases.attackRoll:
       return handleAttackRoll(state, phase.payload)
     case GamePhases.attackLeadership:

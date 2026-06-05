@@ -2,26 +2,36 @@ import React, { useState } from 'react'
 import type { IPlayerView } from 'common/IGameStateView'
 import ICard from 'common/ICard'
 import IFort from 'common/IFort'
-import {
-  createFortById,
-  createBuildingById,
-  createShipById,
-} from 'common/cardRegistry'
+import IShip from 'common/IShip'
+import {} from 'common/cardRegistry'
 import { shellInfo } from 'common/fortGrid'
 import { colorToSymbol } from 'common/colors'
 import DescriptionText from 'components/DescriptionText'
+import ActionInstructions from 'components/ActionInstructions'
 import Fort from 'components/Fort'
 import { FortGrid } from 'components/FortGrid'
+import Card from 'components/Card'
 import Building from 'components/Building'
 import Ship from 'components/Ship'
 
+export interface FortTarget {
+  targetPlayerIndex: number
+  fortID: string
+  playerName: string
+  playerColor?: string
+  fort: IFort
+  playerShips: IShip[]
+}
+
 interface ActionSelectorProps {
   player: IPlayerView
+  attackTargets: FortTarget[]
   onSelect: (
     action: string,
     cardID?: string,
     fortID?: string,
     repairAt?: [number, number],
+    targetPlayerIndex?: number,
   ) => void
 }
 
@@ -45,11 +55,20 @@ function buildableShips(hand: ICard[], forts: IFort[]): ICard[] {
 
 const ActionSelector: React.FC<ActionSelectorProps> = ({
   player,
+  attackTargets,
   onSelect,
 }) => {
-  const [showFortPicker, setShowFortPicker] = useState(false)
-  const [showBuildingPicker, setShowBuildingPicker] = useState(false)
-  const [showShipPicker, setShowShipPicker] = useState(false)
+  type Picker = 'attack' | 'fort' | 'building' | 'ship'
+  const [activePicker, setActivePicker] = useState<Picker | null>(null)
+
+  const showAttackPicker = activePicker === 'attack'
+  const showFortPicker = activePicker === 'fort'
+  const showBuildingPicker = activePicker === 'building'
+  const showShipPicker = activePicker === 'ship'
+
+  function togglePicker(p: Picker) {
+    setActivePicker(v => (v === p ? null : p))
+  }
   const [pendingBuildAction, setPendingBuildAction] = useState<{
     action: string
     card: ICard
@@ -64,15 +83,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
   const shipCards = buildableShips(hand, forts)
 
   function pick(action: string, cardID: string) {
-    setShowFortPicker(false)
-    setShowBuildingPicker(false)
-    setShowShipPicker(false)
+    setActivePicker(null)
     onSelect(action, cardID)
   }
 
   function handleCardPicked(action: string, card: ICard) {
-    setShowBuildingPicker(false)
-    setShowShipPicker(false)
+    setActivePicker(null)
     setPendingBuildAction({ action, card })
   }
 
@@ -103,27 +119,159 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
 
   return (
     <div style={{ margin: '24px 0' }}>
-      <h2>Choose your action:</h2>
+      <ActionInstructions title="Choose Your Action" />
       <div
         style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        <button onClick={() => onSelect('attack')}>Attack</button>
-        <button onClick={() => onSelect('draw')}>Draw</button>
+        <button
+          onClick={() => togglePicker('attack')}
+          style={{
+            background: '#c0392b',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            padding: '8px 16px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}>
+          Attack{showAttackPicker ? ' ▲' : ' ▼'}
+        </button>
+        <button
+          onClick={() => onSelect('draw')}
+          style={{
+            background: '#27ae60',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            padding: '8px 16px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}>
+          Draw
+        </button>
         {fortCards.length > 0 && (
-          <button onClick={() => setShowFortPicker(v => !v)}>
+          <button
+            onClick={() => togglePicker('fort')}
+            style={{
+              background: '#795548',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '8px 16px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}>
             Build Fort{showFortPicker ? ' ▲' : ' ▼'}
           </button>
         )}
         {buildingCards.length > 0 && (
-          <button onClick={() => setShowBuildingPicker(v => !v)}>
+          <button
+            onClick={() => togglePicker('building')}
+            style={{
+              background: '#795548',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '8px 16px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}>
             Build Building{showBuildingPicker ? ' ▲' : ' ▼'}
           </button>
         )}
         {shipCards.length > 0 && (
-          <button onClick={() => setShowShipPicker(v => !v)}>
+          <button
+            onClick={() => togglePicker('ship')}
+            style={{
+              background: '#795548',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '8px 16px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}>
             Build Ship{showShipPicker ? ' ▲' : ' ▼'}
           </button>
         )}
       </div>
+
+      {showAttackPicker && (
+        <div style={{ padding: '12px 0' }}>
+          {attackTargets.length === 0 ? (
+            <button
+              onClick={() => {
+                setActivePicker(null)
+                onSelect('attack', undefined, undefined, undefined, -1)
+              }}>
+              Open Waters
+            </button>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {attackTargets.map(t => (
+                <div
+                  key={`${t.targetPlayerIndex}-${t.fortID}`}
+                  onClick={() => {
+                    setActivePicker(null)
+                    onSelect(
+                      'attack',
+                      undefined,
+                      t.fortID,
+                      undefined,
+                      t.targetPlayerIndex,
+                    )
+                  }}
+                  style={{
+                    cursor: 'pointer',
+                    outline: '2px solid transparent',
+                    borderRadius: 6,
+                    padding: 8,
+                    transition: 'outline-color 0.15s, background 0.15s',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.outlineColor = '#c0392b'
+                    el.style.background = '#fff5f5'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.outlineColor = 'transparent'
+                    el.style.background = 'transparent'
+                  }}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      color: t.playerColor,
+                      marginBottom: 6,
+                      fontSize: 13,
+                    }}>
+                    {t.playerName}
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      flexWrap: 'wrap',
+                      alignItems: 'flex-start',
+                    }}>
+                    <Fort fort={t.fort} />
+                    {t.fort.buildings.map(b => (
+                      <Building key={b.id} building={b} />
+                    ))}
+                    {t.playerShips.map(s => (
+                      <Ship key={s.id} ship={s} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={() => setActivePicker(null)}
+            style={{ marginTop: 8 }}>
+            ← Back
+          </button>
+        </div>
+      )}
 
       {showFortPicker && (
         <div
@@ -134,12 +282,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
             padding: '12px 0',
           }}>
           {fortCards.map(card => (
-            <div
+            <Card
               key={card.id}
+              card={card}
+              hideType
               onClick={() => pick('buildFort', card.id)}
-              style={{ cursor: 'pointer' }}>
-              <Fort fort={createFortById(card.id)} />
-            </div>
+            />
           ))}
         </div>
       )}
@@ -153,12 +301,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
             padding: '12px 0',
           }}>
           {buildingCards.map(card => (
-            <div
+            <Card
               key={card.id}
+              card={card}
+              hideType
               onClick={() => handleCardPicked('buildBuilding', card)}
-              style={{ cursor: 'pointer' }}>
-              <Building building={createBuildingById(card.id)} preview />
-            </div>
+            />
           ))}
         </div>
       )}
@@ -172,12 +320,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
             padding: '12px 0',
           }}>
           {shipCards.map(card => (
-            <div
+            <Card
               key={card.id}
+              card={card}
+              hideType
               onClick={() => handleCardPicked('buildShip', card)}
-              style={{ cursor: 'pointer' }}>
-              <Ship ship={createShipById(card.id)} preview />
-            </div>
+            />
           ))}
         </div>
       )}
@@ -227,8 +375,8 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
               <p style={{ marginBottom: 8 }}>
                 <DescriptionText
                   text={`Place the repair shell ${
-                    pendingBuildAction.card.repairColor
-                      ? `[${colorToSymbol(pendingBuildAction.card.repairColor)}]`
+                    pendingBuildAction.card.repair?.[0]
+                      ? `[${colorToSymbol(pendingBuildAction.card.repair[0])}]`
                       : ''
                   }`}
                 />

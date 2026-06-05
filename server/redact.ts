@@ -5,21 +5,16 @@ export function redactStateForPlayer(
   state: IGameState,
   viewerIdx: number,
 ): IGameStateView {
-  const isInitDiscard = state.phase === 'initDiscard'
-
   const players: IPlayerView[] = state.players.map((p, i) => {
     const { hand, id: _id, ...rest } = p
-    if (i === viewerIdx) {
-      // During initDiscard, hide hand so cards only appear in drawnCards
-      return { ...rest, hand: isInitDiscard ? [] : hand }
-    }
+    if (i === viewerIdx) return { ...rest, hand }
     return { ...rest, hand: hand.length }
   })
 
-  // During initDiscard, surface the viewer's own hand as drawnCards
-  const drawnCards = isInitDiscard
-    ? (state.players[viewerIdx]?.hand ?? [])
-    : state.drawnCards
+  const drawnCards =
+    state.phase === 'initDraw'
+      ? (state.initDrawCards?.[viewerIdx] ?? [])
+      : state.drawnCards
 
   return {
     players,

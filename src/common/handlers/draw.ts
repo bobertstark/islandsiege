@@ -16,7 +16,7 @@ export function handleDraw(state: IGameState): IGameState {
     deck: nextDeck.deck,
     discard: nextDeck.discard,
     shuffleCount: nextDeck.shuffleCount,
-    phase: 'discard',
+    phase: 'drawPick',
     rngSeed: rng.seed(),
   }
 }

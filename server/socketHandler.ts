@@ -41,7 +41,7 @@ export function attachWebSocket(wss: WebSocketServer): void {
       if (!current) return
 
       // Actions any player can dispatch regardless of turn order
-      const nonTurnActions = new Set(['initDiscard', 'startGame', 'setColor'])
+      const nonTurnActions = new Set(['initDraw', 'startGame', 'setColor'])
 
       if (
         !nonTurnActions.has(msg.action.type) &&
@@ -63,9 +63,9 @@ export function attachWebSocket(wss: WebSocketServer): void {
                   color: (msg.action.payload as any)?.color,
                 },
               }
-            : msg.action.type === 'initDiscard'
+            : msg.action.type === 'initDraw'
               ? {
-                  type: 'initDiscard' as const,
+                  type: 'initDraw' as const,
                   payload: {
                     playerIdx,
                     cardID: (msg.action.payload as any)?.cardID,

@@ -3,13 +3,11 @@ import IGameStateView from 'common/IGameStateView'
 import ICard from 'common/ICard'
 import IFort from 'common/IFort'
 import Card from 'components/Card'
-import { TurnBanner } from 'components/TurnBanner'
-import GameBoard from 'components/GameBoard'
+import ActionInstructions from 'components/ActionInstructions'
 
 interface BuildBuildingPhaseProps {
   view: IGameStateView
   isMyTurn: boolean
-  waitingFor: string[]
   dispatch: (action: { type: string; payload?: unknown }) => void
 }
 
@@ -20,7 +18,6 @@ function eligibleForts(forts: IFort[], cost: number): IFort[] {
 export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
   view,
   isMyTurn,
-  waitingFor,
   dispatch,
 }) => {
   const player = view.players[view.currentPlayerIndex]
@@ -53,17 +50,23 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
       : []
   const eligibleIds = new Set(eligible.map(f => f.id))
 
-  return (
-    <div>
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-        buildContext={view.buildContext}
+  if (!isMyTurn) {
+    return (
+      <ActionInstructions
+        title="Build a Building"
+        description="Waiting for the active player to construct a building."
       />
-      {isMyTurn && !selectedCard && (
+    )
+  }
+
+  return (
+    <>
+      {!selectedCard && (
         <div style={{ padding: '16px 20px' }}>
-          <h2>Pick a building to construct</h2>
+          <ActionInstructions
+            title="Build a Building"
+            description="Pick a building card from your hand to construct."
+          />
           <div
             style={{
               display: 'flex',
@@ -92,14 +95,12 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
           </div>
         </div>
       )}
-      {isMyTurn && selectedCard && (
+      {selectedCard && (
         <div style={{ padding: '16px 20px' }}>
-          <h2>
-            Choose a fort for <strong>{selectedCard.name}</strong>
-          </h2>
-          <p style={{ color: '#666', fontSize: 13 }}>
-            Requires {selectedCard.cost} colonists on fort
-          </p>
+          <ActionInstructions
+            title={`Choose a Fort for ${selectedCard.name}`}
+            description={`Requires ${selectedCard.cost} colonists on fort.`}
+          />
           <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
             {forts.map(fort => {
               const ok = eligibleIds.has(fort.id)
@@ -118,7 +119,6 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
           <button onClick={() => setSelectedCard(null)}>← Back</button>
         </div>
       )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
+    </>
   )
 }

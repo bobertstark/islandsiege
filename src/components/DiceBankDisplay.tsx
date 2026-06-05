@@ -22,7 +22,7 @@ export const DiceBankDisplay: React.FC<DiceBankDisplayProps> = ({
   selectedColor = null,
   onSelect,
 }) => {
-  const entries = (Object.entries(bank) as [DieValue, number][]).filter(
+  const entries = (Object.entries(bank ?? {}) as [DieValue, number][]).filter(
     ([, count]) => count > 0,
   )
   if (entries.length === 0) return null

@@ -1,27 +1,27 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGameSocket } from 'hooks/useGameSocket'
 import { loadAuth } from 'hooks/useGameAuth'
 import { GamePhases } from 'common/phases'
 import { DieValue } from 'common/die'
 import IGameStateView from 'common/IGameStateView'
-import GameBoard from 'components/GameBoard'
-import Card from 'components/Card'
-import { Deck, Discard } from 'components/Deck'
+import GameShell from 'components/GameShell'
+import { WaitingForPlayer } from 'components/TurnBanner'
 import { ActionPhase } from 'components/phases/ActionPhase'
-import { AttackStartPhase } from 'components/phases/AttackStartPhase'
 import { AttackWave1Phase } from 'components/phases/AttackWave1Phase'
 import { AttackReinforceOrWave2Phase } from 'components/phases/AttackReinforceOrWave2Phase'
 import { AttackWave2Phase } from 'components/phases/AttackWave2Phase'
 import { BuildFortPhase } from 'components/phases/BuildFortPhase'
 import { BuildBuildingPhase } from 'components/phases/BuildBuildingPhase'
 import { BuildShipPhase } from 'components/phases/BuildShipPhase'
+import { DrawPickPhase } from 'components/phases/DrawPickPhase'
+import { InitDrawPhase } from 'components/phases/InitDrawPhase'
 import AttackRollPanel from 'components/AttackRollPanel'
-import Fort from 'components/Fort'
-import { TurnBanner } from 'components/TurnBanner'
+import AttackTargetDisplay from 'components/AttackTargetDisplay'
+import ActionInstructions from 'components/ActionInstructions'
 import 'components/phases/Game.css'
 
-const SIMULTANEOUS_PHASES = new Set<string>(['initDiscard'])
+const SIMULTANEOUS_PHASES = new Set<string>(['initDraw'])
 
 const ATTACK_DISPLAY_PHASES = new Set<string>([
   GamePhases.attackLeadership,
@@ -32,27 +32,28 @@ const ATTACK_DISPLAY_PHASES = new Set<string>([
   GamePhases.attackDestroy,
 ])
 
-// Expand rollCounts back to a flat DieValue array for display
 function countsToArray(counts: IGameStateView['diceBank']): DieValue[] {
   return (Object.entries(counts) as [DieValue, number][]).flatMap(
     ([face, count]) => Array<DieValue>(count).fill(face),
   )
 }
 
-function getTurnState(view: IGameStateView, playerIdx: number) {
+function getTurnState(
+  view: IGameStateView,
+  playerIdx: number,
+): { isMyTurn: boolean; waitingFor: WaitingForPlayer[] } {
   const isSimultaneous = SIMULTANEOUS_PHASES.has(view.phase)
-
   const isMyTurn = isSimultaneous
     ? view.pending?.[playerIdx] === undefined
     : view.currentPlayerIndex === playerIdx
-
-  // Names of players we're still waiting on
-  const waitingFor: string[] = isSimultaneous
+  const waitingFor: WaitingForPlayer[] = isSimultaneous
     ? view.players
-        .map((p, i) => (view.pending?.[i] === undefined ? p.name : null))
-        .filter((n): n is string => n !== null)
-    : [view.players[view.currentPlayerIndex]?.name ?? '']
-
+        .filter((_, i) => view.pending?.[i] === undefined)
+        .map(p => ({ name: p.name, color: p.color }))
+    : (() => {
+        const p = view.players[view.currentPlayerIndex]
+        return p ? [{ name: p.name, color: p.color }] : []
+      })()
   return { isMyTurn, waitingFor }
 }
 
@@ -115,10 +116,11 @@ const GameOverPhase: React.FC<{
 
 const ColonizePhase: React.FC<{
   view: IGameStateView
+  playerIdx: number
   isMyTurn: boolean
-  waitingFor: string[]
+  waitingFor: WaitingForPlayer[]
   dispatch: (action: { type: string }) => void
-}> = ({ view, isMyTurn, waitingFor, dispatch }) => {
+}> = ({ view, playerIdx, isMyTurn, waitingFor, dispatch }) => {
   useEffect(() => {
     if (!isMyTurn) return
     const timer = setTimeout(() => dispatch({ type: 'colonize' }), 1500)
@@ -126,133 +128,32 @@ const ColonizePhase: React.FC<{
   }, [isMyTurn, dispatch])
 
   return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
-      {isMyTurn && (
-        <p style={{ padding: '4px 0' }}>Placing colonists on your forts…</p>
-      )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
-  )
-}
-
-const InitDiscardPhase: React.FC<{
-  view: IGameStateView
-  playerIdx: number
-  isMyTurn: boolean
-  waitingFor: string[]
-  dispatch: (action: { type: string; payload?: unknown }) => void
-}> = ({ view, playerIdx, isMyTurn, waitingFor, dispatch }) => {
-  const [selectedID, setSelectedID] = useState<string | undefined>()
-  const cards = view.drawnCards
-
-  function handleSelect(cardID: string) {
-    setSelectedID(cardID)
-    dispatch({ type: 'initDiscard', payload: { cardID } })
-  }
-
-  return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
-      {isMyTurn && (
-        <>
-          <h2>Select card to give away</h2>
-          <p>
-            Select one card to give to{' '}
-            <strong
-              style={{
-                color:
-                  view.players[(playerIdx + 1) % view.players.length]?.color ??
-                  undefined,
-              }}>
-              {view.players[(playerIdx + 1) % view.players.length]?.name}
-            </strong>
-            .
-          </p>
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              flexWrap: 'wrap',
-              margin: '16px 0',
-            }}>
-            {cards.map(card => (
-              <Card
-                key={card.id}
-                card={card}
-                selected={selectedID === card.id}
-                onClick={handleSelect}
-              />
-            ))}
-          </div>
-        </>
-      )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
-  )
-}
-
-const DiscardPhase: React.FC<{
-  view: IGameStateView
-  isMyTurn: boolean
-  waitingFor: string[]
-  dispatch: (action: { type: string; payload?: unknown }) => void
-}> = ({ view, isMyTurn, waitingFor, dispatch }) => {
-  const [selectedID, setSelectedID] = useState<string | undefined>()
-
-  function handleDiscard(cardID: string) {
-    setSelectedID(cardID)
-    dispatch({ type: 'discard', payload: { cardID } })
-  }
-
-  return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
-      {isMyTurn && (
-        <>
-          <h2>Pick a card to discard</h2>
-          <p>Select one of your drawn cards. The other two go to your hand.</p>
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              flexWrap: 'wrap',
-              margin: '16px 0',
-            }}>
-            {view.drawnCards.map(card => (
-              <Card
-                key={card.id}
-                card={card}
-                selected={selectedID === card.id}
-                onClick={handleDiscard}
-              />
-            ))}
-          </div>
-        </>
-      )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
+    <GameShell
+      view={view}
+      playerIdx={playerIdx}
+      isMyTurn={isMyTurn}
+      waitingFor={waitingFor}
+      actionContent={
+        <ActionInstructions
+          title="Colonize"
+          description={
+            isMyTurn
+              ? 'Placing colonists on your forts…'
+              : 'Waiting for colonists to be placed.'
+          }
+        />
+      }
+    />
   )
 }
 
 const AttackRollPhase: React.FC<{
   view: IGameStateView
+  playerIdx: number
   isMyTurn: boolean
-  waitingFor: string[]
+  waitingFor: WaitingForPlayer[]
   dispatch: (action: { type: string; payload?: unknown }) => void
-}> = ({ view, isMyTurn, waitingFor, dispatch }) => {
+}> = ({ view, playerIdx, isMyTurn, waitingFor, dispatch }) => {
   useEffect(() => {
     if (isMyTurn && view.attackRoll === undefined) {
       dispatch({ type: 'attackRoll', payload: { action: 'init' } })
@@ -269,46 +170,43 @@ const AttackRollPhase: React.FC<{
     }
   }, [isMyTurn, view.attackRoll, view.attackRerollsRemaining, dispatch])
 
-  const shipLoc = view.shipLocations[view.currentPlayerIndex]
-  const targetPlayer =
-    shipLoc?.targetPlayerIndex !== undefined
-      ? view.players[shipLoc.targetPlayerIndex]
-      : undefined
-  const targetFort = targetPlayer?.forts.find(f => f.id === shipLoc?.fortID)
-
   return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
-      {isMyTurn && view.attackRoll !== undefined && (
-        <AttackRollPanel
-          dice={view.attackRoll}
-          rerollsRemaining={view.attackRerollsRemaining}
-          dispatch={dispatch}
-        />
-      )}
-      {targetFort && (
-        <div style={{ padding: '8px 20px' }}>
-          <p style={{ marginBottom: 6 }}>
-            Attacking <strong>{targetPlayer?.name}</strong> — {targetFort.name}
-          </p>
-          <Fort fort={targetFort} />
-        </div>
-      )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
+    <GameShell
+      view={view}
+      playerIdx={playerIdx}
+      isMyTurn={isMyTurn}
+      waitingFor={waitingFor}
+      actionContent={
+        <>
+          <ActionInstructions
+            title="Attack Roll"
+            description={
+              isMyTurn
+                ? 'Rolling dice for your attack.'
+                : 'Waiting for the attacker to roll.'
+            }
+          />
+          {isMyTurn && view.attackRoll !== undefined && (
+            <AttackRollPanel
+              dice={view.attackRoll}
+              rerollsRemaining={view.attackRerollsRemaining}
+              dispatch={dispatch}
+            />
+          )}
+          <AttackTargetDisplay view={view} />
+        </>
+      }
+    />
   )
 }
 
 const AttackLeadershipPhase: React.FC<{
   view: IGameStateView
+  playerIdx: number
   isMyTurn: boolean
-  waitingFor: string[]
+  waitingFor: WaitingForPlayer[]
   dispatch: (action: { type: string; payload?: unknown }) => void
-}> = ({ view, isMyTurn, waitingFor, dispatch }) => {
+}> = ({ view, playerIdx, isMyTurn, waitingFor, dispatch }) => {
   const defenderIdx =
     view.shipLocations[view.currentPlayerIndex]?.targetPlayerIndex
   const defenderShips =
@@ -322,61 +220,74 @@ const AttackLeadershipPhase: React.FC<{
   }, [isMyTurn, lCount, dispatch])
 
   return (
-    <div className="game-container">
-      <TurnBanner
-        phase={view.phase}
-        isMyTurn={isMyTurn}
-        waitingFor={waitingFor}
-      />
-      {isMyTurn && (
-        <div style={{ padding: '16px 20px' }}>
-          <h2>Leadership</h2>
-          {canUseLeadership ? (
-            <>
-              <p>
-                You have <strong>{lCount}</strong> L{' '}
-                {lCount === 1 ? 'die' : 'dice'}. Spend 2 to destroy a ship.
-              </p>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
-                {defenderShips.map(ship => (
-                  <li key={ship.id} style={{ marginBottom: 8 }}>
-                    <button
-                      onClick={() =>
-                        dispatch({
-                          type: 'attackLeadership',
-                          payload: { shipID: ship.id },
-                        })
-                      }>
-                      Destroy {ship.name} (costs 2 L)
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p style={{ color: '#888', fontStyle: 'italic' }}>
-              {view.attackIsOpenWater
-                ? 'Open waters — no ships to target.'
-                : 'No leadership actions available.'}
-            </p>
+    <GameShell
+      view={view}
+      playerIdx={playerIdx}
+      isMyTurn={isMyTurn}
+      waitingFor={waitingFor}
+      actionContent={
+        <>
+          <ActionInstructions
+            title="Leadership"
+            description={
+              isMyTurn
+                ? 'Spend 2 L dice to destroy an enemy ship.'
+                : 'Waiting for the attacker to use leadership.'
+            }
+          />
+          <AttackTargetDisplay view={view} />
+          {isMyTurn && (
+            <div style={{ padding: '16px 0' }}>
+              {canUseLeadership ? (
+                <>
+                  <p>
+                    You have <strong>{lCount}</strong> L{' '}
+                    {lCount === 1 ? 'die' : 'dice'}. Spend 2 to destroy a ship.
+                  </p>
+                  <ul
+                    style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+                    {defenderShips.map(ship => (
+                      <li key={ship.id} style={{ marginBottom: 8 }}>
+                        <button
+                          onClick={() =>
+                            dispatch({
+                              type: 'attackLeadership',
+                              payload: { shipID: ship.id },
+                            })
+                          }>
+                          Destroy {ship.name} (costs 2 L)
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p style={{ color: '#888', fontStyle: 'italic' }}>
+                  {view.attackIsOpenWater
+                    ? 'Open waters — no ships to target.'
+                    : 'No leadership actions available.'}
+                </p>
+              )}
+              <button
+                onClick={() =>
+                  dispatch({
+                    type: 'attackLeadership',
+                    payload: { skip: true },
+                  })
+                }>
+                {view.attackIsOpenWater ? 'Proceed to Reinforce' : 'Skip'}
+              </button>
+            </div>
           )}
-          <button
-            onClick={() =>
-              dispatch({ type: 'attackLeadership', payload: { skip: true } })
-            }>
-            {view.attackIsOpenWater ? 'Proceed to Reinforce' : 'Skip'}
-          </button>
-        </div>
-      )}
-      <GameBoard state={view} dispatch={dispatch} />
-    </div>
+        </>
+      }
+    />
   )
 }
 
 export const GamePage: React.FC = () => {
   const { gameId = '' } = useParams<{ gameId: string }>()
   const auth = loadAuth(gameId)
-
   const { view, dispatch, error } = useGameSocket(
     gameId,
     auth?.playerIdx ?? 0,
@@ -391,7 +302,6 @@ export const GamePage: React.FC = () => {
       </div>
     )
   }
-
   if (error) return <div className="error">Error: {error}</div>
   if (!view) return <div>Connecting…</div>
 
@@ -399,46 +309,11 @@ export const GamePage: React.FC = () => {
   const { isMyTurn, waitingFor } = getTurnState(view, playerIdx)
 
   switch (view.phase) {
-    case GamePhases.initDiscard:
-      return (
-        <InitDiscardPhase
-          view={view}
-          playerIdx={playerIdx}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-        />
-      )
-    case GamePhases.action:
-      return (
-        <ActionPhase
-          state={view}
-          playerIdx={playerIdx}
-          isMyTurn={isMyTurn}
-          dispatch={dispatch}
-        />
-      )
+    case GamePhases.gameOver:
+      return <GameOverPhase view={view} playerIdx={playerIdx} />
     case GamePhases.colonize:
       return (
         <ColonizePhase
-          view={view}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-        />
-      )
-    case GamePhases.discard:
-      return (
-        <DiscardPhase
-          view={view}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-        />
-      )
-    case GamePhases.attackStart:
-      return (
-        <AttackStartPhase
           view={view}
           playerIdx={playerIdx}
           isMyTurn={isMyTurn}
@@ -450,6 +325,7 @@ export const GamePage: React.FC = () => {
       return (
         <AttackRollPhase
           view={view}
+          playerIdx={playerIdx}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
           dispatch={dispatch}
@@ -459,92 +335,112 @@ export const GamePage: React.FC = () => {
       return (
         <AttackLeadershipPhase
           view={view}
+          playerIdx={playerIdx}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
           dispatch={dispatch}
         />
       )
-    case GamePhases.attackWave1:
-      return (
-        <AttackWave1Phase
-          view={view}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-        />
-      )
-    case GamePhases.attackReinforceOrWave2:
-      return (
-        <AttackReinforceOrWave2Phase
-          view={view}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-        />
-      )
-    case GamePhases.attackWave2:
-      return (
-        <AttackWave2Phase
-          view={view}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-        />
-      )
-    case GamePhases.buildFort:
-      return (
-        <BuildFortPhase
-          view={view}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-        />
-      )
-    case GamePhases.buildBuilding:
-      return (
-        <BuildBuildingPhase
-          view={view}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-        />
-      )
-    case GamePhases.buildShip:
-      return (
-        <BuildShipPhase
-          view={view}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-        />
-      )
-    case GamePhases.gameOver:
-      return <GameOverPhase view={view} playerIdx={playerIdx} />
     default: {
       const attackDice = ATTACK_DISPLAY_PHASES.has(view.phase)
         ? countsToArray(view.diceBank)
         : []
+      const actionContent = (() => {
+        switch (view.phase) {
+          case GamePhases.initDraw:
+            return (
+              <InitDrawPhase
+                view={view}
+                playerIdx={playerIdx}
+                isMyTurn={isMyTurn}
+                dispatch={dispatch}
+              />
+            )
+          case GamePhases.action:
+            return (
+              <ActionPhase
+                state={view}
+                playerIdx={playerIdx}
+                isMyTurn={isMyTurn}
+                dispatch={dispatch}
+              />
+            )
+          case GamePhases.drawPick:
+            return (
+              <DrawPickPhase
+                view={view}
+                isMyTurn={isMyTurn}
+                dispatch={dispatch}
+              />
+            )
+          case GamePhases.attackWave1:
+            return (
+              <AttackWave1Phase
+                view={view}
+                isMyTurn={isMyTurn}
+                dispatch={dispatch}
+              />
+            )
+          case GamePhases.attackReinforceOrWave2:
+            return (
+              <AttackReinforceOrWave2Phase
+                view={view}
+                isMyTurn={isMyTurn}
+                dispatch={dispatch}
+              />
+            )
+          case GamePhases.attackWave2:
+            return (
+              <AttackWave2Phase
+                view={view}
+                isMyTurn={isMyTurn}
+                dispatch={dispatch}
+              />
+            )
+          case GamePhases.buildFort:
+            return (
+              <BuildFortPhase
+                view={view}
+                isMyTurn={isMyTurn}
+                dispatch={dispatch}
+              />
+            )
+          case GamePhases.buildBuilding:
+            return (
+              <BuildBuildingPhase
+                view={view}
+                isMyTurn={isMyTurn}
+                dispatch={dispatch}
+              />
+            )
+          case GamePhases.buildShip:
+            return (
+              <BuildShipPhase
+                view={view}
+                isMyTurn={isMyTurn}
+                dispatch={dispatch}
+              />
+            )
+          default:
+            return attackDice.length > 0 ? (
+              <AttackRollPanel
+                dice={attackDice}
+                rerollsRemaining={0}
+                dispatch={dispatch}
+                readonly
+              />
+            ) : null
+        }
+      })()
       return (
-        <div className="game-container">
-          <TurnBanner
-            phase={view.phase}
-            isMyTurn={isMyTurn}
-            waitingFor={waitingFor}
-          />
-          {attackDice.length > 0 && (
-            <AttackRollPanel
-              dice={attackDice}
-              rerollsRemaining={0}
-              dispatch={dispatch}
-              readonly
-            />
-          )}
-          <div className="game-header">
-            <Deck count={view.deckCount} onDraw={() => {}} />
-            <Discard count={view.discard?.length ?? 0} />
-          </div>
-          <GameBoard state={view} dispatch={dispatch} />
-        </div>
+        <GameShell
+          view={view}
+          playerIdx={playerIdx}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          buildContext={view.buildContext}
+          actionContent={actionContent}
+        />
       )
     }
   }
