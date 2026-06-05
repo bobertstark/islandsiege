@@ -9,12 +9,18 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "src"
+    "paths": {
+      "common/*": ["./src/common/*"],
+      "components/*": ["./src/components/*"],
+      "hooks/*": ["./src/hooks/*"],
+      "game/*": ["./src/game/*"],
+      "assets/*": ["./src/assets/*"]
+    }
   },
   "include": ["src"]
 }
