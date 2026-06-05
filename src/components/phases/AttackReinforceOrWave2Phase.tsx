@@ -80,7 +80,7 @@ export const AttackReinforceOrWave2Phase: React.FC<Props> = ({
                   fontWeight: 'bold',
                   cursor: canWave2 ? 'pointer' : 'not-allowed',
                   opacity: canWave2 ? 1 : 0.4,
-                  background: canWave2 ? '#2980b9' : '#ccc',
+                  background: canWave2 ? '#c0392b' : '#ccc',
                   color: '#fff',
                   border: 'none',
                   fontSize: 15,
