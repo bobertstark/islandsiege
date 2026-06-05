@@ -5,9 +5,20 @@ import DescriptionText from 'components/DescriptionText'
 
 interface FortProps {
   fort: IFort
+  // interactive grid props — when provided the grid becomes clickable (e.g. wave phases)
+  highlights?: [number, number][]
+  dims?: [number, number][]
+  selectedGroup?: [number, number][]
+  onCellClick?: (loc: [number, number]) => void
 }
 
-const Fort: React.FC<FortProps> = ({ fort }) => (
+const Fort: React.FC<FortProps> = ({
+  fort,
+  highlights,
+  dims,
+  selectedGroup,
+  onCellClick,
+}) => (
   <div
     style={{
       border: '1px solid #888',
@@ -33,7 +44,15 @@ const Fort: React.FC<FortProps> = ({ fort }) => (
       <DescriptionText text={fort.description} />
     </div>
     <div style={{ margin: '8px 0' }}>
-      <FortGrid grid={fort.grid} view="tableau" showLabels={false} />
+      <FortGrid
+        grid={fort.grid}
+        view="tableau"
+        showLabels={false}
+        highlights={highlights}
+        dims={dims}
+        selectedGroup={selectedGroup}
+        onCellClick={onCellClick}
+      />
     </div>
     <div
       style={{

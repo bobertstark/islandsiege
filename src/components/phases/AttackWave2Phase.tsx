@@ -2,7 +2,10 @@ import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
 import { TurnBanner } from 'components/TurnBanner'
 import GameBoard from 'components/GameBoard'
-import { FortGrid } from 'components/FortGrid'
+import Fort from 'components/Fort'
+import AttackTargetDisplay, {
+  useAttackTarget,
+} from 'components/AttackTargetDisplay'
 
 interface Props {
   view: IGameStateView
@@ -23,12 +26,7 @@ export const AttackWave2Phase: React.FC<Props> = ({
 }) => {
   const [selected, setSelected] = useState<[number, number][]>([])
 
-  const shipLoc = view.shipLocations[view.currentPlayerIndex]
-  const targetPlayer =
-    shipLoc?.targetPlayerIndex !== undefined
-      ? view.players[shipLoc.targetPlayerIndex]
-      : undefined
-  const targetFort = targetPlayer?.forts.find(f => f.id === shipLoc?.fortID)
+  const { targetFort } = useAttackTarget(view)
 
   const numT = view.diceBank['T'] ?? 0
   const remaining = numT - selected.length
@@ -79,17 +77,14 @@ export const AttackWave2Phase: React.FC<Props> = ({
       />
       {targetFort && (
         <div style={{ margin: '16px 0' }}>
-          <p style={{ marginBottom: 8 }}>
-            <strong>{targetPlayer?.name}</strong> — {targetFort.name}
-          </p>
-          <FortGrid
-            grid={targetFort.grid}
-            view="tableau"
-            showLabels
-            highlights={isMyTurn && !ready ? highlights : undefined}
-            selectedGroup={isMyTurn ? selected : undefined}
-            onCellClick={isMyTurn ? handleCellClick : undefined}
-          />
+          <AttackTargetDisplay view={view}>
+            <Fort
+              fort={targetFort}
+              highlights={isMyTurn && !ready ? highlights : undefined}
+              selectedGroup={isMyTurn ? selected : undefined}
+              onCellClick={isMyTurn ? handleCellClick : undefined}
+            />
+          </AttackTargetDisplay>
           {isMyTurn && (
             <div style={{ marginTop: 12 }}>
               <p

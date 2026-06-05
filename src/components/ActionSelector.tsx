@@ -18,7 +18,8 @@ import Ship from 'components/Ship'
 export interface FortTarget {
   targetPlayerIndex: number
   fortID: string
-  label: string
+  playerName: string
+  playerColor?: string
   fort: IFort
 }
 
@@ -180,11 +181,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
                   <div
                     style={{
                       fontSize: 12,
-                      color: '#888',
                       marginBottom: 4,
                       textAlign: 'center',
                     }}>
-                    {t.label}
+                    <strong style={{ color: t.playerColor }}>
+                      {t.playerName}
+                    </strong>
                   </div>
                   <Fort fort={t.fort} />
                 </div>

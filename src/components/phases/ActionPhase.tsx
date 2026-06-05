@@ -22,7 +22,8 @@ function buildAttackTargets(
       targets.push({
         targetPlayerIndex: idx,
         fortID: fort.id,
-        label: `${player.name} — ${fort.name}`,
+        playerName: player.name,
+        playerColor: player.color,
         fort,
       })
     }

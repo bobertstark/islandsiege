@@ -5,8 +5,10 @@ import { shellInfo, traverseConnectedShells } from 'common/fortGrid'
 import type { FortGridCell } from 'common/fortGrid'
 import { TurnBanner } from 'components/TurnBanner'
 import GameBoard from 'components/GameBoard'
-import { FortGrid } from 'components/FortGrid'
-import { DiceBankDisplay } from 'components/DiceBankDisplay'
+import Fort from 'components/Fort'
+import AttackTargetDisplay, {
+  useAttackTarget,
+} from 'components/AttackTargetDisplay'
 
 function eligibleForColor(
   grid: FortGridCell[][],
@@ -48,12 +50,7 @@ export const AttackWave1Phase: React.FC<Props> = ({
   const [selectedColor, setSelectedColor] = useState<ShellColor | null>(null)
   const [pendingLoc, setPendingLoc] = useState<[number, number] | null>(null)
 
-  const shipLoc = view.shipLocations[view.currentPlayerIndex]
-  const targetPlayer =
-    shipLoc?.targetPlayerIndex !== undefined
-      ? view.players[shipLoc.targetPlayerIndex]
-      : undefined
-  const targetFort = targetPlayer?.forts.find(f => f.id === shipLoc?.fortID)
+  const { targetPlayer, targetFort } = useAttackTarget(view)
 
   const diceCount = selectedColor
     ? (view.diceBank[colorToSymbol(selectedColor) as 'B' | 'W' | 'G'] ?? 0)
@@ -114,28 +111,22 @@ export const AttackWave1Phase: React.FC<Props> = ({
                 : 'Select a shell group on the fort to destroy.'}
         </p>
       )}
-      <div style={{ padding: '8px 0' }}>
-        <strong>Attack dice:</strong>
-        <DiceBankDisplay
-          bank={view.diceBank}
-          selectedColor={selectedColor}
-          onSelect={isMyTurn ? handleColorSelect : undefined}
-        />
-      </div>
-      {targetFort && (
-        <div style={{ margin: '16px 0' }}>
-          <p style={{ marginBottom: 8 }}>
-            <strong>{targetPlayer?.name}</strong> — {targetFort.name}
-          </p>
-          <FortGrid
-            grid={targetFort.grid}
-            view="tableau"
-            showLabels
+      <AttackTargetDisplay
+        view={view}
+        selectedColor={selectedColor}
+        onDiceColorSelect={isMyTurn ? handleColorSelect : undefined}>
+        {targetFort && (
+          <Fort
+            fort={targetFort}
             highlights={isMyTurn ? highlights : undefined}
             dims={isMyTurn ? dims : undefined}
             selectedGroup={isMyTurn ? pendingGroup : undefined}
             onCellClick={isMyTurn ? handleCellClick : undefined}
           />
+        )}
+      </AttackTargetDisplay>
+      {targetFort && (
+        <div style={{ margin: '16px 0' }}>
           {isMyTurn && pendingLoc && (
             <div style={{ marginTop: 12 }}>
               <button
