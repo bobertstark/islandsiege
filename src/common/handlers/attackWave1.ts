@@ -5,7 +5,7 @@ import { attackAt } from 'common/fortGrid'
 
 export function handleAttackWave1(
   state: IGameState,
-  payload: { attackColor: DieValue; attackLoc: [number, number] },
+  payload: { attackColor: DieValue; attackLoc?: [number, number] },
 ): IGameState {
   const { targetPlayerIndex, fortID } =
     state.shipLocations[state.currentPlayerIndex]!
@@ -16,11 +16,17 @@ export function handleAttackWave1(
   const diceBank = { ...state.diceBank }
   delete diceBank[payload.attackColor]
 
-  const { grid: updatedGrid } = attackAt(fort.grid, payload.attackLoc, strength)
-  const updatedFort = { ...fort, grid: updatedGrid }
-  players[targetPlayerIndex!] = {
-    ...target,
-    forts: target.forts.map(f => (f.id === fortID ? updatedFort : f)),
+  if (payload.attackLoc) {
+    const { grid: updatedGrid } = attackAt(
+      fort.grid,
+      payload.attackLoc,
+      strength,
+    )
+    const updatedFort = { ...fort, grid: updatedGrid }
+    players[targetPlayerIndex!] = {
+      ...target,
+      forts: target.forts.map(f => (f.id === fortID ? updatedFort : f)),
+    }
   }
 
   return {

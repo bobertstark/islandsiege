@@ -10,6 +10,7 @@ import Card from 'components/Card'
 import { Deck, Discard } from 'components/Deck'
 import { ActionPhase } from 'components/phases/ActionPhase'
 import { AttackStartPhase } from 'components/phases/AttackStartPhase'
+import { AttackWave1Phase } from 'components/phases/AttackWave1Phase'
 import AttackRollPanel from 'components/AttackRollPanel'
 import { TurnBanner } from 'components/TurnBanner'
 import 'components/phases/Game.css'
@@ -365,6 +366,15 @@ export const GamePage: React.FC = () => {
     case GamePhases.attackLeadership:
       return (
         <AttackLeadershipPhase
+          view={view}
+          isMyTurn={isMyTurn}
+          waitingFor={waitingFor}
+          dispatch={dispatch}
+        />
+      )
+    case GamePhases.attackWave1:
+      return (
+        <AttackWave1Phase
           view={view}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
