@@ -8,6 +8,8 @@ import {
   createShipById,
 } from 'common/cardRegistry'
 import { shellInfo } from 'common/fortGrid'
+import { colorToSymbol } from 'common/colors'
+import DescriptionText from 'components/DescriptionText'
 import Fort from 'components/Fort'
 import { FortGrid } from 'components/FortGrid'
 import Building from 'components/Building'
@@ -223,7 +225,13 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
             pendingRepairFort ? (
             <div>
               <p style={{ marginBottom: 8 }}>
-                Place the repair shell on the fort grid:
+                <DescriptionText
+                  text={`Place the repair shell ${
+                    pendingBuildAction.card.repairColor
+                      ? `[${colorToSymbol(pendingBuildAction.card.repairColor)}]`
+                      : ''
+                  }`}
+                />
               </p>
               <FortGrid
                 grid={pendingRepairFort.grid}
