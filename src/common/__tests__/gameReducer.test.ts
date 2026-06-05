@@ -53,7 +53,7 @@ describe('gameReducer', () => {
     expect(state.players[0].name).toBe('Cpt')
     expect(state.players[1].name).toBe('Arg')
     expect(state.players[2].name).toBe('Matey')
-    expect(state.phase).toBe('initDiscard')
+    expect(state.phase).toBe('initDraw')
     expect(state.deck.length).toBe(27) // 3 per player drawn
     expect(state.players.every(player => player.forts.length === 1))
     expect(state.players.every(player => player.shells.black === 1))
@@ -78,7 +78,7 @@ describe('gameReducer', () => {
     )
   })
 
-  it('initDiscard - collects selections and distributes on last submit', () => {
+  it('initDraw - collects selections and distributes on last submit', () => {
     const cardA = {
       name: 'A',
       id: 'a',
@@ -96,16 +96,16 @@ describe('gameReducer', () => {
 
     // First player submits — not yet resolved
     let state = gameReducer(gs, {
-      type: GamePhases.initDiscard,
+      type: GamePhases.initDraw,
       payload: { playerIdx: 0, cardID: 'a' },
     })
-    expect(state.phase).toBe('initDiscard')
+    expect(state.phase).toBe('initDraw')
     expect(state.pending).toMatchObject({ 0: 'a' })
     expect(state.players[0].hand[0].id).toBe('a') // card still in hand
 
     // Last player submits — resolves immediately
     state = gameReducer(state, {
-      type: GamePhases.initDiscard,
+      type: GamePhases.initDraw,
       payload: { playerIdx: 1, cardID: 'b' },
     })
     expect(state.phase).toBe('action')
@@ -530,7 +530,7 @@ describe('gameReducer', () => {
   })
 
   describe('startGame', () => {
-    it('transitions lobby state to initDiscard and deals cards', () => {
+    it('transitions lobby state to initDraw and deals cards', () => {
       const lobby: IGameState = {
         ...gs,
         phase: GamePhases.lobby,
@@ -543,7 +543,7 @@ describe('gameReducer', () => {
         readyPlayers: [],
       }
       const result = gameReducer(lobby, { type: GamePhases.startGame })
-      expect(result.phase).toBe(GamePhases.initDiscard)
+      expect(result.phase).toBe(GamePhases.initDraw)
       result.players.forEach(p => expect(p.hand).toHaveLength(3))
     })
   })

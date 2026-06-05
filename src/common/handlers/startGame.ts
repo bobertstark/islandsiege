@@ -53,7 +53,7 @@ function dealAndStart(state: IGameState): IGameState {
     currentPlayerIndex,
     shellReserve: { black: 5, white: 5, gray: 5 },
     readyPlayers: [],
-    phase: 'initDiscard',
+    phase: 'initDraw',
     rngSeed: rng.seed(),
   }
 }

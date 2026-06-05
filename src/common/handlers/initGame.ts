@@ -30,7 +30,7 @@ export function handleInitGame(
     shuffleCount: deckState.shuffleCount,
     currentPlayerIndex,
     shellReserve: { black: 5, white: 5, gray: 5 },
-    phase: 'initDiscard',
+    phase: 'initDraw',
     rngSeed: rng.seed(),
   }
 }

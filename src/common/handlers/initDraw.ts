@@ -1,14 +1,14 @@
 import IGameState from 'common/IGameState'
 import { removeCardInHand, addCardsToHand } from 'common/player'
 
-export function handleInitDiscard(
+export function handleInitDraw(
   state: IGameState,
   payload: { playerIdx: number; cardID: string },
 ): IGameState {
   const pending = { ...state.pending, [payload.playerIdx]: payload.cardID }
 
   if (Object.keys(pending).length < state.players.length) {
-    return { ...state, phase: 'initDiscard', pending }
+    return { ...state, phase: 'initDraw', pending }
   }
 
   // All players have submitted — apply distribution now

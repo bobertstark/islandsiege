@@ -13,7 +13,7 @@ function toIPlayer(p: IPlayerView, idx: number): IPlayer {
   return { ...p, id: String(idx), hand: Array.isArray(p.hand) ? p.hand : [] }
 }
 
-const SIMULTANEOUS_PHASES = new Set(['initDiscard'])
+const SIMULTANEOUS_PHASES = new Set(['initDraw'])
 
 const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
   const players = state.players
@@ -25,7 +25,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ state, dispatch }) => {
 
   const handleCardSelect = (playerIdx: number, cardID: string) => {
     setSelectedCardIDs(prev => ({ ...prev, [playerIdx]: cardID }))
-    dispatch({ type: 'initDiscard', payload: { playerIdx, cardID } })
+    dispatch({ type: 'initDraw', payload: { playerIdx, cardID } })
   }
 
   // Build a map: defenderIdx → list of attacker colors docked there

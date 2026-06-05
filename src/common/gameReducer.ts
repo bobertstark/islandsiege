@@ -5,7 +5,7 @@ import { GamePhases } from 'common/phases'
 import { handleInitGame } from 'common/handlers/initGame'
 import { handleStartGame } from 'common/handlers/startGame'
 import { handleSetColor } from 'common/handlers/setColor'
-import { handleInitDiscard } from 'common/handlers/initDiscard'
+import { handleInitDraw } from 'common/handlers/initDraw'
 import { handleDraw } from 'common/handlers/draw'
 import { handleDiscard } from 'common/handlers/discard'
 import { handleVictory } from 'common/handlers/victory'
@@ -34,8 +34,8 @@ export function gameReducer(
       return handleSetColor(state, phase.payload)
     case GamePhases.initGame:
       return handleInitGame(state, phase.payload)
-    case GamePhases.initDiscard:
-      return handleInitDiscard(state, phase.payload)
+    case GamePhases.initDraw:
+      return handleInitDraw(state, phase.payload)
     case GamePhases.draw:
       return handleDraw(state)
     case GamePhases.discard:

@@ -22,7 +22,7 @@ export type Phase =
   | 'setColor'
   | 'initGame'
   | 'resetGame'
-  | 'initDiscard'
+  | 'initDraw'
   | 'victory'
   | 'colonize'
   | 'action'
@@ -48,7 +48,7 @@ export const GamePhases = {
   setColor: 'setColor',
   initGame: 'initGame',
   resetGame: 'resetGame',
-  initDiscard: 'initDiscard',
+  initDraw: 'initDraw',
   // Automatic Phases
   victory: 'victory',
   colonize: 'colonize',
@@ -78,8 +78,8 @@ export const initGame = (playerNames: string[]) => ({
   payload: { playerNames },
 })
 
-export const initDiscard = (playerIdx: number, cardID: string) => ({
-  type: GamePhases.initDiscard,
+export const initDraw = (playerIdx: number, cardID: string) => ({
+  type: GamePhases.initDraw,
   payload: { playerIdx, cardID },
 })
 

@@ -21,7 +21,7 @@ import AttackTargetDisplay from 'components/AttackTargetDisplay'
 import { TurnBanner } from 'components/TurnBanner'
 import 'components/phases/Game.css'
 
-const SIMULTANEOUS_PHASES = new Set<string>(['initDiscard'])
+const SIMULTANEOUS_PHASES = new Set<string>(['initDraw'])
 
 const ATTACK_DISPLAY_PHASES = new Set<string>([
   GamePhases.attackLeadership,
@@ -152,7 +152,7 @@ const InitDiscardPhase: React.FC<{
 
   function handleSelect(cardID: string) {
     setSelectedID(cardID)
-    dispatch({ type: 'initDiscard', payload: { cardID } })
+    dispatch({ type: 'initDraw', payload: { cardID } })
   }
 
   return (
@@ -386,7 +386,7 @@ export const GamePage: React.FC = () => {
   const { isMyTurn, waitingFor } = getTurnState(view, playerIdx)
 
   switch (view.phase) {
-    case GamePhases.initDiscard:
+    case GamePhases.initDraw:
       return (
         <InitDiscardPhase
           view={view}
