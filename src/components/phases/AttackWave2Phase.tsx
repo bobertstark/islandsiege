@@ -99,21 +99,30 @@ export const AttackWave2Phase: React.FC<Props> = ({
                   ? `${numT} shell${numT !== 1 ? 's' : ''} selected — ready to confirm.`
                   : `Select ${remaining} more shell${remaining !== 1 ? 's' : ''} to destroy.`}
               </p>
-              <button
-                onClick={handleConfirm}
-                disabled={!ready}
-                style={{
-                  padding: '8px 20px',
-                  background: ready ? '#e74c3c' : '#ccc',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontWeight: 'bold',
-                  cursor: ready ? 'pointer' : 'not-allowed',
-                  fontSize: 15,
-                }}>
-                Confirm Second Wave
-              </button>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <button
+                  onClick={handleConfirm}
+                  disabled={!ready}
+                  style={{
+                    padding: '8px 20px',
+                    background: ready ? '#e74c3c' : '#ccc',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    fontWeight: 'bold',
+                    cursor: ready ? 'pointer' : 'not-allowed',
+                    fontSize: 15,
+                  }}>
+                  Confirm Second Wave
+                </button>
+                {selected.length > 0 && (
+                  <button
+                    onClick={() => setSelected([])}
+                    style={{ padding: '8px 14px', cursor: 'pointer' }}>
+                    Clear selection
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>

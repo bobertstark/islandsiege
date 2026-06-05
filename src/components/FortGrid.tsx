@@ -62,7 +62,7 @@ export const FortGrid: React.FC<{
               if (view === 'hand') {
                 bgColor = cell.color ? ShellColors[cell.color] : '#f5f5f5'
               } else if (view === 'tableau') {
-                bgColor = cell.color ? ShellColors[cell.color] : '#fff'
+                bgColor = cell.color ? ShellColors[cell.color] : '#a0785a'
               }
             } else {
               border = '3px solid #fff'
