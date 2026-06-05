@@ -233,13 +233,12 @@ const AttackLeadershipPhase: React.FC<{
   const defenderShips =
     defenderIdx !== undefined ? (view.players[defenderIdx]?.ships ?? []) : []
   const lCount = view.diceBank.L ?? 0
-  const canUseLeadership =
-    !view.attackIsOpenWater && lCount >= 2 && defenderShips.length > 0
+  const canUseLeadership = lCount >= 2 && defenderShips.length > 0
 
   useEffect(() => {
-    if (!isMyTurn || canUseLeadership) return
+    if (!isMyTurn || lCount > 0) return
     dispatch({ type: 'attackLeadership', payload: { skip: true } })
-  }, [isMyTurn, canUseLeadership, dispatch])
+  }, [isMyTurn, lCount, dispatch])
 
   return (
     <div className="game-container">
@@ -248,33 +247,43 @@ const AttackLeadershipPhase: React.FC<{
         isMyTurn={isMyTurn}
         waitingFor={waitingFor}
       />
-      {isMyTurn && canUseLeadership && (
+      {isMyTurn && (
         <div style={{ padding: '16px 20px' }}>
           <h2>Leadership</h2>
-          <p>
-            You have <strong>{lCount}</strong> L {lCount === 1 ? 'die' : 'dice'}
-            . Spend 2 to destroy a ship.
-          </p>
-          <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
-            {defenderShips.map(ship => (
-              <li key={ship.id} style={{ marginBottom: 8 }}>
-                <button
-                  onClick={() =>
-                    dispatch({
-                      type: 'attackLeadership',
-                      payload: { shipID: ship.id },
-                    })
-                  }>
-                  Destroy {ship.name} (costs 2 L)
-                </button>
-              </li>
-            ))}
-          </ul>
+          {canUseLeadership ? (
+            <>
+              <p>
+                You have <strong>{lCount}</strong> L{' '}
+                {lCount === 1 ? 'die' : 'dice'}. Spend 2 to destroy a ship.
+              </p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+                {defenderShips.map(ship => (
+                  <li key={ship.id} style={{ marginBottom: 8 }}>
+                    <button
+                      onClick={() =>
+                        dispatch({
+                          type: 'attackLeadership',
+                          payload: { shipID: ship.id },
+                        })
+                      }>
+                      Destroy {ship.name} (costs 2 L)
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p style={{ color: '#888', fontStyle: 'italic' }}>
+              {view.attackIsOpenWater
+                ? 'Open waters — no ships to target.'
+                : 'No leadership actions available.'}
+            </p>
+          )}
           <button
             onClick={() =>
               dispatch({ type: 'attackLeadership', payload: { skip: true } })
             }>
-            Skip
+            {view.attackIsOpenWater ? 'Proceed to Reinforce' : 'Skip'}
           </button>
         </div>
       )}
