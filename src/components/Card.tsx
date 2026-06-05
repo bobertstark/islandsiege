@@ -18,6 +18,7 @@ interface CardProps {
 }
 
 const isBuilding = (card: ICard) => card.type === 'building'
+const isShip = (card: ICard) => card.type === 'ship'
 
 // TODO: Color coordinate card types for easier visual digest
 const Card: React.FC<CardProps> = ({ card, selected, dimmed, onClick }) => {
@@ -85,6 +86,34 @@ const Card: React.FC<CardProps> = ({ card, selected, dimmed, onClick }) => {
           )}
         </div>
       )}
+      {isShip(card) &&
+        (typeof card.cost === 'number' || typeof card.coins === 'number') && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              margin: '8px 0',
+            }}>
+            {typeof card.cost === 'number' && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <MeepleIcon size={16} color="#555" />
+                <span style={{ fontSize: 13, fontWeight: 'bold' }}>
+                  {card.cost}
+                </span>
+              </span>
+            )}
+            {typeof card.coins === 'number' && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <CoinIcon size={16} />
+                <span style={{ fontSize: 13, fontWeight: 'bold' }}>
+                  {card.coins}
+                </span>
+              </span>
+            )}
+          </div>
+        )}
       {fortGrid && (
         <div
           style={{
