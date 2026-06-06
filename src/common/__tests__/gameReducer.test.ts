@@ -3,7 +3,7 @@ import { GamePhases } from '../phases'
 
 import type IGameState from 'common/IGameState'
 type CardType = 'building' | 'fort' | 'ship'
-import { createFort } from 'common/fort'
+import { createFort, placeColonists } from 'common/fort'
 import { fortColonists, fortShellsRemaining } from 'common/fort'
 import { addFort, findFort, populateForts } from 'common/player'
 import { destroyAt } from 'common/fortGrid'
@@ -220,6 +220,15 @@ describe('gameReducer', () => {
   })
 
   it('buildFort - will build a fort, add shells, give coins', () => {
+    gs.players[0].hand = [
+      {
+        id: 'spyOutpost',
+        name: 'Spy Outpost',
+        type: 'fort' as CardType,
+        description: 'test',
+      },
+    ]
+
     let payload = {
       type: GamePhases.buildFort,
       payload: { fortID: 'spyOutpost', fortGridSpec: [] as FortGridSpec },
@@ -229,10 +238,22 @@ describe('gameReducer', () => {
     expect(fort.id).toBe('spyOutpost')
     expect(fortShellsRemaining(fort)).toEqual(1)
     expect(state.phase).toBe('endTurn')
-    // reset
-    gs.players[0] = { ...gs.players[0], forts: [] }
+    expect(state.players[0].hand.map(c => c.id)).not.toContain('spyOutpost')
 
-    gs.players[0].shells = { black: 2, gray: 2, white: 2 }
+    // reset
+    gs.players[0] = {
+      ...gs.players[0],
+      forts: [],
+      hand: [
+        {
+          id: 'spyOutpost',
+          name: 'Spy Outpost',
+          type: 'fort' as CardType,
+          description: 'test',
+        },
+      ],
+      shells: { black: 2, gray: 2, white: 2 },
+    }
     payload.payload.fortGridSpec = [
       [0, 3, 'B'],
       [1, 3, 'G'],
@@ -244,6 +265,8 @@ describe('gameReducer', () => {
     expect(fort.id).toBe('spyOutpost')
     expect(fortShellsRemaining(fort)).toEqual(4)
     expect(player.shells).toEqual({ black: 1, gray: 1, white: 1 })
+    expect(player.hand.map(c => c.id)).not.toContain('spyOutpost')
+
     // fail if player does not have shells
     gs.players[0] = { ...gs.players[0], forts: [] }
     payload.payload.fortGridSpec = [
@@ -256,9 +279,53 @@ describe('gameReducer', () => {
     )
   })
 
-  test.todo('buildShip - will build a ship, move colonists, give coins')
+  it('buildShip - will build a ship, move colonists, give coins', () => {
+    gs.players[0].hand = [
+      {
+        id: 'dominica',
+        name: 'Dominica',
+        type: 'ship' as CardType,
+        description: 'test',
+      },
+    ]
+    const fort = placeColonists(createMockFort({ slots: 4 }), 4).fort
+    gs.players[0] = addFort(gs.players[0], fort)
 
-  test.todo('buildBuilding - will build a building, move coloinsts, give coins')
+    const state = gameReducer(gs, {
+      type: GamePhases.buildShip,
+      payload: { shipID: 'dominica', fortID: 'testFort' },
+    })
+
+    expect(state.phase).toBe('endTurn')
+    expect(state.players[0].hand.map(c => c.id)).not.toContain('dominica')
+    expect(state.players[0].ships.some(s => s.id === 'dominica')).toBe(true)
+  })
+
+  it('buildBuilding - will build a building, move colonists, give coins', () => {
+    gs.players[0].hand = [
+      {
+        id: 'academy',
+        name: 'Academy',
+        type: 'building' as CardType,
+        description: 'test',
+      },
+    ]
+    const fort = placeColonists(createMockFort(), 2).fort
+    gs.players[0] = addFort(gs.players[0], fort)
+
+    const state = gameReducer(gs, {
+      type: GamePhases.buildBuilding,
+      payload: { fortID: 'testFort', buildingID: 'academy' },
+    })
+
+    expect(state.phase).toBe('endTurn')
+    expect(state.players[0].hand.map(c => c.id)).not.toContain('academy')
+    expect(
+      findFort(state.players[0], 'testFort').buildings.some(
+        b => b.id === 'academy',
+      ),
+    ).toBe(true)
+  })
 
   it('action/attack - will initiate attack', () => {
     // previous ship location should be cleared
