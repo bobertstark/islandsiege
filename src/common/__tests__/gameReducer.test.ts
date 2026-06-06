@@ -428,7 +428,10 @@ describe('gameReducer', () => {
           shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'f1' } },
           players: [mockGameState().players[0], defender],
         }),
-        { type: GamePhases.attackLeadership, payload: { shipID: 's1' } },
+        {
+          type: GamePhases.attackLeadership,
+          payload: { effect: 'destroyShip', shipID: 's1' },
+        },
       )
       expect(state.players[1].ships).toHaveLength(1)
       expect(state.diceBank.L).toBe(2)
@@ -445,7 +448,10 @@ describe('gameReducer', () => {
           shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'f1' } },
           players: [mockGameState().players[0], defender],
         }),
-        { type: GamePhases.attackLeadership, payload: { shipID: 's1' } },
+        {
+          type: GamePhases.attackLeadership,
+          payload: { effect: 'destroyShip', shipID: 's1' },
+        },
       )
       expect(state.players[1].ships).toHaveLength(1)
       expect(state.diceBank.L).toBeUndefined()
@@ -462,7 +468,10 @@ describe('gameReducer', () => {
           shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'f1' } },
           players: [mockGameState().players[0], defender],
         }),
-        { type: GamePhases.attackLeadership, payload: { shipID: 's1' } },
+        {
+          type: GamePhases.attackLeadership,
+          payload: { effect: 'destroyShip', shipID: 's1' },
+        },
       )
       expect(state.players[1].ships).toHaveLength(0)
       expect(state.diceBank.L).toBe(2)

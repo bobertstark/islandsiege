@@ -2,6 +2,7 @@ import ICard from './ICard'
 import IFort from './IFort'
 import IShip from './IShip'
 import { ShellReserve } from './colors'
+import type ILeadershipAbility from './ILeadershipAbility'
 
 export default interface IPlayer {
   id: string
@@ -12,6 +13,7 @@ export default interface IPlayer {
   attackDice: number
   diceRerolls: number
 
+  leadershipAbilities: ILeadershipAbility[]
   hand: ICard[]
   forts: IFort[]
   ships: IShip[]

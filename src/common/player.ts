@@ -3,6 +3,7 @@ import ICard from './ICard'
 import IShip from './IShip'
 import IFort from './IFort'
 import { ShellColor } from './colors'
+import ILeadershipAbility from './ILeadershipAbility'
 import {
   placeColonists as fortPlaceColonists,
   removeColonists as fortRemoveColonists,
@@ -12,6 +13,10 @@ import {
 import { addColonists as shipAddColonists, shipCard } from './ship'
 
 export const MAX_COLONISTS = 9
+
+const INNATE_LEADERSHIP: ILeadershipAbility[] = [
+  { cost: 2, effect: 'destroyShip' },
+]
 
 export function createPlayer(
   id: string,
@@ -26,6 +31,7 @@ export function createPlayer(
     coins: 0,
     attackDice: 3,
     diceRerolls: 1,
+    leadershipAbilities: INNATE_LEADERSHIP,
     hand: [],
     forts: [],
     ships: [],
@@ -62,6 +68,19 @@ export function findFort(player: IPlayer, fortID: string): IFort {
     throw new Error(`Player ${player.id} has no fort ${fortID}`)
   }
   return fort
+}
+
+// All leadership abilities available to the player: innate + those granted by
+// ships and buildings currently in play. Abilities on destroyed cards are gone.
+export function allLeadershipAbilities(player: IPlayer): ILeadershipAbility[] {
+  const fromShips = player.ships
+    .filter(s => s.leadershipAbility)
+    .map(s => s.leadershipAbility!)
+  const fromBuildings = player.forts
+    .flatMap(f => f.buildings)
+    .filter(b => b.leadershipAbility)
+    .map(b => b.leadershipAbility!)
+  return [...player.leadershipAbilities, ...fromShips, ...fromBuildings]
 }
 
 export function addFort(player: IPlayer, fort: IFort): IPlayer {

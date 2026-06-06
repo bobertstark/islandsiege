@@ -1,5 +1,6 @@
 import { IBaseContainer } from './IBase'
 import type { ShellColor } from './colors'
+import type ILeadershipAbility from './ILeadershipAbility'
 
 // A building attached to a fort. Its colonists return to the player's supply if
 // the fort is destroyed; repair is the shell laid when first placed.
@@ -9,4 +10,5 @@ export default interface IBuilding extends IBaseContainer {
   cost: number
   coins: number
   repair: ShellColor[]
+  leadershipAbility?: ILeadershipAbility
 }

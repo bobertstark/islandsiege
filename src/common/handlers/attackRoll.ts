@@ -1,6 +1,17 @@
 import IGameState from 'common/IGameState'
-import { rollDice, rerollDice, reduceDice } from 'common/attackRoll'
+import { Phase } from 'common/phases'
+import { rollDice, rerollDice, reduceDice, rollCounts } from 'common/attackRoll'
 import { createRng } from 'common/rng'
+import { allLeadershipAbilities } from 'common/player'
+
+export function nextPhaseAfterLeadership(
+  bank: rollCounts,
+  isOpenWater: boolean,
+): Phase {
+  if (isOpenWater) return 'attackReinforce'
+  const hasWaveDice = (['B', 'W', 'G'] as const).some(s => (bank[s] ?? 0) > 0)
+  return hasWaveDice ? 'attackWave1' : 'attackReinforceOrWave2'
+}
 
 export function handleAttackRoll(
   state: IGameState,
@@ -36,10 +47,19 @@ export function handleAttackRoll(
   }
 
   if (payload.action === 'keep' || state.attackRerollsRemaining === 0) {
+    const bank = reduceDice(state.attackRoll!)
+    const abilities = allLeadershipAbilities(
+      state.players[state.currentPlayerIndex],
+    )
+    const lRolled = bank.L ?? 0
+    const canAffordLeadership =
+      abilities.length > 0 && lRolled >= Math.min(...abilities.map(a => a.cost))
     return {
       ...state,
-      diceBank: reduceDice(state.attackRoll!),
-      phase: 'attackLeadership',
+      diceBank: bank,
+      phase: canAffordLeadership
+        ? 'attackLeadership'
+        : nextPhaseAfterLeadership(bank, state.attackIsOpenWater),
     }
   }
 
