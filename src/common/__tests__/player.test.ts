@@ -15,7 +15,7 @@ describe('player', () => {
     expect(p.colonists).toBe(9)
     expect(p.shells).toEqual({ black: 0, gray: 0, white: 0 })
     expect(p.attackDice).toBe(3)
-    expect(p.diceRerolls).toBe(1)
+    expect(p.diceRerolls).toBe(2)
   })
 
   it('respects overrides', () => {
