@@ -1,6 +1,7 @@
 import IGameState from 'common/IGameState'
 import { symbolToColor } from 'common/colors'
 import { DieValue } from 'common/die'
+import { ILogEntry } from 'common/ILog'
 
 export function handleAttackReinforce(state: IGameState): IGameState {
   const players = [...state.players]
@@ -20,5 +21,26 @@ export function handleAttackReinforce(state: IGameState): IGameState {
   }
 
   players[state.currentPlayerIndex] = { ...player, shells }
-  return { ...state, players, shellReserve: reserve, phase: 'attackDestroy' }
+
+  const shellsAdded: Record<string, number> = {}
+  for (const symb of Object.keys(state.diceBank)) {
+    if (!allowed.includes(symb)) continue
+    const color = symbolToColor(symb)
+    const added = (shells[color] ?? 0) - (player.shells[color] ?? 0)
+    if (added > 0) shellsAdded[color] = added
+  }
+  const logEntry: ILogEntry = {
+    phase: 'attackReinforce',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: { shellsAdded },
+  }
+  return {
+    ...state,
+    players,
+    shellReserve: reserve,
+    phase: 'attackDestroy',
+    log: [...state.log, logEntry],
+  }
 }

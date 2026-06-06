@@ -1,6 +1,7 @@
 import IGameState from 'common/IGameState'
 import { handleBuildBuilding } from './buildBuilding'
 import { handleBuildShip } from './buildShip'
+import { ILogEntry } from 'common/ILog'
 
 export function handleAction(
   state: IGameState,
@@ -52,11 +53,19 @@ export function handleAction(
           (p, i) => i !== state.currentPlayerIndex && p.forts.length >= 1,
         )
       if (openWaterAttack) {
+        const openWaterEntry: ILogEntry = {
+          phase: 'action',
+          playerIndex: state.currentPlayerIndex,
+          turn: state.currentPlayerIndex,
+          timestamp: new Date().toISOString(),
+          data: { actionChosen: 'attack', openWater: true },
+        }
         return {
           ...base,
           shipLocations,
           attackIsOpenWater: true,
           phase: 'attackRoll',
+          log: [...(state.log ?? []), openWaterEntry],
         }
       }
       if (targetPlayerIndex === undefined || targetPlayerIndex < 0) {
@@ -67,6 +76,17 @@ export function handleAction(
       )
       if (alreadyTargeted) {
         throw new Error(`${targetPlayerIndex} cannot be attacked.`)
+      }
+      const attackEntry: ILogEntry = {
+        phase: 'action',
+        playerIndex: state.currentPlayerIndex,
+        turn: state.currentPlayerIndex,
+        timestamp: new Date().toISOString(),
+        data: {
+          actionChosen: 'attack',
+          targetPlayerIndex,
+          fortID: payload.fortID ?? '',
+        },
       }
       return {
         ...base,
@@ -79,6 +99,7 @@ export function handleAction(
           },
         },
         phase: 'attackRoll',
+        log: [...(state.log ?? []), attackEntry],
       }
     }
     default:

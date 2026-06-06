@@ -1,6 +1,7 @@
 import IGameState from 'common/IGameState'
 import { findFort, destroyFort } from 'common/player'
 import { fortShellsRemaining } from 'common/fort'
+import { ILogEntry } from 'common/ILog'
 
 export function handleAttackDestroy(state: IGameState): IGameState {
   if (state.attackIsOpenWater) {
@@ -19,10 +20,21 @@ export function handleAttackDestroy(state: IGameState): IGameState {
 
   const { player: updated, cards } = destroyFort(target, fortID!)
   players[targetPlayerIndex!] = updated
+  const logEntry: ILogEntry = {
+    phase: 'attackDestroy',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: {
+      targetPlayerIndex: targetPlayerIndex!,
+      fortID: fortID!,
+    },
+  }
   return {
     ...state,
     players,
     discard: [...state.discard, ...cards],
     phase: 'endTurn',
+    log: [...state.log, logEntry],
   }
 }

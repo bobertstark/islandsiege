@@ -4,6 +4,7 @@ import { ShellReserve } from './colors'
 import { DieValue } from './die'
 import { Phase } from './phases'
 import { rollCounts } from './attackRoll'
+import { ILogEntry } from './ILog'
 
 // Full game state: plain data, safe to store or send over the wire.
 export default interface IGameState {
@@ -48,6 +49,8 @@ export default interface IGameState {
 
   buildContext?: { cardID: string; fortID?: string }
   pendingBuildCardID?: string
+
+  log: ILogEntry[]
 
   // Server-only - not sent to clients
   rngSeed: number

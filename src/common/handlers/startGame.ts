@@ -59,5 +59,6 @@ function dealAndStart(state: IGameState): IGameState {
     readyPlayers: [],
     phase: 'initDraw',
     rngSeed: rng.seed(),
+    log: [],
   }
 }

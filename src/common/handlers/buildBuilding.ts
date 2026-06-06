@@ -2,6 +2,7 @@ import IGameState from 'common/IGameState'
 import { createBuildingById } from 'common/cardRegistry'
 import { findFort, removeCardInHand } from 'common/player'
 import { addBuilding } from 'common/fort'
+import { ILogEntry } from 'common/ILog'
 
 export function handleBuildBuilding(
   state: IGameState,
@@ -20,11 +21,24 @@ export function handleBuildBuilding(
       f.id === payload.fortID ? updatedFort : f,
     ),
   }
+  const logEntry: ILogEntry = {
+    phase: 'buildBuilding',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: {
+      cardID: payload.buildingID,
+      fortID: payload.fortID,
+      colonistsMoved: building.cost,
+      repairUsed: payload.repairAt !== undefined,
+    },
+  }
   return {
     ...state,
     players,
     phase: 'endTurn',
     buildContext: { cardID: payload.buildingID, fortID: payload.fortID },
     pendingBuildCardID: undefined,
+    log: [...state.log, logEntry],
   }
 }

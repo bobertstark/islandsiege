@@ -1,6 +1,7 @@
 import IGameState from 'common/IGameState'
 import { createShipById } from 'common/cardRegistry'
 import { addShip, removeCardInHand } from 'common/player'
+import { ILogEntry } from 'common/ILog'
 
 export function handleBuildShip(
   state: IGameState,
@@ -17,11 +18,23 @@ export function handleBuildShip(
     payload.fortID,
   )
 
+  const logEntry: ILogEntry = {
+    phase: 'buildShip',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: {
+      cardID: payload.shipID,
+      fortID: payload.fortID,
+      colonistsMoved: ship.cost,
+    },
+  }
   return {
     ...state,
     players,
     phase: 'endTurn',
     buildContext: { cardID: payload.shipID, fortID: payload.fortID },
     pendingBuildCardID: undefined,
+    log: [...state.log, logEntry],
   }
 }

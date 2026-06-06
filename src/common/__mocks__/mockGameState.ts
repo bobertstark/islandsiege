@@ -1,6 +1,7 @@
-import IGameState from 'common/IGameState'
-import { createPlayer } from 'common/player'
-import { createDeck } from 'common/deck'
+import IGameState from '../IGameState'
+import { ILogEntry } from '../ILog'
+import { createPlayer } from '../player'
+import { createDeck } from '../deck'
 
 export const mockGameState = (
   overrides: Partial<IGameState> = {},
@@ -28,6 +29,7 @@ export const mockGameState = (
     attackRerollsRemaining: 1,
     diceBank: { B: 3, W: 0, G: 0, T: 0, L: 0 },
     rngSeed: 0,
+    log: [] as ILogEntry[],
     ...overrides,
   }
 }

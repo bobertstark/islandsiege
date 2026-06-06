@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useGameSocket } from 'hooks/useGameSocket'
 import { loadAuth } from 'hooks/useGameAuth'
@@ -121,7 +121,17 @@ const ColonizePhase: React.FC<{
   isMyTurn: boolean
   waitingFor: WaitingForPlayer[]
   dispatch: (action: { type: string }) => void
-}> = ({ view, playerIdx, isMyTurn, waitingFor, dispatch }) => {
+  logOpen: boolean
+  onToggleLog: () => void
+}> = ({
+  view,
+  playerIdx,
+  isMyTurn,
+  waitingFor,
+  dispatch,
+  logOpen,
+  onToggleLog,
+}) => {
   useEffect(() => {
     if (!isMyTurn) return
     const timer = setTimeout(() => dispatch({ type: 'colonize' }), 1500)
@@ -134,6 +144,8 @@ const ColonizePhase: React.FC<{
       playerIdx={playerIdx}
       isMyTurn={isMyTurn}
       waitingFor={waitingFor}
+      logOpen={logOpen}
+      onToggleLog={onToggleLog}
       actionContent={
         <ActionInstructions
           title="Colonize"
@@ -154,7 +166,17 @@ const AttackRollPhase: React.FC<{
   isMyTurn: boolean
   waitingFor: WaitingForPlayer[]
   dispatch: (action: { type: string; payload?: unknown }) => void
-}> = ({ view, playerIdx, isMyTurn, waitingFor, dispatch }) => {
+  logOpen: boolean
+  onToggleLog: () => void
+}> = ({
+  view,
+  playerIdx,
+  isMyTurn,
+  waitingFor,
+  dispatch,
+  logOpen,
+  onToggleLog,
+}) => {
   useEffect(() => {
     if (isMyTurn && view.attackRoll === undefined) {
       dispatch({ type: 'attackRoll', payload: { action: 'init' } })
@@ -181,6 +203,8 @@ const AttackRollPhase: React.FC<{
       playerIdx={playerIdx}
       isMyTurn={isMyTurn}
       waitingFor={waitingFor}
+      logOpen={logOpen}
+      onToggleLog={onToggleLog}
       actionContent={
         <>
           <ActionInstructions
@@ -212,7 +236,17 @@ const AttackLeadershipPhase: React.FC<{
   isMyTurn: boolean
   waitingFor: WaitingForPlayer[]
   dispatch: (action: { type: string; payload?: unknown }) => void
-}> = ({ view, playerIdx, isMyTurn, waitingFor, dispatch }) => {
+  logOpen: boolean
+  onToggleLog: () => void
+}> = ({
+  view,
+  playerIdx,
+  isMyTurn,
+  waitingFor,
+  dispatch,
+  logOpen,
+  onToggleLog,
+}) => {
   const defenderIdx =
     view.shipLocations[view.currentPlayerIndex]?.targetPlayerIndex
   const defenderShips =
@@ -231,6 +265,8 @@ const AttackLeadershipPhase: React.FC<{
       playerIdx={playerIdx}
       isMyTurn={isMyTurn}
       waitingFor={waitingFor}
+      logOpen={logOpen}
+      onToggleLog={onToggleLog}
       actionContent={
         <>
           <ActionInstructions
@@ -299,6 +335,8 @@ export const GamePage: React.FC = () => {
     auth?.playerIdx ?? 0,
     auth?.playerId ?? '',
   )
+  const [logOpen, setLogOpen] = useState(false)
+  const onToggleLog = () => setLogOpen(o => !o)
 
   if (!auth) {
     return (
@@ -325,6 +363,8 @@ export const GamePage: React.FC = () => {
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
           dispatch={dispatch}
+          logOpen={logOpen}
+          onToggleLog={onToggleLog}
         />
       )
     case GamePhases.attackRoll:
@@ -335,6 +375,8 @@ export const GamePage: React.FC = () => {
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
           dispatch={dispatch}
+          logOpen={logOpen}
+          onToggleLog={onToggleLog}
         />
       )
     case GamePhases.attackLeadership:
@@ -345,6 +387,8 @@ export const GamePage: React.FC = () => {
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
           dispatch={dispatch}
+          logOpen={logOpen}
+          onToggleLog={onToggleLog}
         />
       )
     default: {
@@ -446,6 +490,8 @@ export const GamePage: React.FC = () => {
           waitingFor={waitingFor}
           buildContext={view.buildContext}
           actionContent={actionContent}
+          logOpen={logOpen}
+          onToggleLog={onToggleLog}
         />
       )
     }

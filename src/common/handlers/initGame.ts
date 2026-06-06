@@ -37,5 +37,6 @@ export function handleInitGame(
     initDrawCards,
     phase: 'initDraw',
     rngSeed: rng.seed(),
+    log: [],
   }
 }

@@ -1,5 +1,6 @@
 import IGameState from 'common/IGameState'
 import { addCardsToHand } from 'common/player'
+import { ILogEntry } from 'common/ILog'
 
 export function handleInitDraw(
   state: IGameState,
@@ -25,5 +26,19 @@ export function handleInitDraw(
     players[idx] = addCardsToHand(players[idx], kept)
   })
 
-  return { ...state, players, pending: {}, initDrawCards: {}, phase: 'action' }
+  const turnEntry: ILogEntry = {
+    phase: 'endTurn',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: { newTurn: true },
+  }
+  return {
+    ...state,
+    players,
+    pending: {},
+    initDrawCards: {},
+    phase: 'action',
+    log: [...state.log, turnEntry],
+  }
 }

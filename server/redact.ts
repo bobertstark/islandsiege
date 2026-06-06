@@ -1,5 +1,23 @@
 import IGameState from 'common/IGameState'
 import IGameStateView, { IPlayerView } from 'common/IGameStateView'
+import { ILogEntry } from 'common/ILog'
+
+function redactLog(
+  log: ILogEntry[] | undefined,
+  viewerIdx: number,
+): ILogEntry[] {
+  return (log ?? []).map(entry => {
+    if (entry.phase === 'drawPick' && entry.playerIndex !== viewerIdx) {
+      const { cardIDs: _cardIDs, ...rest } = entry.data as {
+        cardIDs: string[]
+        drawnCount: number
+        discardedCardID: string
+      }
+      return { ...entry, data: { ...rest } }
+    }
+    return entry
+  })
+}
 
 export function redactStateForPlayer(
   state: IGameState,
@@ -36,6 +54,7 @@ export function redactStateForPlayer(
     winningPlayerIndex: state.winningPlayerIndex,
     buildContext: state.buildContext,
     pendingBuildCardID: state.pendingBuildCardID,
+    log: redactLog(state.log, viewerIdx),
     // rngSeed intentionally omitted
   }
 }

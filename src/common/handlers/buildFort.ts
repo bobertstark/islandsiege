@@ -4,6 +4,7 @@ import { addFort, removeCardInHand } from 'common/player'
 import { buildSpec, FortGridSpec } from 'common/fortGrid'
 import { symbolToColor } from 'common/colors'
 import IFort from 'common/IFort'
+import { ILogEntry } from 'common/ILog'
 
 export function handleBuildFort(
   state: IGameState,
@@ -47,11 +48,23 @@ export function handleBuildFort(
   }
 
   players[state.currentPlayerIndex] = player
+  const logEntry: ILogEntry = {
+    phase: 'buildFort',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: {
+      cardID: payload.fortID,
+      shellsAdded: shellsBuilt,
+      coinsGained: shellsBuilt,
+    },
+  }
   return {
     ...state,
     players,
     phase: 'endTurn',
     buildContext: { cardID: payload.fortID },
     pendingBuildCardID: undefined,
+    log: [...state.log, logEntry],
   }
 }

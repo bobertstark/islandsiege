@@ -1,5 +1,6 @@
 import IGameState from 'common/IGameState'
 import { addCardsToHand } from 'common/player'
+import { ILogEntry } from 'common/ILog'
 
 export function handleDrawPick(
   state: IGameState,
@@ -26,5 +27,23 @@ export function handleDrawPick(
     discard = [...state.discard, discarded]
   }
 
-  return { ...state, players, discard, drawnCards: [], phase: 'endTurn' }
+  const logEntry: ILogEntry = {
+    phase: 'drawPick',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: {
+      cardIDs: state.drawnCards.map(c => c.id),
+      drawnCount: state.drawnCards.length,
+      discardedCardID: payload.cardID,
+    },
+  }
+  return {
+    ...state,
+    players,
+    discard,
+    drawnCards: [],
+    phase: 'endTurn',
+    log: [...state.log, logEntry],
+  }
 }
