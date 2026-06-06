@@ -379,7 +379,7 @@ describe('gameReducer', () => {
     // even if reroll is called again, we will finalize
     state = gameReducer(state, payload)
     expect(state.diceBank).toEqual({ B: 2, L: 1 })
-    expect(state.phase).toBe('attackLeadership')
+    expect(state.phase).toBe('attackWave1') // L: 1 can't afford destroyShip (cost 2)
   })
 
   describe('attackLeadership', () => {
