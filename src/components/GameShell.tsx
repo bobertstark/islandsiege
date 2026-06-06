@@ -38,6 +38,7 @@ const GameShell: React.FC<GameShellProps> = ({
       <PlayerSummaryRow
         players={view.players}
         activePlayerIndex={view.currentPlayerIndex}
+        controllingPlayerIndex={playerIdx}
       />
       {actionContent && (
         <div
@@ -68,7 +69,7 @@ const GameShell: React.FC<GameShellProps> = ({
           <Hand cards={handCards} />
         </div>
       )}
-      <TableauPanel view={view} />
+      <TableauPanel view={view} playerIdx={playerIdx} />
     </div>
   )
 }
