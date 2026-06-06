@@ -1,19 +1,12 @@
-import React, { useState } from 'react'
-import { DieValue, DIE_STYLE } from 'common/die'
+import React, { useEffect, useState } from 'react'
+import { DieValue } from 'common/die'
+import Die from './Die'
 
 interface AttackRollPanelProps {
   dice: DieValue[]
   rerollsRemaining: number
   dispatch: (action: { type: string; payload?: unknown }) => void
   readonly?: boolean
-}
-
-const DIE_LABEL: Record<DieValue, string> = {
-  W: 'White',
-  B: 'Black',
-  G: 'Gray',
-  L: 'Leadership',
-  T: 'Target',
 }
 
 const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
@@ -23,6 +16,11 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
   readonly = false,
 }) => {
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set())
+  const [dieKeys, setDieKeys] = useState<number[]>(() => dice.map(() => 0))
+
+  useEffect(() => {
+    setDieKeys(dice.map(() => 0))
+  }, [dice.length])
 
   function toggleDie(idx: number) {
     if (readonly) return
@@ -34,6 +32,7 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
   }
 
   function handleReroll() {
+    setDieKeys(prev => prev.map((k, i) => (selectedIndices.has(i) ? k + 1 : k)))
     dispatch({
       type: 'attackRoll',
       payload: {
@@ -55,36 +54,15 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
       {!readonly && <p>Rerolls remaining: {rerollsRemaining}</p>}
       <div
         style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '12px 0' }}>
-        {dice.map((face, idx) => {
-          const s = DIE_STYLE[face]
-          const selected = !readonly && selectedIndices.has(idx)
-          return (
-            <div
-              key={idx}
-              onClick={() => toggleDie(idx)}
-              title={DIE_LABEL[face]}
-              style={{
-                width: 48,
-                height: 48,
-                fontWeight: 'bold',
-                fontSize: 18,
-                cursor: readonly ? 'default' : 'pointer',
-                border: selected ? '3px solid #e74c3c' : '2px solid #555',
-                borderRadius: 8,
-                background: s.bg,
-                color: s.text,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxSizing: 'border-box',
-                outline: selected ? '2px solid #e74c3c' : 'none',
-                outlineOffset: 2,
-                userSelect: 'none',
-              }}>
-              {face}
-            </div>
-          )
-        })}
+        {dice.map((face, idx) => (
+          <Die
+            key={`${idx}-${dieKeys[idx] ?? 0}`}
+            face={face}
+            selected={!readonly && selectedIndices.has(idx)}
+            onClick={readonly ? undefined : () => toggleDie(idx)}
+            readonly={readonly}
+          />
+        ))}
       </div>
       {!readonly && (
         <div style={{ display: 'flex', gap: 12 }}>

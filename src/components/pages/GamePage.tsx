@@ -17,6 +17,7 @@ import { BuildShipPhase } from 'components/phases/BuildShipPhase'
 import { DrawPickPhase } from 'components/phases/DrawPickPhase'
 import { InitDrawPhase } from 'components/phases/InitDrawPhase'
 import AttackRollPanel from 'components/AttackRollPanel'
+import { ROLL_DURATION_MS } from 'components/Die'
 import AttackTargetDisplay from 'components/AttackTargetDisplay'
 import ActionInstructions from 'components/ActionInstructions'
 import 'components/phases/Game.css'
@@ -166,7 +167,11 @@ const AttackRollPhase: React.FC<{
       view.attackRoll !== undefined &&
       view.attackRerollsRemaining === 0
     ) {
-      dispatch({ type: 'attackRoll', payload: { action: 'keep' } })
+      const t = setTimeout(
+        () => dispatch({ type: 'attackRoll', payload: { action: 'keep' } }),
+        ROLL_DURATION_MS + 400,
+      )
+      return () => clearTimeout(t)
     }
   }, [isMyTurn, view.attackRoll, view.attackRerollsRemaining, dispatch])
 
@@ -186,11 +191,12 @@ const AttackRollPhase: React.FC<{
                 : 'Waiting for the attacker to roll.'
             }
           />
-          {isMyTurn && view.attackRoll !== undefined && (
+          {view.attackRoll !== undefined && (
             <AttackRollPanel
               dice={view.attackRoll}
               rerollsRemaining={view.attackRerollsRemaining}
               dispatch={dispatch}
+              readonly={!isMyTurn}
             />
           )}
           <AttackTargetDisplay view={view} />
