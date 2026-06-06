@@ -1,13 +1,15 @@
 import React from 'react'
-import IGameStateView, { IPlayerView } from 'common/IGameStateView'
+import IGameStateView from 'common/IGameStateView'
 import FortGroup from './FortGroup'
+import { rotateFrom } from 'common/order'
 import PlayerShip from './PlayerShip'
 
 interface TableauPanelProps {
   view: IGameStateView
+  playerIdx: number
 }
 
-const TableauPanel: React.FC<TableauPanelProps> = ({ view }) => {
+const TableauPanel: React.FC<TableauPanelProps> = ({ view, playerIdx }) => {
   // Build map: fortKey (`playerIdx:fortID`) → list of attacking ships
   const attackingShipsMap: Record<
     string,
@@ -33,7 +35,8 @@ const TableauPanel: React.FC<TableauPanelProps> = ({ view }) => {
         flexDirection: 'column',
         gap: 16,
       }}>
-      {view.players.map((player: IPlayerView, idx: number) => {
+      {rotateFrom(view.players, playerIdx).map((player, i) => {
+        const idx = (playerIdx + i) % view.players.length
         const shipIsHome =
           view.shipLocations[idx]?.targetPlayerIndex === undefined
 

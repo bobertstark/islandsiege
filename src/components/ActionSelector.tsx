@@ -202,6 +202,15 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
               onClick={() => {
                 setActivePicker(null)
                 onSelect('attack', undefined, undefined, undefined, -1)
+              }}
+              style={{
+                background: '#2980b9',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 6,
+                padding: '8px 16px',
+                fontWeight: 600,
+                cursor: 'pointer',
               }}>
               Open Waters
             </button>
@@ -265,11 +274,6 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
               ))}
             </div>
           )}
-          <button
-            onClick={() => setActivePicker(null)}
-            style={{ marginTop: 8 }}>
-            ← Back
-          </button>
         </div>
       )}
 

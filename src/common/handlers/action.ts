@@ -1,6 +1,7 @@
 import IGameState from 'common/IGameState'
 import { handleBuildBuilding } from './buildBuilding'
 import { handleBuildShip } from './buildShip'
+import { ILogEntry } from 'common/ILog'
 
 export function handleAction(
   state: IGameState,
@@ -45,16 +46,28 @@ export function handleAction(
         ...state.shipLocations,
         [state.currentPlayerIndex]: {},
       }
-      const openWaterAttack = !state.players.some(p => p.forts.length >= 1)
+      const targetPlayerIndex = payload.targetPlayerIndex
+      const openWaterAttack =
+        targetPlayerIndex === -1 ||
+        !state.players.some(
+          (p, i) => i !== state.currentPlayerIndex && p.forts.length >= 1,
+        )
       if (openWaterAttack) {
+        const openWaterEntry: ILogEntry = {
+          phase: 'action',
+          playerIndex: state.currentPlayerIndex,
+          turn: state.currentPlayerIndex,
+          timestamp: new Date().toISOString(),
+          data: { actionChosen: 'attack', openWater: true },
+        }
         return {
           ...base,
           shipLocations,
           attackIsOpenWater: true,
           phase: 'attackRoll',
+          log: [...(state.log ?? []), openWaterEntry],
         }
       }
-      const targetPlayerIndex = payload.targetPlayerIndex
       if (targetPlayerIndex === undefined || targetPlayerIndex < 0) {
         throw new Error('Attack requires a target')
       }
@@ -63,6 +76,17 @@ export function handleAction(
       )
       if (alreadyTargeted) {
         throw new Error(`${targetPlayerIndex} cannot be attacked.`)
+      }
+      const attackEntry: ILogEntry = {
+        phase: 'action',
+        playerIndex: state.currentPlayerIndex,
+        turn: state.currentPlayerIndex,
+        timestamp: new Date().toISOString(),
+        data: {
+          actionChosen: 'attack',
+          targetPlayerIndex,
+          fortID: payload.fortID ?? '',
+        },
       }
       return {
         ...base,
@@ -75,6 +99,7 @@ export function handleAction(
           },
         },
         phase: 'attackRoll',
+        log: [...(state.log ?? []), attackEntry],
       }
     }
     default:

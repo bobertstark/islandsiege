@@ -364,22 +364,29 @@ describe('gameReducer', () => {
       payload: { action: 'init', diceIndicesReroll: [] as number[] },
     }
     jest.spyOn(AttackRollModule, 'rollDice').mockReturnValue(mockInitRoll)
-    let state = gameReducer(gs, payload)
+    let state = gameReducer(mockGameState({ attackRoll: undefined }), payload)
     expect(state.attackRoll).toEqual(mockInitRoll)
-    expect(state.attackRerollsRemaining).toBe(1)
+    expect(state.attackRerollsRemaining).toBe(2)
     expect(state.phase).toBe('attackRoll')
 
     payload.payload = { action: 'reroll', diceIndicesReroll: [1, 2] }
     jest.spyOn(AttackRollModule, 'rerollDice').mockReturnValue(['L', 'B', 'B'])
     state = gameReducer(state, payload)
     expect(state.attackRoll).toEqual(['L', 'B', 'B'])
-    expect(state.attackRerollsRemaining).toBe(0)
+    expect(state.attackRerollsRemaining).toBe(1)
     expect(state.phase).toBe('attackRoll')
 
-    // even if reroll is called again, we will finalize
+    // even if reroll is called again, finalization happens
     state = gameReducer(state, payload)
-    expect(state.diceBank).toEqual({ B: 2, L: 1 })
-    expect(state.phase).toBe('attackWave1') // L: 1 can't afford destroyShip (cost 2)
+    expect(state.diceBank).toEqual({ B: 3, G: 0, L: 0, T: 0, W: 0 })
+    expect(state.phase).toBe('attackRoll')
+
+    // finalize the roll to advance
+    state = gameReducer(state, {
+      type: GamePhases.attackRoll,
+      payload: { action: 'keep' },
+    })
+    expect(state.phase).toBe('attackWave1')
   })
 
   describe('attackLeadership', () => {

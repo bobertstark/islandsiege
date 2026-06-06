@@ -1,6 +1,7 @@
 import IGameState from 'common/IGameState'
 import { findFort } from 'common/player'
 import { destroyAt } from 'common/fortGrid'
+import { ILogEntry } from 'common/ILog'
 
 export function handleAttackWave2(
   state: IGameState,
@@ -30,5 +31,22 @@ export function handleAttackWave2(
     forts: target.forts.map(f => (f.id === fortID ? updatedFort : f)),
   }
 
-  return { ...state, players, phase: 'attackDestroy' }
+  const logEntry: ILogEntry = {
+    phase: 'attackWave2',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: {
+      targetPlayerIndex: targetPlayerIndex!,
+      fortID: fortID!,
+      attackLocs: payload.attackLocs,
+      tDiceUsed: state.diceBank['T'] ?? 0,
+    },
+  }
+  return {
+    ...state,
+    players,
+    phase: 'attackDestroy',
+    log: [...state.log, logEntry],
+  }
 }

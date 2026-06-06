@@ -30,7 +30,7 @@ export function createPlayer(
     colonists: MAX_COLONISTS,
     coins: 0,
     attackDice: 3,
-    diceRerolls: 1,
+    diceRerolls: 2,
     leadershipAbilities: INNATE_LEADERSHIP,
     hand: [],
     forts: [],

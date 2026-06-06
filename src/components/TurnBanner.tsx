@@ -16,6 +16,8 @@ interface TurnBannerProps {
   isMyTurn: boolean
   waitingFor: WaitingForPlayer[]
   buildContext?: BuildContext
+  logOpen: boolean
+  onToggleLog: () => void
 }
 
 function buildLabel(ctx: BuildContext, phase: string): string {
@@ -31,6 +33,8 @@ export const TurnBanner: React.FC<TurnBannerProps> = ({
   isMyTurn,
   waitingFor,
   buildContext,
+  logOpen,
+  onToggleLog,
 }) => {
   const phaseLabel = buildContext ? buildLabel(buildContext, phase) : phase
 
@@ -60,9 +64,23 @@ export const TurnBanner: React.FC<TurnBannerProps> = ({
           </>
         )}
       </span>
-      <span style={{ color: '#666', fontWeight: 400, fontSize: 13 }}>
-        Phase: {phaseLabel}
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ color: '#666', fontWeight: 400, fontSize: 13 }}>
+          Phase: {phaseLabel}
+        </span>
+        <button
+          onClick={onToggleLog}
+          style={{
+            fontSize: 12,
+            padding: '2px 10px',
+            border: '1px solid #bbb',
+            borderRadius: 4,
+            background: logOpen ? '#e0e0e0' : '#fff',
+            cursor: 'pointer',
+          }}>
+          {logOpen ? 'Hide Log' : 'Log'}
+        </button>
+      </div>
     </div>
   )
 }

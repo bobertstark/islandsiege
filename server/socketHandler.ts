@@ -80,9 +80,16 @@ export function attachWebSocket(wss: WebSocketServer): void {
         'attackDestroy',
         'endTurn',
       ])
-      let result = gameReducer(current, action as any)
-      while (AUTO_PHASES.has(result.phase)) {
-        result = gameReducer(result, { type: result.phase as any })
+      let result
+      try {
+        result = gameReducer(current, action as any)
+        while (AUTO_PHASES.has(result.phase)) {
+          result = gameReducer(result, { type: result.phase as any })
+        }
+      } catch (err) {
+        console.error('[reducer error]', err)
+        send(ws, 'error', String(err instanceof Error ? err.message : err))
+        return
       }
       setGame(gameId, result)
       broadcastState(gameId, result)

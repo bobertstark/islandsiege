@@ -2,6 +2,7 @@ import IGameState from 'common/IGameState'
 import { spendDice } from 'common/attackRoll'
 import { allLeadershipAbilities, destroyShip } from 'common/player'
 import { nextPhaseAfterLeadership } from './attackRoll'
+import { ILogEntry } from 'common/ILog'
 
 type Payload = { effect: 'destroyShip'; shipID: string } | { skip: true }
 
@@ -10,9 +11,17 @@ export function handleAttackLeadership(
   payload: Payload,
 ): IGameState {
   if ('skip' in payload) {
+    const skipEntry: ILogEntry = {
+      phase: 'attackLeadership',
+      playerIndex: state.currentPlayerIndex,
+      turn: state.currentPlayerIndex,
+      timestamp: new Date().toISOString(),
+      data: { skip: true },
+    }
     return {
       ...state,
       phase: nextPhaseAfterLeadership(state.diceBank, state.attackIsOpenWater),
+      log: [...state.log, skipEntry],
     }
   }
 
@@ -44,6 +53,19 @@ export function handleAttackLeadership(
       a => a.effect === 'destroyShip' && remainingL >= a.cost,
     )
 
+  const logEntry: ILogEntry = {
+    phase: 'attackLeadership',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: {
+      effect: payload.effect,
+      shipID: payload.shipID,
+      lSpent: ability.cost,
+      targetPlayerIndex: defenderIdx,
+      destroyedCardID: card.id,
+    },
+  }
   return {
     ...state,
     players,
@@ -52,5 +74,6 @@ export function handleAttackLeadership(
     phase: canRepeat
       ? 'attackLeadership'
       : nextPhaseAfterLeadership(newBank, state.attackIsOpenWater),
+    log: [...state.log, logEntry],
   }
 }
