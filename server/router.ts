@@ -51,6 +51,7 @@ router.post('/games', (req, res) => {
     diceBank: {},
     winningPlayerIndex: undefined,
     rngSeed: generateSeed(),
+    log: [],
   }
   const gameId = createGame(initial)
   res.json({ gameId })

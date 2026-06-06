@@ -364,7 +364,7 @@ describe('gameReducer', () => {
       payload: { action: 'init', diceIndicesReroll: [] as number[] },
     }
     jest.spyOn(AttackRollModule, 'rollDice').mockReturnValue(mockInitRoll)
-    let state = gameReducer(gs, payload)
+    let state = gameReducer(mockGameState({ attackRoll: undefined }), payload)
     expect(state.attackRoll).toEqual(mockInitRoll)
     expect(state.attackRerollsRemaining).toBe(2)
     expect(state.phase).toBe('attackRoll')

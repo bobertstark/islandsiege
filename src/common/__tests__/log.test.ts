@@ -131,7 +131,9 @@ test('attackLeadership skip produces no log entry', () => {
     shipLocations: { 0: { targetPlayerIndex: 1, fortID: undefined } },
   })
   const next = handleAttackLeadership(state, { skip: true })
-  expect(next.log).toHaveLength(0)
+  expect(next.log).toHaveLength(1)
+  expect(next.log[0].phase).toBe('attackLeadership')
+  expect(next.log[0].data.skip).toBe(true)
 })
 
 // --- Attack Wave 1 ---
