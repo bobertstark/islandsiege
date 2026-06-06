@@ -45,7 +45,12 @@ export function handleAction(
         ...state.shipLocations,
         [state.currentPlayerIndex]: {},
       }
-      const openWaterAttack = !state.players.some(p => p.forts.length >= 1)
+      const targetPlayerIndex = payload.targetPlayerIndex
+      const openWaterAttack =
+        targetPlayerIndex === -1 ||
+        !state.players.some(
+          (p, i) => i !== state.currentPlayerIndex && p.forts.length >= 1,
+        )
       if (openWaterAttack) {
         return {
           ...base,
@@ -54,7 +59,6 @@ export function handleAction(
           phase: 'attackRoll',
         }
       }
-      const targetPlayerIndex = payload.targetPlayerIndex
       if (targetPlayerIndex === undefined || targetPlayerIndex < 0) {
         throw new Error('Attack requires a target')
       }
