@@ -1,18 +1,22 @@
 import IGameState from 'common/IGameState'
 import { createShipById } from 'common/cardRegistry'
-import { addShip } from 'common/player'
+import { addShip, removeCardInHand } from 'common/player'
 
 export function handleBuildShip(
   state: IGameState,
   payload: { fortID: string; shipID: string },
 ): IGameState {
   const players = [...state.players]
+  let player = players[state.currentPlayerIndex]
+
+  const { player: updatedPlayer } = removeCardInHand(player, payload.shipID)
   const ship = createShipById(payload.shipID)
   players[state.currentPlayerIndex] = addShip(
-    players[state.currentPlayerIndex],
+    updatedPlayer,
     ship,
     payload.fortID,
   )
+
   return {
     ...state,
     players,

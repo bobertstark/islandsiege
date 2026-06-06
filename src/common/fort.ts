@@ -1,12 +1,16 @@
 import IFort from './IFort'
 import IBuilding from './IBuilding'
+import ICard from './ICard'
 import {
   createFortGrid,
   buildSpec,
   shellsRemaining as gridShellsRemaining,
   FortGridSpec,
 } from './fortGrid'
-import { placeColonists as buildingPlaceColonists } from './building'
+import {
+  placeColonists as buildingPlaceColonists,
+  buildingCard,
+} from './building'
 import { colorToSymbol } from './colors'
 
 export interface FortData {
@@ -33,7 +37,7 @@ export function createFort(data: FortData): IFort {
 }
 
 // Colonists in the fort's slots plus those in its buildings.
-export function fortColonists(fort: IFort): number {
+export function totalColonists(fort: IFort): number {
   return (
     fort.buildings.reduce((sum, b) => sum + b.colonists, 0) + fort.usedSlots
   )
@@ -132,8 +136,47 @@ export function removeBuilding(
   }
 }
 
-// Destroy the fort, reporting all its colonists (slots + buildings) as freed for
-// return to supply. Ship colonists are unaffected.
-export function destroyFort(fort: IFort): { freed: number } {
-  return { freed: fortColonists(fort) }
+// Destroy a building: detach it, return colonists to supply, and yield its card
+// for the discard pile.
+export function destroyBuilding(
+  fort: IFort,
+  buildingID: string,
+): { fort: IFort; freed: number; card: ICard } {
+  const idx = fort.buildings.findIndex(b => b.id === buildingID)
+  if (idx === -1) {
+    throw new Error(`Building not found in fort ${fort.id}`)
+  }
+  const building = fort.buildings[idx]
+  return {
+    fort: {
+      ...fort,
+      buildings: [
+        ...fort.buildings.slice(0, idx),
+        ...fort.buildings.slice(idx + 1),
+      ],
+    },
+    freed: building.colonists,
+    card: buildingCard(building),
+  }
+}
+
+export function fortCard(fort: IFort): ICard {
+  return {
+    id: fort.id,
+    name: fort.name,
+    type: fort.type,
+    description: fort.description,
+    gridSpec: fort.gridSpec,
+    slots: fort.slots,
+  }
+}
+
+// All cards on a fort (the fort itself plus any buildings) as plain ICard values.
+export function fortCards(fort: IFort): ICard[] {
+  return [fortCard(fort), ...fort.buildings.map(buildingCard)]
+}
+
+// High-level destroy: freed colonists for the supply + cards for the discard pile.
+export function destroyFort(fort: IFort): { freed: number; cards: ICard[] } {
+  return { freed: totalColonists(fort), cards: fortCards(fort) }
 }

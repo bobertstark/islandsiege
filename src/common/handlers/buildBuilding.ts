@@ -1,6 +1,6 @@
 import IGameState from 'common/IGameState'
 import { createBuildingById } from 'common/cardRegistry'
-import { findFort } from 'common/player'
+import { findFort, removeCardInHand } from 'common/player'
 import { addBuilding } from 'common/fort'
 
 export function handleBuildBuilding(
@@ -8,14 +8,17 @@ export function handleBuildBuilding(
   payload: { fortID: string; buildingID: string; repairAt?: [number, number] },
 ): IGameState {
   const players = [...state.players]
-  const player = players[state.currentPlayerIndex]
+  let player = players[state.currentPlayerIndex]
   const fort = findFort(player, payload.fortID)
   const building = createBuildingById(payload.buildingID)
   const updatedFort = addBuilding(fort, building, payload.repairAt)
+  const { player: updatedPlayer } = removeCardInHand(player, payload.buildingID)
   players[state.currentPlayerIndex] = {
-    ...player,
-    coins: player.coins + building.coins,
-    forts: player.forts.map(f => (f.id === payload.fortID ? updatedFort : f)),
+    ...updatedPlayer,
+    coins: updatedPlayer.coins + building.coins,
+    forts: updatedPlayer.forts.map(f =>
+      f.id === payload.fortID ? updatedFort : f,
+    ),
   }
   return {
     ...state,

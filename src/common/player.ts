@@ -3,14 +3,20 @@ import ICard from './ICard'
 import IShip from './IShip'
 import IFort from './IFort'
 import { ShellColor } from './colors'
+import ILeadershipAbility from './ILeadershipAbility'
 import {
   placeColonists as fortPlaceColonists,
   removeColonists as fortRemoveColonists,
   destroyFort as fortDestroy,
+  destroyBuilding as fortDestroyBuilding,
 } from './fort'
-import { addColonists as shipAddColonists } from './ship'
+import { addColonists as shipAddColonists, shipCard } from './ship'
 
 export const MAX_COLONISTS = 9
+
+const INNATE_LEADERSHIP: ILeadershipAbility[] = [
+  { cost: 2, effect: 'destroyShip' },
+]
 
 export function createPlayer(
   id: string,
@@ -25,6 +31,7 @@ export function createPlayer(
     coins: 0,
     attackDice: 3,
     diceRerolls: 1,
+    leadershipAbilities: INNATE_LEADERSHIP,
     hand: [],
     forts: [],
     ships: [],
@@ -63,6 +70,19 @@ export function findFort(player: IPlayer, fortID: string): IFort {
   return fort
 }
 
+// All leadership abilities available to the player: innate + those granted by
+// ships and buildings currently in play. Abilities on destroyed cards are gone.
+export function allLeadershipAbilities(player: IPlayer): ILeadershipAbility[] {
+  const fromShips = player.ships
+    .filter(s => s.leadershipAbility)
+    .map(s => s.leadershipAbility!)
+  const fromBuildings = player.forts
+    .flatMap(f => f.buildings)
+    .filter(b => b.leadershipAbility)
+    .map(b => b.leadershipAbility!)
+  return [...player.leadershipAbilities, ...fromShips, ...fromBuildings]
+}
+
 export function addFort(player: IPlayer, fort: IFort): IPlayer {
   return { ...player, forts: [...player.forts, fort] }
 }
@@ -96,14 +116,43 @@ export function addShip(player: IPlayer, ship: IShip, fortID: string): IPlayer {
   }
 }
 
-// Remove a fort, returning its colonists (slots + buildings) to the supply.
-export function destroyFort(player: IPlayer, fortID: string): IPlayer {
+// Remove a fort, returning its colonists to the supply and its cards for discard.
+export function destroyFort(
+  player: IPlayer,
+  fortID: string,
+): { player: IPlayer; cards: ICard[] } {
   const fort = findFort(player, fortID)
-  const { freed } = fortDestroy(fort)
+  const { freed, cards } = fortDestroy(fort)
   return {
-    ...player,
-    colonists: player.colonists + freed,
-    forts: player.forts.filter(f => f.id !== fortID),
+    player: {
+      ...player,
+      colonists: player.colonists + freed,
+      forts: player.forts.filter(f => f.id !== fortID),
+    },
+    cards,
+  }
+}
+
+// Destroy a building on one of the player's forts, returning its colonists to
+// the supply and its card for the discard pile.
+export function destroyBuilding(
+  player: IPlayer,
+  fortID: string,
+  buildingID: string,
+): { player: IPlayer; card: ICard } {
+  const fort = findFort(player, fortID)
+  const {
+    fort: updatedFort,
+    freed,
+    card,
+  } = fortDestroyBuilding(fort, buildingID)
+  return {
+    player: {
+      ...player,
+      colonists: player.colonists + freed,
+      forts: player.forts.map(f => (f.id === fortID ? updatedFort : f)),
+    },
+    card,
   }
 }
 
@@ -116,14 +165,20 @@ export function updateShells(
   return { ...player, shells: { ...player.shells, [color]: newCount } }
 }
 
-export function destroyShip(player: IPlayer, shipID: string): IPlayer {
+export function destroyShip(
+  player: IPlayer,
+  shipID: string,
+): { player: IPlayer; card: ICard } {
   const ship = player.ships.find(s => s.id === shipID)
   if (!ship) {
     throw new Error(`Player ${player.id} has no ship ${shipID}`)
   }
   return {
-    ...player,
-    colonists: player.colonists + ship.colonists,
-    ships: player.ships.filter(s => s.id !== shipID),
+    player: {
+      ...player,
+      colonists: player.colonists + ship.colonists,
+      ships: player.ships.filter(s => s.id !== shipID),
+    },
+    card: shipCard(ship),
   }
 }

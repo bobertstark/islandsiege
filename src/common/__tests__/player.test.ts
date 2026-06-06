@@ -1,6 +1,6 @@
 import { createPlayer, addFort, populateForts, destroyShip } from '../player'
 import { createFortById } from '../cardRegistry'
-import { fortColonists } from '../fort'
+import { totalColonists } from '../fort'
 import IShip from '../IShip'
 
 describe('player', () => {
@@ -38,13 +38,13 @@ describe('player', () => {
     expect(p.colonists).toBe(7)
 
     p = { ...p, colonists: 1 }
-    expect(fortColonists(p.forts[0])).toBe(1)
-    expect(fortColonists(p.forts[1])).toBe(1)
+    expect(totalColonists(p.forts[0])).toBe(1)
+    expect(totalColonists(p.forts[1])).toBe(1)
 
     p = populateForts(p)
     expect(p.colonists).toBe(0)
-    expect(fortColonists(p.forts[0])).toBe(2)
-    expect(fortColonists(p.forts[1])).toBe(1)
+    expect(totalColonists(p.forts[0])).toBe(2)
+    expect(totalColonists(p.forts[1])).toBe(1)
   })
 })
 
@@ -61,9 +61,10 @@ describe('destroyShip', () => {
 
   it('removes the ship and returns colonists to the player', () => {
     const p = { ...createPlayer('p1', 'Drake'), ships: [ship] }
-    const result = destroyShip(p, 'sloop1')
+    const { player: result, card } = destroyShip(p, 'sloop1')
     expect(result.ships).toHaveLength(0)
     expect(result.colonists).toBe(p.colonists + 2)
+    expect(card.id).toBe('sloop1')
   })
 
   it('throws when the ship is not found', () => {

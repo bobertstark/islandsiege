@@ -1,6 +1,6 @@
 import IGameState from 'common/IGameState'
 import { createFortById } from 'common/cardRegistry'
-import { addFort } from 'common/player'
+import { addFort, removeCardInHand } from 'common/player'
 import { buildSpec, FortGridSpec } from 'common/fortGrid'
 import { symbolToColor } from 'common/colors'
 import IFort from 'common/IFort'
@@ -39,10 +39,11 @@ export function handleBuildFort(
 
   // Write the updated grid back into the fort on the player
   const updatedFort: IFort = { ...fort, grid: updatedGrid }
+  const { player: updatedPlayer } = removeCardInHand(player, payload.fortID)
   player = {
-    ...player,
-    coins: player.coins + shellsBuilt,
-    forts: player.forts.map(f => (f.id === fort.id ? updatedFort : f)),
+    ...updatedPlayer,
+    coins: updatedPlayer.coins + shellsBuilt,
+    forts: updatedPlayer.forts.map(f => (f.id === fort.id ? updatedFort : f)),
   }
 
   players[state.currentPlayerIndex] = player

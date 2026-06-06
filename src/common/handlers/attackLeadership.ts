@@ -1,37 +1,56 @@
 import IGameState from 'common/IGameState'
-import { Phase } from 'common/phases'
 import { spendDice } from 'common/attackRoll'
-import { destroyShip } from 'common/player'
+import { allLeadershipAbilities, destroyShip } from 'common/player'
+import { nextPhaseAfterLeadership } from './attackRoll'
 
-type Payload = { shipID: string } | { skip: true }
+type Payload = { effect: 'destroyShip'; shipID: string } | { skip: true }
 
 export function handleAttackLeadership(
   state: IGameState,
   payload: Payload,
 ): IGameState {
-  function wavePhase(bank: typeof state.diceBank): Phase {
-    if (state.attackIsOpenWater) return 'attackReinforce'
-    const hasWaveDice = (['B', 'W', 'G'] as const).some(s => (bank[s] ?? 0) > 0)
-    return hasWaveDice ? 'attackWave1' : 'attackReinforceOrWave2'
+  if ('skip' in payload) {
+    return {
+      ...state,
+      phase: nextPhaseAfterLeadership(state.diceBank, state.attackIsOpenWater),
+    }
   }
 
-  if ('skip' in payload) {
-    return { ...state, phase: wavePhase(state.diceBank) }
+  const attacker = state.players[state.currentPlayerIndex]
+  const ability = allLeadershipAbilities(attacker).find(
+    a => a.effect === payload.effect,
+  )
+  if (!ability) {
+    throw new Error(
+      `Player ${attacker.id} has no leadership ability: ${payload.effect}`,
+    )
   }
 
   const defenderIdx =
     state.shipLocations[state.currentPlayerIndex]!.targetPlayerIndex!
   const players = [...state.players]
-  players[defenderIdx] = destroyShip(players[defenderIdx], payload.shipID)
-  const newBank = spendDice(state.diceBank, 'L', 2)
+  const { player: updatedDefender, card } = destroyShip(
+    players[defenderIdx],
+    payload.shipID,
+  )
+  players[defenderIdx] = updatedDefender
+  const newBank = spendDice(state.diceBank, 'L', ability.cost)
   const remainingL = newBank.L ?? 0
   const defenderShipsLeft = players[defenderIdx].ships.length
-  const stayInPhase = remainingL >= 2 && defenderShipsLeft > 0
+  const canRepeat =
+    remainingL >= ability.cost &&
+    defenderShipsLeft > 0 &&
+    allLeadershipAbilities(players[state.currentPlayerIndex]).some(
+      a => a.effect === 'destroyShip' && remainingL >= a.cost,
+    )
 
   return {
     ...state,
     players,
+    discard: [...state.discard, card],
     diceBank: newBank,
-    phase: stayInPhase ? 'attackLeadership' : wavePhase(newBank),
+    phase: canRepeat
+      ? 'attackLeadership'
+      : nextPhaseAfterLeadership(newBank, state.attackIsOpenWater),
   }
 }

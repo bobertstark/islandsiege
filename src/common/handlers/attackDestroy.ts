@@ -17,6 +17,12 @@ export function handleAttackDestroy(state: IGameState): IGameState {
     return { ...state, phase: 'endTurn' }
   }
 
-  players[targetPlayerIndex!] = destroyFort(target, fortID!)
-  return { ...state, players, phase: 'endTurn' }
+  const { player: updated, cards } = destroyFort(target, fortID!)
+  players[targetPlayerIndex!] = updated
+  return {
+    ...state,
+    players,
+    discard: [...state.discard, ...cards],
+    phase: 'endTurn',
+  }
 }
