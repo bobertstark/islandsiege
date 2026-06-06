@@ -22,7 +22,11 @@ export function handleAttackLeadership(
   const defenderIdx =
     state.shipLocations[state.currentPlayerIndex]!.targetPlayerIndex!
   const players = [...state.players]
-  players[defenderIdx] = destroyShip(players[defenderIdx], payload.shipID)
+  const { player: updatedDefender, card } = destroyShip(
+    players[defenderIdx],
+    payload.shipID,
+  )
+  players[defenderIdx] = updatedDefender
   const newBank = spendDice(state.diceBank, 'L', 2)
   const remainingL = newBank.L ?? 0
   const defenderShipsLeft = players[defenderIdx].ships.length
@@ -31,6 +35,7 @@ export function handleAttackLeadership(
   return {
     ...state,
     players,
+    discard: [...state.discard, card],
     diceBank: newBank,
     phase: stayInPhase ? 'attackLeadership' : wavePhase(newBank),
   }

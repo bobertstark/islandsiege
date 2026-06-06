@@ -4,7 +4,7 @@ import {
   removeColonists,
   addBuilding,
   buildCubes,
-  fortColonists,
+  totalColonists,
   FortData,
 } from '../fort'
 import { createBuilding, BuildingData } from '../building'
@@ -100,7 +100,7 @@ describe('fort', () => {
     fort = placeColonists(fort, 2).fort
     fort = addBuilding(fort, createBuilding(buildingData))
     // colonists moved from slots into the building
-    expect(fortColonists(fort)).toBe(2)
+    expect(totalColonists(fort)).toBe(2)
     expect(fort.usedSlots).toBe(0)
     expect(fort.openSlots).toBe(3)
 
@@ -113,6 +113,6 @@ describe('fort', () => {
     fort = addBuilding(fort, b2)
     expect(fort.buildings).toHaveLength(2)
     expect(fort.usedSlots).toBe(1)
-    expect(fortColonists(fort)).toBe(4)
+    expect(totalColonists(fort)).toBe(4)
   })
 })

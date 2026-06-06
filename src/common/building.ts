@@ -1,4 +1,5 @@
 import IBuilding from './IBuilding'
+import ICard from './ICard'
 import { ShellColor } from './colors'
 
 export interface BuildingData {
@@ -28,6 +29,18 @@ export function placeColonists(
   count: number = 1,
 ): IBuilding {
   return { ...building, colonists: building.colonists + count }
+}
+
+export function buildingCard(building: IBuilding): ICard {
+  return {
+    id: building.id,
+    name: building.name,
+    type: building.type,
+    description: building.description,
+    cost: building.cost,
+    coins: building.coins,
+    repair: building.repair,
+  }
 }
 
 // Remove colonists, reporting how many left; over-removal returns 0.

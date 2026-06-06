@@ -4,7 +4,7 @@ import { GamePhases } from '../phases'
 import type IGameState from 'common/IGameState'
 type CardType = 'building' | 'fort' | 'ship'
 import { createFort, placeColonists } from 'common/fort'
-import { fortColonists, fortShellsRemaining } from 'common/fort'
+import { totalColonists, fortShellsRemaining } from 'common/fort'
 import { addFort, findFort, populateForts } from 'common/player'
 import { destroyAt } from 'common/fortGrid'
 import type { FortGridSpec } from 'common/fortGrid'
@@ -182,13 +182,13 @@ describe('gameReducer', () => {
 
   it('colonize - will move colonists to forts', () => {
     const fort = createMockFort()
-    expect(fortColonists(fort)).toBe(0)
+    expect(totalColonists(fort)).toBe(0)
     gs.players[0] = addFort(gs.players[0], fort)
     const payload = { type: GamePhases.colonize }
     const state = gameReducer(gs, payload)
     expect(state.phase).toBe('action')
     const updatedFort = findFort(state.players[0], 'testFort')
-    expect(fortColonists(updatedFort)).toBe(1)
+    expect(totalColonists(updatedFort)).toBe(1)
   })
 
   it('action - move on to next phase if action can be performed', () => {
