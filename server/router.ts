@@ -11,7 +11,7 @@ import IGameState from 'common/IGameState'
 
 const router = Router()
 
-// GET /api/games/:id/lobby — unauthenticated peek: player count + joined players
+// GET /api/games/:id/lobby — unauthenticated peek
 router.get('/games/:id/lobby', (req, res) => {
   const state = getGame(req.params.id)
   if (!state) {
@@ -24,16 +24,12 @@ router.get('/games/:id/lobby', (req, res) => {
   })
 })
 
-// POST /api/games — open a lobby for playerCount players
+// POST /api/games — open a lobby (no playerCount required)
 router.post('/games', (req, res) => {
-  const playerCount = parseInt(req.body?.playerCount, 10)
-  if (!playerCount || playerCount < 2 || playerCount > 4) {
-    res.status(400).json({ error: 'playerCount must be 2–4' })
-    return
-  }
   const deckState = createDeck()
   const initial: IGameState = {
-    playerCount,
+    playerCount: undefined,
+    waitingPlayers: [],
     readyPlayers: [],
     players: [],
     currentPlayerIndex: 0,
@@ -57,15 +53,11 @@ router.post('/games', (req, res) => {
   res.json({ gameId })
 })
 
-// POST /api/games/:id/join — add a named player; transition to lobby once full
+// POST /api/games/:id/join — add a player; seat if room, otherwise queue
 router.post('/games/:id/join', (req, res) => {
   const state = getGame(req.params.id)
   if (!state) {
     res.status(404).json({ error: 'game not found' })
-    return
-  }
-  if (state.players.length >= state.playerCount) {
-    res.status(409).json({ error: 'game is full' })
     return
   }
   const { name, color } = req.body ?? {}
@@ -74,18 +66,16 @@ router.post('/games/:id/join', (req, res) => {
     return
   }
 
-  const takenNames = state.players.map(p => p.name)
-  if (takenNames.includes(name)) {
+  const allPlayers = [...state.players, ...(state.waitingPlayers ?? [])]
+  if (allPlayers.some(p => p.name === name)) {
     res.status(409).json({ error: 'name already taken in this game' })
     return
   }
 
   const takenColors = state.players.map(p => p.color)
-  if (color) {
-    if (takenColors.includes(color)) {
-      res.status(409).json({ error: 'color already taken' })
-      return
-    }
+  if (color && takenColors.includes(color)) {
+    res.status(409).json({ error: 'color already taken' })
+    return
   }
 
   const availableColors = PLAYER_COLORS.filter(
@@ -97,15 +87,47 @@ router.post('/games/:id/join', (req, res) => {
 
   const playerId = randomBytes(8).toString('base64url')
   const player = createPlayer(playerId, name, { color: assignedColor })
-  const updated: IGameState = {
-    ...state,
-    players: [...state.players, player],
-    phase: GamePhases.lobby,
+
+  const isFirstPlayer =
+    state.players.length === 0 && (state.waitingPlayers ?? []).length === 0
+  const seated =
+    state.playerCount === undefined || state.players.length < state.playerCount
+
+  const logEntry = {
+    phase: 'lobbyJoin' as const,
+    playerIndex: seated
+      ? state.players.length
+      : state.players.length + (state.waitingPlayers ?? []).length,
+    turn: 0,
+    timestamp: new Date().toISOString(),
+    data: { playerName: name },
   }
+
+  const updated: IGameState = seated
+    ? {
+        ...state,
+        players: [...state.players, player],
+        creatorId: isFirstPlayer ? playerId : state.creatorId,
+        phase: GamePhases.lobby,
+        log: [...state.log, logEntry],
+      }
+    : {
+        ...state,
+        waitingPlayers: [...(state.waitingPlayers ?? []), player],
+        creatorId: isFirstPlayer ? playerId : state.creatorId,
+        phase: GamePhases.lobby,
+        log: [...state.log, logEntry],
+      }
 
   setGame(req.params.id, updated)
   broadcastToGame(req.params.id, updated)
-  res.json({ playerIdx: state.players.length, playerId })
+
+  res.json({
+    playerId,
+    playerIdx: seated ? state.players.length : undefined,
+    waitingIdx: seated ? undefined : (state.waitingPlayers ?? []).length,
+    isSeated: seated,
+  })
 })
 
 export default router
