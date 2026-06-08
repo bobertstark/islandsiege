@@ -3,11 +3,7 @@ import IGameStateView from 'common/IGameStateView'
 
 const WS_HOST = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`
 
-export function useGameSocket(
-  gameId: string,
-  playerIdx: number,
-  playerId: string,
-) {
+export function useGameSocket(gameId: string, playerId: string) {
   const [view, setView] = useState<IGameStateView | null>(null)
   const [error, setError] = useState<string | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
@@ -15,7 +11,7 @@ export function useGameSocket(
     if (!gameId || !playerId) return
     let closed = false
     const ws = new WebSocket(
-      `${WS_HOST}/ws?gameId=${gameId}&playerIdx=${playerIdx}&playerId=${playerId}`,
+      `${WS_HOST}/ws?gameId=${gameId}&playerId=${playerId}`,
     )
     wsRef.current = ws
     ws.onmessage = e => {
@@ -30,7 +26,7 @@ export function useGameSocket(
       closed = true
       ws.close()
     }
-  }, [gameId, playerIdx, playerId])
+  }, [gameId, playerId])
 
   const dispatch = useCallback(
     (action: { type: string; payload?: unknown }) => {

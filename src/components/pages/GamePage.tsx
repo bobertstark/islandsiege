@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useGameSocket } from 'hooks/useGameSocket'
-import { loadAuth } from 'hooks/useGameAuth'
 import { GamePhases } from 'common/phases'
 import { DieValue } from 'common/die'
 import IGameStateView from 'common/IGameStateView'
@@ -329,16 +328,13 @@ const AttackLeadershipPhase: React.FC<{
 
 export const GamePage: React.FC = () => {
   const { gameId = '' } = useParams<{ gameId: string }>()
-  const auth = loadAuth(gameId)
-  const { view, dispatch, error } = useGameSocket(
-    gameId,
-    auth?.playerIdx ?? 0,
-    auth?.playerId ?? '',
-  )
+  const [searchParams] = useSearchParams()
+  const playerId = searchParams.get('playerId') ?? ''
+  const { view, dispatch, error } = useGameSocket(gameId, playerId)
   const [logOpen, setLogOpen] = useState(false)
   const onToggleLog = () => setLogOpen(o => !o)
 
-  if (!auth) {
+  if (!playerId) {
     return (
       <div>
         No credentials for this game.{' '}
@@ -349,7 +345,7 @@ export const GamePage: React.FC = () => {
   if (error) return <div className="error">Error: {error}</div>
   if (!view) return <div>Connecting…</div>
 
-  const playerIdx = auth.playerIdx
+  const playerIdx = view.myPlayerIndex
   const { isMyTurn, waitingFor } = getTurnState(view, playerIdx)
 
   switch (view.phase) {

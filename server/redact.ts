@@ -35,6 +35,7 @@ export function redactStateForPlayer(
       : state.drawnCards
 
   return {
+    myPlayerIndex: viewerIdx,
     players,
     playerCount: state.phase === 'lobby' ? state.playerCount : undefined,
     readyPlayers: state.readyPlayers,

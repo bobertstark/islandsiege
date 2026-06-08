@@ -12,11 +12,11 @@ export function attachWebSocket(wss: WebSocketServer): void {
   wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
     const url = new URL(req.url ?? '', 'ws://localhost')
     const gameId = url.searchParams.get('gameId') ?? ''
-    const playerIdx = parseInt(url.searchParams.get('playerIdx') ?? '-1', 10)
     const playerId = url.searchParams.get('playerId') ?? ''
 
     const state = getGame(gameId)
-    if (!state || playerIdx < 0 || state.players[playerIdx]?.id !== playerId) {
+    const playerIdx = state?.players.findIndex(p => p.id === playerId) ?? -1
+    if (!state || playerIdx < 0) {
       ws.close(4001, 'unauthorized')
       return
     }
