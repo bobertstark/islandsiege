@@ -13,6 +13,7 @@ export interface IPlayerView extends Omit<IPlayer, 'hand' | 'id'> {
 }
 
 export default interface IGameStateView {
+  myPlayerIndex: number
   players: IPlayerView[]
   playerCount?: number // lobby only
   readyPlayers: number[]

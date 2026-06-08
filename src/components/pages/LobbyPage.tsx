@@ -1,27 +1,23 @@
 import React, { useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useGameSocket } from 'hooks/useGameSocket'
-import { loadAuth } from 'hooks/useGameAuth'
 import { LobbyPhase } from 'components/phases/LobbyPhase'
 
 export const LobbyPage: React.FC = () => {
   const { gameId = '' } = useParams<{ gameId: string }>()
   const navigate = useNavigate()
-  const auth = loadAuth(gameId)
+  const [searchParams] = useSearchParams()
+  const playerId = searchParams.get('playerId') ?? ''
 
-  const { view, dispatch, error } = useGameSocket(
-    gameId,
-    auth?.playerIdx ?? 0,
-    auth?.playerId ?? '',
-  )
+  const { view, dispatch, error } = useGameSocket(gameId, playerId)
 
   useEffect(() => {
     if (view && view.phase !== 'lobby') {
-      navigate(`/game/${gameId}`, { replace: true })
+      navigate(`/game/${gameId}?playerId=${playerId}`, { replace: true })
     }
-  }, [view, gameId, navigate])
+  }, [view, gameId, playerId, navigate])
 
-  if (!auth) {
+  if (!playerId) {
     return (
       <div>
         No credentials for this game.{' '}
@@ -37,7 +33,7 @@ export const LobbyPage: React.FC = () => {
     <LobbyPhase
       view={view}
       gameId={gameId}
-      playerIdx={auth.playerIdx}
+      playerIdx={view.myPlayerIndex}
       dispatch={dispatch}
     />
   )

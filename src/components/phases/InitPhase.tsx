@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import '../shared.css'
 
 interface InitPhaseProps {
-  onJoin: (gameId: string, playerIdx: number, playerId: string) => void
+  onJoin: (gameId: string, playerId: string) => void
   prefilledGameId?: string
 }
 
@@ -25,8 +25,8 @@ export const InitPhase: React.FC<InitPhaseProps> = ({
       const body = await res.json()
       throw new Error(body.error ?? 'Failed to join')
     }
-    const { playerIdx, playerId } = await res.json()
-    onJoin(gameId, playerIdx, playerId)
+    const { playerId } = await res.json()
+    onJoin(gameId, playerId)
   }
 
   async function handleCreate(count: number) {
