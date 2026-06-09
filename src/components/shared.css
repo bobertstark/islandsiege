@@ -80,6 +80,78 @@
   border: 2px solid #007bff;
 }
 
+/* Tableau card — Fort, Ship, Building in play */
+.tableau-card {
+  border: 1px solid #888;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  width: 200px;
+  box-sizing: border-box;
+}
+.tableau-card.highlighted {
+  border-color: #aac;
+  background: #f0f4ff;
+}
+.tableau-card.fill {
+  height: 100%;
+}
+/* Buildings render at full width but half the fort's height, stacked beside it,
+   so they fill the (half-height) wrapper FortGroup gives them. The fort-height
+   alignment min-height isn't needed here — drop it so all content stays visible. */
+.tableau-card.compact {
+  height: 100%;
+  justify-content: space-between;
+}
+.tableau-card.compact .tableau-card-description {
+  min-height: 0;
+  margin-bottom: 0;
+}
+.tableau-card-description {
+  white-space: pre-line;
+  word-break: break-word;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #555;
+  margin-bottom: 6px;
+  text-align: center;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tableau-card-grid {
+  margin: 8px 0;
+}
+.tableau-card-cost {
+  font-size: 13px;
+}
+.tableau-card-pips {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.tableau-card-pip {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #888;
+  background: #fff;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* filled pips overlay a colonist meeple on the empty slot — no fill color */
+
 .fort-grid {
   display: inline-block;
 }

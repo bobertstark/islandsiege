@@ -262,12 +262,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
                       flexWrap: 'wrap',
                       alignItems: 'flex-start',
                     }}>
-                    <Fort fort={t.fort} />
+                    <Fort fort={t.fort} color={t.playerColor} />
                     {t.fort.buildings.map(b => (
-                      <Building key={b.id} building={b} />
+                      <Building key={b.id} building={b} color={t.playerColor} />
                     ))}
                     {t.playerShips.map(s => (
-                      <Ship key={s.id} ship={s} />
+                      <Ship key={s.id} ship={s} color={t.playerColor} />
                     ))}
                   </div>
                 </div>
