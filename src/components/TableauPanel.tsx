@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import './shared.css'
 import IGameStateView from 'common/IGameStateView'
 import IShip from 'common/IShip'
 import FortGroup from './FortGroup'
@@ -75,14 +76,18 @@ const TableauPanel: React.FC<TableauPanelProps> = ({ view, playerIdx }) => {
                 gap: 8,
                 marginBottom: 8,
               }}>
-              <span
-                style={{
-                  fontWeight: 700,
-                  color: player.color ?? undefined,
-                  fontSize: 15,
-                }}>
-                {player.name}'s Tableau
-              </span>
+              {i === playerIdx ? (
+                <span className="section-label">Your Tableau</span>
+              ) : (
+                <span
+                  style={{
+                    fontWeight: 700,
+                    color: player.color ?? undefined,
+                    fontSize: 15,
+                  }}>
+                  {player.name}'s Tableau
+                </span>
+              )}
               {shipIsHome && <PlayerShip color={player.color} size={24} />}
             </div>
             {/* Forts and ships in one horizontal row */}
