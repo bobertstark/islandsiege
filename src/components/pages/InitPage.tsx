@@ -18,5 +18,13 @@ export const InitPage: React.FC = () => {
     navigate(`/lobby/${gameId}?playerId=${playerId}`)
   }
 
-  return <InitPhase onJoin={handleJoin} prefilledGameId={prefilledGameId} />
+  const kickedFromGame = searchParams.get('kicked') === '1'
+
+  return (
+    <InitPhase
+      onJoin={handleJoin}
+      prefilledGameId={prefilledGameId}
+      kickedFromGame={kickedFromGame}
+    />
+  )
 }

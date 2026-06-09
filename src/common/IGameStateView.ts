@@ -16,6 +16,10 @@ export default interface IGameStateView {
   myPlayerIndex: number
   players: IPlayerView[]
   playerCount?: number // lobby only
+  waitingPlayers: IPlayerView[] // lobby only
+  isSeated: boolean // lobby only
+  isCreator: boolean // lobby only
+  queuePosition?: number // lobby only — 1-based position in waitingPlayers
   readyPlayers: number[]
   currentPlayerIndex: number
   deckCount: number

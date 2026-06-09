@@ -9,7 +9,9 @@ import { ILogEntry } from './ILog'
 // Full game state: plain data, safe to store or send over the wire.
 export default interface IGameState {
   players: IPlayer[]
-  playerCount: number
+  playerCount?: number // lobby only
+  waitingPlayers: IPlayer[] // lobby only — players beyond the seat count, in arrival order
+  creatorId?: string // lobby only — authorises kick and setPlayerCount
   readyPlayers: number[] // lobby only — indices of players who have confirmed ready
   currentPlayerIndex: number
 

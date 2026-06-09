@@ -10,8 +10,11 @@ export function handleStartGame(
   payload?: { playerIdx: number },
 ): IGameState {
   if (payload !== undefined) {
-    // Lobby not full yet — readying is not allowed
-    if (state.players.length < state.playerCount) {
+    // Cannot ready if playerCount not set or lobby not full
+    if (
+      state.playerCount === undefined ||
+      state.players.length < state.playerCount
+    ) {
       return state
     }
 

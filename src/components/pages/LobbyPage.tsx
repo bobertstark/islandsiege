@@ -9,13 +9,17 @@ export const LobbyPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const playerId = searchParams.get('playerId') ?? ''
 
-  const { view, dispatch, error } = useGameSocket(gameId, playerId)
+  const { view, dispatch, error, kicked } = useGameSocket(gameId, playerId)
 
   useEffect(() => {
+    if (kicked) {
+      navigate(`/?kicked=1`, { replace: true })
+      return
+    }
     if (view && view.phase !== 'lobby') {
       navigate(`/game/${gameId}?playerId=${playerId}`, { replace: true })
     }
-  }, [view, gameId, playerId, navigate])
+  }, [view, kicked, gameId, playerId, navigate])
 
   if (!playerId) {
     return (
