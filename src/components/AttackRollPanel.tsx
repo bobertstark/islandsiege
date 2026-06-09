@@ -48,12 +48,43 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
   }
 
   const canReroll = rerollsRemaining > 0 && selectedIndices.size > 0
+  const allSelected = dice.length > 0 && selectedIndices.size === dice.length
+
+  function toggleSelectAll() {
+    setSelectedIndices(allSelected ? new Set() : new Set(dice.map((_, i) => i)))
+  }
 
   return (
     <div style={{ padding: '16px 20px' }}>
-      {!readonly && <p>Rerolls remaining: {rerollsRemaining}</p>}
+      {!readonly && (
+        <>
+          <span style={{ fontSize: 13, color: '#555' }}>
+            Rerolls remaining: {rerollsRemaining}
+          </span>
+          <button
+            onClick={toggleSelectAll}
+            style={{
+              display: 'block',
+              marginTop: 4,
+              marginBottom: 8,
+              padding: '2px 8px',
+              borderRadius: 4,
+              border: '1px solid #bbb',
+              background: '#fff',
+              cursor: 'pointer',
+              fontSize: 11,
+            }}>
+            {allSelected ? 'Deselect All' : 'Select All'}
+          </button>
+        </>
+      )}
       <div
-        style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '12px 0' }}>
+        style={{
+          display: 'flex',
+          gap: 8,
+          flexWrap: 'wrap',
+          margin: '0 0 12px',
+        }}>
         {dice.map((face, idx) => (
           <Die
             key={`${idx}-${dieKeys[idx] ?? 0}`}
@@ -65,11 +96,35 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
         ))}
       </div>
       {!readonly && (
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button onClick={handleReroll} disabled={!canReroll}>
-            Reroll
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={handleReroll}
+            disabled={!canReroll}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 6,
+              border: '1px solid #bbb',
+              background: canReroll ? '#fff' : '#f0f0f0',
+              color: canReroll ? '#000' : '#aaa',
+              cursor: canReroll ? 'pointer' : 'not-allowed',
+              fontSize: 13,
+            }}>
+            Reroll Selected
           </button>
-          <button onClick={handleConfirm}>Confirm</button>
+          <button
+            onClick={handleConfirm}
+            style={{
+              padding: '8px 20px',
+              borderRadius: 6,
+              border: 'none',
+              background: '#27ae60',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 15,
+              cursor: 'pointer',
+            }}>
+            Confirm
+          </button>
         </div>
       )}
     </div>
