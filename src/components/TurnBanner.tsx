@@ -1,4 +1,5 @@
 import React from 'react'
+import PhaseSlider from './PhaseSlider'
 
 export interface WaitingForPlayer {
   name: string
@@ -20,8 +21,6 @@ export const TurnBanner: React.FC<TurnBannerProps> = ({
   logOpen,
   onToggleLog,
 }) => {
-  const phaseLabel = phase
-
   return (
     <div
       style={{
@@ -48,10 +47,8 @@ export const TurnBanner: React.FC<TurnBannerProps> = ({
           </>
         )}
       </span>
+      <PhaseSlider phase={phase} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ color: '#666', fontWeight: 400, fontSize: 13 }}>
-          Phase: {phaseLabel}
-        </span>
         <button
           onClick={onToggleLog}
           style={{
