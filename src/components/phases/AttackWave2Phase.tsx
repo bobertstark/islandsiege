@@ -75,7 +75,41 @@ export const AttackWave2Phase: React.FC<Props> = ({
             : 'Watching the attacker select shells to destroy.'
         }
       />
-      <AttackTargetDisplay view={view}>
+      <AttackTargetDisplay
+        view={view}
+        leftFooter={
+          isMyTurn ? (
+            <>
+              <p
+                style={{
+                  margin: '8px 0 6px',
+                  fontStyle: 'italic',
+                  color: '#555',
+                  fontSize: 13,
+                }}>
+                {ready
+                  ? `${numT} shell${numT !== 1 ? 's' : ''} selected — ready to confirm.`
+                  : `Select ${remaining} more shell${remaining !== 1 ? 's' : ''}.`}
+              </p>
+              <button
+                onClick={handleConfirm}
+                disabled={!ready}
+                style={{
+                  width: '100%',
+                  padding: '8px 0',
+                  background: ready ? '#e74c3c' : '#ccc',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontWeight: 'bold',
+                  cursor: ready ? 'pointer' : 'not-allowed',
+                  fontSize: 14,
+                }}>
+                Confirm Second Wave
+              </button>
+            </>
+          ) : undefined
+        }>
         <Fort
           fort={targetFort}
           highlights={isMyTurn && !ready ? highlights : undefined}
@@ -83,39 +117,6 @@ export const AttackWave2Phase: React.FC<Props> = ({
           onCellClick={isMyTurn ? handleCellClick : undefined}
         />
       </AttackTargetDisplay>
-      {isMyTurn && (
-        <div style={{ marginTop: 12 }}>
-          <p style={{ marginBottom: 8, fontStyle: 'italic', color: '#555' }}>
-            {ready
-              ? `${numT} shell${numT !== 1 ? 's' : ''} selected — ready to confirm.`
-              : `Select ${remaining} more shell${remaining !== 1 ? 's' : ''} to destroy.`}
-          </p>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <button
-              onClick={handleConfirm}
-              disabled={!ready}
-              style={{
-                padding: '8px 20px',
-                background: ready ? '#e74c3c' : '#ccc',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                fontWeight: 'bold',
-                cursor: ready ? 'pointer' : 'not-allowed',
-                fontSize: 15,
-              }}>
-              Confirm Second Wave
-            </button>
-            {selected.length > 0 && (
-              <button
-                onClick={() => setSelected([])}
-                style={{ padding: '8px 14px', cursor: 'pointer' }}>
-                Clear selection
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

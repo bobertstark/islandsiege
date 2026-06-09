@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
-import { ShellColor, colorToSymbol } from 'common/colors'
+import { ShellColor, colorToSymbol, symbolToColor } from 'common/colors'
+import { DieValue } from 'common/die'
 import { shellInfo, traverseConnectedShells } from 'common/fortGrid'
 import type { FortGridCell } from 'common/fortGrid'
 import Fort from 'components/Fort'
@@ -109,7 +110,34 @@ export const AttackWave1Phase: React.FC<Props> = ({
       <AttackTargetDisplay
         view={view}
         selectedColor={selectedColor}
-        onDiceColorSelect={isMyTurn ? handleColorSelect : undefined}>
+        onDieClick={
+          isMyTurn
+            ? (face: DieValue) => {
+                if (face === 'B' || face === 'W' || face === 'G')
+                  handleColorSelect(symbolToColor(face))
+              }
+            : undefined
+        }
+        leftFooter={
+          isMyTurn && pendingLoc ? (
+            <button
+              onClick={handleConfirm}
+              style={{
+                marginTop: 10,
+                width: '100%',
+                padding: '8px 0',
+                background: '#e74c3c',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 6,
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontSize: 14,
+              }}>
+              Confirm Attack
+            </button>
+          ) : undefined
+        }>
         {targetFort && (
           <Fort
             fort={targetFort}
@@ -120,37 +148,6 @@ export const AttackWave1Phase: React.FC<Props> = ({
           />
         )}
       </AttackTargetDisplay>
-      {targetFort && (
-        <div style={{ margin: '16px 0' }}>
-          {isMyTurn && pendingLoc && (
-            <div style={{ marginTop: 12 }}>
-              <button
-                onClick={handleConfirm}
-                style={{
-                  padding: '8px 20px',
-                  background: '#e74c3c',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  fontSize: 15,
-                }}>
-                Confirm Attack
-              </button>
-              <button
-                onClick={() => setPendingLoc(null)}
-                style={{
-                  marginLeft: 10,
-                  padding: '8px 14px',
-                  cursor: 'pointer',
-                }}>
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
-      )}
       {isMyTurn && noEligible && (
         <div style={{ marginTop: 8 }}>
           <p style={{ color: '#c0392b', fontStyle: 'italic', marginBottom: 8 }}>
