@@ -38,6 +38,7 @@ server.listen(PORT, () => {
         createPlayer('dev0', 'Calico Jack', { color: 'red' }),
         createPlayer('dev1', 'Blackbeard', { color: 'black' }),
       ],
+      waitingPlayers: [],
       readyPlayers: [],
       currentPlayerIndex: 0,
       deck: deckState.deck,
