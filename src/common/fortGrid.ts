@@ -116,8 +116,10 @@ export function cellAtIsProtected(
   if (cell?.type !== 'shell' || cell.color === null) return false
 
   const connected = traverseConnectedShells(grid, loc)
+  const connectedKeys = new Set(connected.map(([r, c]) => `${r},${c}`))
   for (const [row, col] of connected) {
     for (let r = 0; r < row; r++) {
+      if (connectedKeys.has(`${r},${col}`)) continue
       const above = grid[r][col]
       if (above.type === 'shell' && above.color !== null) {
         return true
