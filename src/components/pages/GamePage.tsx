@@ -330,26 +330,45 @@ const AttackLeadershipPhase: React.FC<{
             <div style={{ padding: '16px 0' }}>
               {canUseLeadership ? (
                 <>
-                  <p>
+                  <p style={{ marginBottom: 10 }}>
                     You have <strong>{lCount}</strong> L{' '}
                     {lCount === 1 ? 'die' : 'dice'}. Spend 2 to destroy a ship.
                   </p>
-                  <ul
-                    style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     {defenderShips.map(ship => (
-                      <li key={ship.id} style={{ marginBottom: 8 }}>
-                        <button
-                          onClick={() =>
-                            dispatch({
-                              type: 'attackLeadership',
-                              payload: { shipID: ship.id },
-                            })
-                          }>
-                          Destroy {ship.name} (costs 2 L)
-                        </button>
-                      </li>
+                      <div
+                        key={ship.id}
+                        onClick={() =>
+                          dispatch({
+                            type: 'attackLeadership',
+                            payload: { effect: 'destroyShip', shipID: ship.id },
+                          })
+                        }
+                        style={{
+                          cursor: 'pointer',
+                          outline: '2px solid transparent',
+                          borderRadius: 6,
+                          padding: 4,
+                          transition: 'outline-color 0.15s, background 0.15s',
+                          width: 'fit-content',
+                        }}
+                        onMouseEnter={e => {
+                          const el = e.currentTarget as HTMLDivElement
+                          el.style.outlineColor = '#c0392b'
+                          el.style.background = '#fff5f5'
+                        }}
+                        onMouseLeave={e => {
+                          const el = e.currentTarget as HTMLDivElement
+                          el.style.outlineColor = 'transparent'
+                          el.style.background = 'transparent'
+                        }}>
+                        <Ship
+                          ship={ship}
+                          color={view.players[defenderIdx ?? 0]?.color}
+                        />
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </>
               ) : (
                 <p style={{ color: '#888', fontStyle: 'italic' }}>
@@ -491,6 +510,26 @@ export const GamePage: React.FC = () => {
                 isMyTurn={isMyTurn}
                 dispatch={dispatch}
               />
+            )
+          case GamePhases.attackReinforce:
+            return (
+              <>
+                <ActionInstructions
+                  title="Reinforce"
+                  description="Adding shells to your reserve…"
+                />
+                <AttackTargetDisplay view={view} />
+              </>
+            )
+          case GamePhases.attackDestroy:
+            return (
+              <>
+                <ActionInstructions
+                  title="Destruction"
+                  description="Resolving fort damage…"
+                />
+                <AttackTargetDisplay view={view} />
+              </>
             )
           case GamePhases.buildFort:
             return (
