@@ -5,13 +5,15 @@
   border-radius: 4px;
   padding: 8px;
   background: #fff;
-  width: 160px;
+  width: 180px;
   height: 280px;
   overflow: hidden;
   text-align: center;
   cursor: default;
   box-sizing: border-box;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 .card.selected {
   border: 2px solid #c0392b;
@@ -29,7 +31,8 @@
 }
 .card .card-description {
   margin-top: 6px;
-  font-size: 0.95em;
+  font-size: 0.8em;
+  font-style: italic;
 }
 .card .card-cost,
 .card .card-grid {
@@ -114,7 +117,8 @@
   white-space: pre-line;
   word-break: break-word;
   font-family: Georgia, serif;
-  font-size: 13px;
+  font-size: 11px;
+  font-style: italic;
   line-height: 1.35;
   color: #555;
   margin-bottom: 6px;
@@ -153,7 +157,8 @@
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 .tableau-card-pip {
   width: 18px;
