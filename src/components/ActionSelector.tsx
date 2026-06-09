@@ -67,6 +67,9 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
   const showShipPicker = activePicker === 'ship'
 
   function togglePicker(p: Picker) {
+    // re-opening a picker also backs out of any in-progress fort selection
+    setPendingBuildAction(null)
+    setPendingRepairFort(null)
     setActivePicker(v => (v === p ? null : p))
   }
   const [pendingBuildAction, setPendingBuildAction] = useState<{
@@ -341,8 +344,28 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
             <strong>{pendingBuildAction.card.name}</strong> at (requires{' '}
             {pendingBuildAction.card.cost} colonists):
           </p>
-          {pendingBuildAction.action === 'buildBuilding' &&
-          !pendingRepairFort ? (
+          {pendingRepairFort ? (
+            <div>
+              <p style={{ marginBottom: 8 }}>
+                <DescriptionText
+                  text={`Place the repair shell ${
+                    pendingBuildAction.card.repair?.[0]
+                      ? `[${colorToSymbol(pendingBuildAction.card.repair[0])}]`
+                      : ''
+                  }`}
+                />
+              </p>
+              <FortGrid
+                grid={pendingRepairFort.grid}
+                view="tableau"
+                showLabels
+                highlights={shellInfo(pendingRepairFort.grid)
+                  .filter(s => s.color === null)
+                  .map(s => s.loc)}
+                onCellClick={handleRepairCellPicked}
+              />
+            </div>
+          ) : (
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               {forts.map(fort => {
                 const ok =
@@ -368,62 +391,12 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
                       ;(e.currentTarget as HTMLDivElement).style.outlineColor =
                         'transparent'
                     }}>
-                    <Fort fort={fort} />
+                    <Fort fort={fort} color={player.color} />
                   </div>
                 )
               })}
             </div>
-          ) : pendingBuildAction.action === 'buildBuilding' &&
-            pendingRepairFort ? (
-            <div>
-              <p style={{ marginBottom: 8 }}>
-                <DescriptionText
-                  text={`Place the repair shell ${
-                    pendingBuildAction.card.repair?.[0]
-                      ? `[${colorToSymbol(pendingBuildAction.card.repair[0])}]`
-                      : ''
-                  }`}
-                />
-              </p>
-              <FortGrid
-                grid={pendingRepairFort.grid}
-                view="tableau"
-                showLabels
-                highlights={shellInfo(pendingRepairFort.grid)
-                  .filter(s => s.color === null)
-                  .map(s => s.loc)}
-                onCellClick={handleRepairCellPicked}
-              />
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              {forts.map(fort => {
-                const ok =
-                  pendingBuildAction.card.cost !== undefined &&
-                  fort.usedSlots >= pendingBuildAction.card.cost
-                return (
-                  <button
-                    key={fort.id}
-                    onClick={() => ok && handleFortPicked(fort)}
-                    disabled={!ok}
-                    style={{ opacity: ok ? 1 : 0.4 }}>
-                    {fort.name} — {fort.usedSlots}/{fort.slots}
-                  </button>
-                )
-              })}
-            </div>
           )}
-          <button
-            onClick={() => {
-              if (pendingRepairFort) {
-                setPendingRepairFort(null)
-              } else {
-                setPendingBuildAction(null)
-              }
-            }}
-            style={{ marginTop: 10 }}>
-            ← Back
-          </button>
         </div>
       )}
     </div>
