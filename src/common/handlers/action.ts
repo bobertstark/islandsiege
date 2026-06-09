@@ -16,7 +16,6 @@ export function handleAction(
   const action = payload.actionChosen
   const base = {
     ...state,
-    buildContext: undefined,
     pendingBuildCardID: payload.cardID,
   }
   switch (action) {

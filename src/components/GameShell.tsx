@@ -12,7 +12,6 @@ interface GameShellProps {
   playerIdx: number
   isMyTurn: boolean
   waitingFor: WaitingForPlayer[]
-  buildContext?: { cardID: string; fortID?: string }
   actionContent: React.ReactNode
   logOpen: boolean
   onToggleLog: () => void
@@ -23,7 +22,6 @@ const GameShell: React.FC<GameShellProps> = ({
   playerIdx,
   isMyTurn,
   waitingFor,
-  buildContext,
   actionContent,
   logOpen,
   onToggleLog,
@@ -44,7 +42,6 @@ const GameShell: React.FC<GameShellProps> = ({
           phase={view.phase}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
-          buildContext={buildContext}
           logOpen={logOpen}
           onToggleLog={onToggleLog}
         />
