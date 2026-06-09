@@ -1,5 +1,5 @@
 import React from 'react'
-import './shared.css'
+import './styles.css'
 
 interface PlayerProps {
   children?: React.ReactNode

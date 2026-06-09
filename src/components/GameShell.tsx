@@ -1,4 +1,5 @@
 import React from 'react'
+import { sectionLabel } from './styles'
 import IGameStateView from 'common/IGameStateView'
 import ICard from 'common/ICard'
 import { TurnBanner, WaitingForPlayer } from './TurnBanner'
@@ -12,7 +13,6 @@ interface GameShellProps {
   playerIdx: number
   isMyTurn: boolean
   waitingFor: WaitingForPlayer[]
-  buildContext?: { cardID: string; fortID?: string }
   actionContent: React.ReactNode
   logOpen: boolean
   onToggleLog: () => void
@@ -23,7 +23,6 @@ const GameShell: React.FC<GameShellProps> = ({
   playerIdx,
   isMyTurn,
   waitingFor,
-  buildContext,
   actionContent,
   logOpen,
   onToggleLog,
@@ -44,7 +43,6 @@ const GameShell: React.FC<GameShellProps> = ({
           phase={view.phase}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
-          buildContext={buildContext}
           logOpen={logOpen}
           onToggleLog={onToggleLog}
         />
@@ -70,15 +68,7 @@ const GameShell: React.FC<GameShellProps> = ({
               borderBottom: '1px solid #ddd',
               overflowX: 'auto',
             }}>
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: 13,
-                color: '#666',
-                marginBottom: 8,
-              }}>
-              Your Hand
-            </div>
+            <div style={{ ...sectionLabel, marginBottom: 8 }}>Your Hand</div>
             <Hand cards={handCards} />
           </div>
         )}

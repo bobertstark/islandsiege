@@ -487,7 +487,6 @@ export const GamePage: React.FC = () => {
           playerIdx={playerIdx}
           isMyTurn={isMyTurn}
           waitingFor={waitingFor}
-          buildContext={view.buildContext}
           actionContent={actionContent}
           logOpen={logOpen}
           onToggleLog={onToggleLog}

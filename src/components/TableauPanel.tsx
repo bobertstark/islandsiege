@@ -1,12 +1,36 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { sectionLabel } from './styles'
 import IGameStateView from 'common/IGameStateView'
+import IShip from 'common/IShip'
 import FortGroup from './FortGroup'
+import Ship from './Ship'
+import CardInfoPopover from './CardInfoPopover'
+import { shipTooltip } from './cardTooltip'
 import { rotateFrom } from 'common/order'
 import PlayerShip from './PlayerShip'
 
 interface TableauPanelProps {
   view: IGameStateView
   playerIdx: number
+}
+
+// Ships highlight individually (forts/buildings highlight as a group); the
+// flex wrapper stretches to the row height so the card matches fort height.
+const ShipCard: React.FC<{ ship: IShip; color?: string }> = ({
+  ship,
+  color,
+}) => {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ display: 'flex', padding: 6 }}>
+      <CardInfoPopover info={shipTooltip(ship)} style={{ display: 'flex' }}>
+        <Ship ship={ship} highlighted={hovered} fill color={color} />
+      </CardInfoPopover>
+    </div>
+  )
 }
 
 const TableauPanel: React.FC<TableauPanelProps> = ({ view, playerIdx }) => {
@@ -52,24 +76,22 @@ const TableauPanel: React.FC<TableauPanelProps> = ({ view, playerIdx }) => {
                 gap: 8,
                 marginBottom: 8,
               }}>
-              <span
-                style={{
-                  fontWeight: 700,
-                  color: player.color ?? undefined,
-                  fontSize: 15,
-                }}>
-                {player.name}'s Tableau
-              </span>
+              {i === playerIdx ? (
+                <span style={sectionLabel}>Your Tableau</span>
+              ) : (
+                <span
+                  style={{
+                    fontWeight: 700,
+                    color: player.color ?? undefined,
+                    fontSize: 15,
+                  }}>
+                  {player.name}'s Tableau
+                </span>
+              )}
               {shipIsHome && <PlayerShip color={player.color} size={24} />}
             </div>
-            {/* Fort groups */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns:
-                  'repeat(auto-fill, minmax(160px, max-content))',
-                gap: 8,
-              }}>
+            {/* Forts and ships in one horizontal row */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {player.forts.map(fort => {
                 const key = `${idx}:${fort.id}`
                 return (
@@ -78,9 +100,13 @@ const TableauPanel: React.FC<TableauPanelProps> = ({ view, playerIdx }) => {
                     fort={fort}
                     buildings={fort.buildings ?? []}
                     attackingShips={attackingShipsMap[key] ?? []}
+                    color={player.color}
                   />
                 )
               })}
+              {player.ships.map(ship => (
+                <ShipCard key={ship.id} ship={ship} color={player.color} />
+              ))}
             </div>
           </div>
         )

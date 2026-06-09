@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import '../shared.css'
+import '../styles.css'
 
 interface InitPhaseProps {
   onJoin: (gameId: string, playerId: string) => void

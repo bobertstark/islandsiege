@@ -3,7 +3,7 @@ import IGameStateView from 'common/IGameStateView'
 import { PLAYER_COLORS } from 'common/colors'
 import ColorPicker from 'components/ColorPicker'
 import GameLog from 'components/GameLog'
-import '../shared.css'
+import '../styles.css'
 
 interface LobbyPhaseProps {
   view: IGameStateView

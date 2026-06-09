@@ -49,7 +49,6 @@ export default interface IGameState {
 
   winningPlayerIndex: number | undefined
 
-  buildContext?: { cardID: string; fortID?: string }
   pendingBuildCardID?: string
 
   log: ILogEntry[]

@@ -1,9 +1,11 @@
-import React, { useState, useRef, useLayoutEffect } from 'react'
+import React, { useState } from 'react'
 import IFort from 'common/IFort'
 import IBuilding from 'common/IBuilding'
 import Fort from './Fort'
 import Building from './Building'
 import PlayerShip from './PlayerShip'
+import CardInfoPopover from './CardInfoPopover'
+import { fortTooltip, buildingTooltip } from './cardTooltip'
 
 interface AttackingShip {
   color?: string
@@ -14,29 +16,17 @@ interface FortGroupProps {
   fort: IFort
   buildings: IBuilding[]
   attackingShips: AttackingShip[]
+  // owning player's color — tints the colonist meeples
+  color?: string
 }
 
 const FortGroup: React.FC<FortGroupProps> = ({
   fort,
   buildings,
   attackingShips,
+  color,
 }) => {
   const [hovered, setHovered] = useState(false)
-  const fortRef = useRef<HTMLDivElement>(null)
-  const [buildingSize, setBuildingSize] = useState<{
-    w: number
-    h: number
-  } | null>(null)
-
-  useLayoutEffect(() => {
-    if (fortRef.current) {
-      const w = fortRef.current.offsetWidth / 2
-      const h = fortRef.current.offsetHeight / 2
-      setBuildingSize(prev =>
-        prev?.w === w && prev?.h === h ? prev : { w, h },
-      )
-    }
-  }, [fort.id])
 
   return (
     <div
@@ -46,7 +36,7 @@ const FortGroup: React.FC<FortGroupProps> = ({
         position: 'relative',
         display: 'flex',
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'stretch',
         gap: 6,
         padding: 6,
       }}>
@@ -70,24 +60,32 @@ const FortGroup: React.FC<FortGroupProps> = ({
           ))}
         </div>
       )}
-      <div ref={fortRef} style={{ flexShrink: 0 }}>
-        <Fort fort={fort} highlighted={hovered} />
-      </div>
-      {buildings.length > 0 && buildingSize && (
+      {/* the fort defines the group height */}
+      <CardInfoPopover info={fortTooltip(fort)} style={{ flexShrink: 0 }}>
+        <Fort fort={fort} highlighted={hovered} color={color} />
+      </CardInfoPopover>
+      {/* the column stretches to the fort's height; each building takes an even
+          share capped at half, so two split the height and a lone building
+          stays half-height — no fort growth or measurement needed */}
+      {buildings.length > 0 && (
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            flexWrap: 'wrap',
-            maxHeight: buildingSize.h * 2,
             gap: 4,
           }}>
           {buildings.map(building => (
-            <div
+            <CardInfoPopover
               key={building.id}
-              style={{ width: buildingSize.w, flexShrink: 0 }}>
-              <Building building={building} highlighted={hovered} />
-            </div>
+              info={buildingTooltip(building)}
+              style={{ flex: 1, minHeight: 0, maxHeight: '50%' }}>
+              <Building
+                building={building}
+                highlighted={hovered}
+                compact
+                color={color}
+              />
+            </CardInfoPopover>
           ))}
         </div>
       )}

@@ -63,7 +63,6 @@ export function handleBuildFort(
     ...state,
     players,
     phase: 'endTurn',
-    buildContext: { cardID: payload.fortID },
     pendingBuildCardID: undefined,
     log: [...state.log, logEntry],
   }

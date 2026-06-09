@@ -1,7 +1,7 @@
 import React from 'react'
 import type { FortGridCell } from 'common/fortGrid'
 import { ShellColors } from '../common/colors'
-import './shared.css'
+import './styles.css'
 
 function getCellLabel(cell: FortGridCell) {
   if (cell.type === 'shell' && cell.color) return cell.color[0].toUpperCase()
@@ -57,20 +57,39 @@ export const FortGrid: React.FC<{
             const isClickable = isHighlight && !!onCellClick
 
             let bgColor = '#99bed8'
-            let border = '3px solid #925b24'
+            let border = '3px solid #99bed8'
             if (cell.type === 'shell') {
               if (view === 'hand') {
-                bgColor = cell.color ? ShellColors[cell.color] : '#a0785a'
+                bgColor = cell.color ? ShellColors[cell.color] : '#f5e6c8'
               } else if (view === 'tableau') {
-                bgColor = cell.color ? ShellColors[cell.color] : '#a0785a'
+                bgColor = cell.color ? ShellColors[cell.color] : '#f5e6c8'
               }
-            } else {
-              border = '3px solid #fff'
+              border = `3px solid ${cell.color ? ShellColors[cell.color] : '#f5e6c8'}`
             }
 
             if (isHighlight) border = '3px solid #27ae60'
             if (isDim) border = '3px solid #999'
             if (selectedSet.has(key)) border = '3px solid #e74c3c'
+
+            const isShell = cell.type === 'shell'
+            const neighborIsNaC = (r: number, c: number) =>
+              r < 0 ||
+              r >= grid.length ||
+              c < 0 ||
+              c >= grid[0].length ||
+              grid[r][c].type !== 'shell'
+            const outlineColor = '#925b24'
+            const edgeColor = (r: number, c: number) =>
+              neighborIsNaC(r, c) ? outlineColor : bgColor
+            const shapeOutline =
+              isShell && !isHighlight && !isDim && !selectedSet.has(key)
+                ? {
+                    borderTopColor: edgeColor(rowIndex - 1, colIndex),
+                    borderRightColor: edgeColor(rowIndex, colIndex + 1),
+                    borderBottomColor: edgeColor(rowIndex + 1, colIndex),
+                    borderLeftColor: edgeColor(rowIndex, colIndex - 1),
+                  }
+                : {}
 
             return (
               <div
@@ -84,6 +103,7 @@ export const FortGrid: React.FC<{
                 style={{
                   backgroundColor: bgColor,
                   border,
+                  ...shapeOutline,
                   opacity: isDim ? 0.4 : 1,
                   cursor: isClickable ? 'pointer' : 'default',
                   color: getLabelTextColor(cell),

@@ -8,7 +8,7 @@ import MeepleIcon from 'components/MeepleIcon'
 import CoinIcon from 'components/CoinIcon'
 import HammerIcon from 'components/HammerIcon'
 import DescriptionText from 'components/DescriptionText'
-import './shared.css'
+import './styles.css'
 
 interface CardProps {
   card: ICard

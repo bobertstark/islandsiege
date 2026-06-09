@@ -1,10 +1,4 @@
 import React from 'react'
-import { ALL_CARDS } from 'common/cardRegistry'
-
-interface BuildContext {
-  cardID: string
-  fortID?: string
-}
 
 export interface WaitingForPlayer {
   name: string
@@ -15,28 +9,18 @@ interface TurnBannerProps {
   phase: string
   isMyTurn: boolean
   waitingFor: WaitingForPlayer[]
-  buildContext?: BuildContext
   logOpen: boolean
   onToggleLog: () => void
-}
-
-function buildLabel(ctx: BuildContext, phase: string): string {
-  const cardName = ALL_CARDS.find(c => c.id === ctx.cardID)?.name ?? ctx.cardID
-  if (!ctx.fortID) return `Build ${cardName}`
-  const fortName = ALL_CARDS.find(c => c.id === ctx.fortID)?.name ?? ctx.fortID
-  const prep = phase === 'buildShip' ? 'from' : 'on'
-  return `Build ${cardName} ${prep} ${fortName}`
 }
 
 export const TurnBanner: React.FC<TurnBannerProps> = ({
   phase,
   isMyTurn,
   waitingFor,
-  buildContext,
   logOpen,
   onToggleLog,
 }) => {
-  const phaseLabel = buildContext ? buildLabel(buildContext, phase) : phase
+  const phaseLabel = phase
 
   return (
     <div
