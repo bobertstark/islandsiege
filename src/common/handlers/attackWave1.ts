@@ -3,6 +3,7 @@ import { DieValue } from 'common/die'
 import { findFort } from 'common/player'
 import { attackAt } from 'common/fortGrid'
 import { ILogEntry } from 'common/ILog'
+import { resolvePostWave1Phase } from './attackReinforceOrWave2'
 
 export function handleAttackWave1(
   state: IGameState,
@@ -43,11 +44,12 @@ export function handleAttackWave1(
       attackLoc: payload.attackLoc,
     },
   }
+  const next = resolvePostWave1Phase({ ...state, diceBank, players })
   return {
     ...state,
     players,
     diceBank,
-    phase: 'attackReinforceOrWave2',
+    phase: next ?? 'attackReinforceOrWave2',
     log: [...state.log, logEntry],
   }
 }

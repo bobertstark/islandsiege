@@ -51,41 +51,31 @@ export const AttackReinforceOrWave2Phase: React.FC<Props> = ({
         title="Choose Next Action"
         description={
           isMyTurn
-            ? 'Launch a second wave or reinforce with remaining dice.'
+            ? 'Click the T die to launch a second wave, or reinforce with shell dice.'
             : 'Waiting for the attacker to choose their next action.'
         }
       />
-      <AttackTargetDisplay view={view} />
-      {isMyTurn && (
-        <div style={{ padding: '16px 0' }}>
-          {neitherPossible ? (
-            <p style={{ color: '#c0392b', fontStyle: 'italic' }}>
-              No actions available — advancing…
-            </p>
-          ) : (
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button
-                onClick={() =>
+      <AttackTargetDisplay
+        view={view}
+        onDieClick={
+          isMyTurn && canWave2
+            ? face => {
+                if (face === 'T')
                   dispatch({
                     type: 'attackReinforceOrWave2',
                     payload: { choice: 'wave2' },
                   })
-                }
-                disabled={!canWave2}
-                title={!canWave2 ? 'No T dice remaining' : undefined}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: 6,
-                  fontWeight: 'bold',
-                  cursor: canWave2 ? 'pointer' : 'not-allowed',
-                  opacity: canWave2 ? 1 : 0.4,
-                  background: canWave2 ? '#c0392b' : '#ccc',
-                  color: '#fff',
-                  border: 'none',
-                  fontSize: 15,
-                }}>
-                Second Wave
-              </button>
+              }
+            : undefined
+        }
+        leftFooter={
+          isMyTurn ? (
+            neitherPossible ? (
+              <p
+                style={{ color: '#c0392b', fontStyle: 'italic', marginTop: 8 }}>
+                No actions available — advancing…
+              </p>
+            ) : canReinforce ? (
               <button
                 onClick={() =>
                   dispatch({
@@ -93,35 +83,28 @@ export const AttackReinforceOrWave2Phase: React.FC<Props> = ({
                     payload: { choice: 'reinforce' },
                   })
                 }
-                disabled={!canReinforce}
-                title={!canReinforce ? 'No shell dice remaining' : undefined}
                 style={{
-                  padding: '10px 20px',
+                  marginTop: 10,
+                  width: '100%',
+                  padding: '8px 0',
                   borderRadius: 6,
                   fontWeight: 'bold',
-                  cursor: canReinforce ? 'pointer' : 'not-allowed',
-                  opacity: canReinforce ? 1 : 0.4,
-                  background: canReinforce ? '#27ae60' : '#ccc',
+                  cursor: 'pointer',
+                  background: '#27ae60',
                   color: '#fff',
                   border: 'none',
-                  fontSize: 15,
+                  fontSize: 14,
                 }}>
                 Reinforce
-                {canReinforce && (
-                  <span
-                    style={{
-                      fontWeight: 'normal',
-                      fontSize: 13,
-                      marginLeft: 6,
-                    }}>
-                    ({reinforceGains(view.diceBank)})
-                  </span>
-                )}
+                <span
+                  style={{ fontWeight: 'normal', fontSize: 12, marginLeft: 6 }}>
+                  ({reinforceGains(view.diceBank)})
+                </span>
               </button>
-            </div>
-          )}
-        </div>
-      )}
+            ) : null
+          ) : null
+        }
+      />
     </>
   )
 }

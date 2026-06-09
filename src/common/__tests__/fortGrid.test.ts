@@ -77,6 +77,16 @@ describe('fortGrid', () => {
     expect(cellAtIsProtected(grid, [0, 0])).toBe(false)
   })
 
+  it('does not treat same-colour connected cells as blockers', () => {
+    // Two vertical white cells — the upper cell must not protect the lower
+    const grid = createFortGrid([
+      [1, 0, 'W'],
+      [2, 0, 'W'],
+    ])
+    expect(cellAtIsProtected(grid, [1, 0])).toBe(false)
+    expect(cellAtIsProtected(grid, [2, 0])).toBe(false)
+  })
+
   it('counts connected shells of the same colour', () => {
     const grid = fortGridFromString(`
                   ~ ~ ~ ~

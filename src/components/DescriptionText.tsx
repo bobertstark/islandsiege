@@ -1,5 +1,6 @@
 import React from 'react'
 import { DieValue, DIE_STYLE } from 'common/die'
+import { symbolBox } from './styles'
 
 const DIE_PATTERN = /\[([BWGLT])\]/g
 
@@ -23,18 +24,12 @@ const DescriptionText: React.FC<DescriptionTextProps> = ({ text }) => {
       <span
         key={match.index}
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          ...symbolBox,
           width: 18,
           height: 18,
           background: s.bg,
           color: s.text,
-          border: '1px solid #555',
-          borderRadius: 3,
-          fontWeight: 'bold',
           fontSize: 11,
-          verticalAlign: 'middle',
           margin: '0 2px',
         }}>
         {face}

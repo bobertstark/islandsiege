@@ -43,9 +43,13 @@ export function handleAttackWave2(
       tDiceUsed: state.diceBank['T'] ?? 0,
     },
   }
+  const diceBank = { ...state.diceBank }
+  delete diceBank['T']
+
   return {
     ...state,
     players,
+    diceBank,
     phase: 'attackDestroy',
     log: [...state.log, logEntry],
   }

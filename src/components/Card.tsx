@@ -8,6 +8,7 @@ import MeepleIcon from 'components/MeepleIcon'
 import CoinIcon from 'components/CoinIcon'
 import HammerIcon from 'components/HammerIcon'
 import DescriptionText from 'components/DescriptionText'
+import { iconLabel, symbolBox } from './styles'
 import './styles.css'
 
 interface CardProps {
@@ -56,7 +57,7 @@ const Card: React.FC<CardProps> = ({
             margin: '8px 0',
           }}>
           {typeof card.cost === 'number' && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span style={iconLabel}>
               <MeepleIcon size={16} color="#555" />
               <span style={{ fontSize: 13, fontWeight: 'bold' }}>
                 {card.cost}
@@ -64,7 +65,7 @@ const Card: React.FC<CardProps> = ({
             </span>
           )}
           {typeof card.coins === 'number' && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span style={iconLabel}>
               <CoinIcon size={16} />
               <span style={{ fontSize: 13, fontWeight: 'bold' }}>
                 {card.coins}
@@ -72,7 +73,7 @@ const Card: React.FC<CardProps> = ({
             </span>
           )}
           {card.repair && card.repair.length > 0 && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span style={iconLabel}>
               <HammerIcon size={16} />
               {card.repair.map((color, i) => {
                 const sym = colorToSymbol(color)
@@ -81,16 +82,11 @@ const Card: React.FC<CardProps> = ({
                   <span
                     key={i}
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      ...symbolBox,
                       width: 16,
                       height: 16,
                       background: s?.bg ?? '#ccc',
                       color: s?.text ?? '#000',
-                      border: '1px solid #555',
-                      borderRadius: 3,
-                      fontWeight: 'bold',
                       fontSize: 10,
                     }}>
                     {sym}
@@ -112,7 +108,7 @@ const Card: React.FC<CardProps> = ({
               margin: '8px 0',
             }}>
             {typeof card.cost === 'number' && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={iconLabel}>
                 <MeepleIcon size={16} color="#555" />
                 <span style={{ fontSize: 13, fontWeight: 'bold' }}>
                   {card.cost}
@@ -120,7 +116,7 @@ const Card: React.FC<CardProps> = ({
               </span>
             )}
             {typeof card.coins === 'number' && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={iconLabel}>
                 <CoinIcon size={16} />
                 <span style={{ fontSize: 13, fontWeight: 'bold' }}>
                   {card.coins}

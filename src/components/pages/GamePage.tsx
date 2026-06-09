@@ -17,7 +17,13 @@ import { DrawPickPhase } from 'components/phases/DrawPickPhase'
 import { InitDrawPhase } from 'components/phases/InitDrawPhase'
 import AttackRollPanel from 'components/AttackRollPanel'
 import { ROLL_DURATION_MS } from 'components/Die'
-import AttackTargetDisplay from 'components/AttackTargetDisplay'
+import AttackTargetDisplay, {
+  useAttackTarget,
+  DiceBankPanel,
+} from 'components/AttackTargetDisplay'
+import AttackLayout from 'components/AttackLayout'
+import Fort from 'components/Fort'
+import Ship from 'components/Ship'
 import ActionInstructions from 'components/ActionInstructions'
 import 'components/phases/Game.css'
 
@@ -27,9 +33,7 @@ const ATTACK_DISPLAY_PHASES = new Set<string>([
   GamePhases.attackLeadership,
   GamePhases.attackWave1,
   GamePhases.attackReinforceOrWave2,
-  GamePhases.attackReinforce,
   GamePhases.attackWave2,
-  GamePhases.attackDestroy,
 ])
 
 function countsToArray(counts: IGameStateView['diceBank']): DieValue[] {
@@ -162,6 +166,62 @@ const ColonizePhase: React.FC<{
   )
 }
 
+const AttackRollContent: React.FC<{
+  view: IGameStateView
+  isMyTurn: boolean
+  dispatch: (action: { type: string; payload?: unknown }) => void
+}> = ({ view, isMyTurn, dispatch }) => {
+  const { targetPlayer, targetFort } = useAttackTarget(view)
+  return (
+    <>
+      <ActionInstructions
+        title="Attack Roll"
+        description={
+          isMyTurn
+            ? 'Rolling dice for your attack.'
+            : 'Waiting for the attacker to roll.'
+        }
+      />
+      <AttackLayout
+        left={
+          <>
+            <DiceBankPanel bank={view.diceBank} style={{ marginBottom: 8 }} />
+            {view.attackRoll !== undefined && (
+              <AttackRollPanel
+                dice={view.attackRoll}
+                rerollsRemaining={view.attackRerollsRemaining}
+                dispatch={dispatch}
+                readonly={!isMyTurn}
+              />
+            )}
+          </>
+        }
+        right={
+          <>
+            <p style={{ margin: '0 0 6px' }}>
+              Attacking{' '}
+              <strong style={{ color: targetPlayer?.color }}>
+                {targetPlayer?.name ?? 'Open Waters'}
+              </strong>
+            </p>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              {targetFort && <Fort fort={targetFort} />}
+              {targetPlayer?.ships.map(ship => (
+                <Ship
+                  key={ship.id}
+                  ship={ship}
+                  color={targetPlayer.color}
+                  fill
+                />
+              ))}
+            </div>
+          </>
+        }
+      />
+    </>
+  )
+}
+
 const AttackRollPhase: React.FC<{
   view: IGameStateView
   playerIdx: number
@@ -208,25 +268,11 @@ const AttackRollPhase: React.FC<{
       logOpen={logOpen}
       onToggleLog={onToggleLog}
       actionContent={
-        <>
-          <ActionInstructions
-            title="Attack Roll"
-            description={
-              isMyTurn
-                ? 'Rolling dice for your attack.'
-                : 'Waiting for the attacker to roll.'
-            }
-          />
-          {view.attackRoll !== undefined && (
-            <AttackRollPanel
-              dice={view.attackRoll}
-              rerollsRemaining={view.attackRerollsRemaining}
-              dispatch={dispatch}
-              readonly={!isMyTurn}
-            />
-          )}
-          <AttackTargetDisplay view={view} />
-        </>
+        <AttackRollContent
+          view={view}
+          isMyTurn={isMyTurn}
+          dispatch={dispatch}
+        />
       }
     />
   )
@@ -284,26 +330,45 @@ const AttackLeadershipPhase: React.FC<{
             <div style={{ padding: '16px 0' }}>
               {canUseLeadership ? (
                 <>
-                  <p>
+                  <p style={{ marginBottom: 10 }}>
                     You have <strong>{lCount}</strong> L{' '}
                     {lCount === 1 ? 'die' : 'dice'}. Spend 2 to destroy a ship.
                   </p>
-                  <ul
-                    style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     {defenderShips.map(ship => (
-                      <li key={ship.id} style={{ marginBottom: 8 }}>
-                        <button
-                          onClick={() =>
-                            dispatch({
-                              type: 'attackLeadership',
-                              payload: { shipID: ship.id },
-                            })
-                          }>
-                          Destroy {ship.name} (costs 2 L)
-                        </button>
-                      </li>
+                      <div
+                        key={ship.id}
+                        onClick={() =>
+                          dispatch({
+                            type: 'attackLeadership',
+                            payload: { effect: 'destroyShip', shipID: ship.id },
+                          })
+                        }
+                        style={{
+                          cursor: 'pointer',
+                          outline: '2px solid transparent',
+                          borderRadius: 6,
+                          padding: 4,
+                          transition: 'outline-color 0.15s, background 0.15s',
+                          width: 'fit-content',
+                        }}
+                        onMouseEnter={e => {
+                          const el = e.currentTarget as HTMLDivElement
+                          el.style.outlineColor = '#c0392b'
+                          el.style.background = '#fff5f5'
+                        }}
+                        onMouseLeave={e => {
+                          const el = e.currentTarget as HTMLDivElement
+                          el.style.outlineColor = 'transparent'
+                          el.style.background = 'transparent'
+                        }}>
+                        <Ship
+                          ship={ship}
+                          color={view.players[defenderIdx ?? 0]?.color}
+                        />
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </>
               ) : (
                 <p style={{ color: '#888', fontStyle: 'italic' }}>
@@ -445,6 +510,26 @@ export const GamePage: React.FC = () => {
                 isMyTurn={isMyTurn}
                 dispatch={dispatch}
               />
+            )
+          case GamePhases.attackReinforce:
+            return (
+              <>
+                <ActionInstructions
+                  title="Reinforce"
+                  description="Adding shells to your reserve…"
+                />
+                <AttackTargetDisplay view={view} />
+              </>
+            )
+          case GamePhases.attackDestroy:
+            return (
+              <>
+                <ActionInstructions
+                  title="Destruction"
+                  description="Resolving fort damage…"
+                />
+                <AttackTargetDisplay view={view} />
+              </>
             )
           case GamePhases.buildFort:
             return (

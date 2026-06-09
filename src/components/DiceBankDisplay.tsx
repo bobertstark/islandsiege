@@ -2,6 +2,7 @@ import React from 'react'
 import { rollCounts } from 'common/attackRoll'
 import { DieValue, DIE_STYLE } from 'common/die'
 import { ShellColor } from 'common/colors'
+import { iconLabel } from './styles'
 
 const WAVE_COLORS: Array<{ symbol: 'B' | 'W' | 'G'; color: ShellColor }> = [
   { symbol: 'B', color: 'black' },
@@ -14,13 +15,13 @@ const WAVE_DIE_COLORS = new Set<DieValue>(['B', 'W', 'G'])
 interface DiceBankDisplayProps {
   bank: rollCounts
   selectedColor?: ShellColor | null
-  onSelect?: (color: ShellColor) => void
+  onDieClick?: (face: DieValue) => void
 }
 
 export const DiceBankDisplay: React.FC<DiceBankDisplayProps> = ({
   bank,
   selectedColor = null,
-  onSelect,
+  onDieClick,
 }) => {
   const entries = (Object.entries(bank ?? {}) as [DieValue, number][]).filter(
     ([, count]) => count > 0,
@@ -30,17 +31,12 @@ export const DiceBankDisplay: React.FC<DiceBankDisplayProps> = ({
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '8px 0' }}>
       {entries.map(([face, count]) => {
         const s = DIE_STYLE[face]
-        const isSelectable = onSelect && WAVE_DIE_COLORS.has(face)
         const color = WAVE_COLORS.find(c => c.symbol === face)?.color ?? null
         const isSelected = color !== null && selectedColor === color
         return (
-          <div
-            key={face}
-            style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div key={face} style={iconLabel}>
             <div
-              onClick={
-                isSelectable && color ? () => onSelect(color) : undefined
-              }
+              onClick={onDieClick ? () => onDieClick(face) : undefined}
               style={{
                 width: 32,
                 height: 32,
@@ -53,7 +49,7 @@ export const DiceBankDisplay: React.FC<DiceBankDisplayProps> = ({
                 justifyContent: 'center',
                 fontWeight: 'bold',
                 fontSize: 14,
-                cursor: isSelectable ? 'pointer' : 'default',
+                cursor: onDieClick ? 'pointer' : 'default',
                 boxShadow: isSelected ? '0 0 0 2px #2980b9' : 'none',
               }}>
               {face}

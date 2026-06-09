@@ -8,9 +8,10 @@ type Payload = { effect: 'destroyShip'; shipID: string } | { skip: true }
 
 export function handleAttackLeadership(
   state: IGameState,
-  payload: Payload,
+  payload?: Payload,
 ): IGameState {
-  if ('skip' in payload) {
+  const hasL = (state.diceBank['L'] ?? 0) > 0
+  if (!payload || 'skip' in payload || !hasL) {
     const skipEntry: ILogEntry = {
       phase: 'attackLeadership',
       playerIndex: state.currentPlayerIndex,
