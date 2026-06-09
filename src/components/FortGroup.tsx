@@ -4,6 +4,8 @@ import IBuilding from 'common/IBuilding'
 import Fort from './Fort'
 import Building from './Building'
 import PlayerShip from './PlayerShip'
+import CardInfoPopover from './CardInfoPopover'
+import { fortTooltip, buildingTooltip } from './cardTooltip'
 
 interface AttackingShip {
   color?: string
@@ -59,9 +61,9 @@ const FortGroup: React.FC<FortGroupProps> = ({
         </div>
       )}
       {/* the fort defines the group height */}
-      <div style={{ flexShrink: 0 }}>
+      <CardInfoPopover info={fortTooltip(fort)} style={{ flexShrink: 0 }}>
         <Fort fort={fort} highlighted={hovered} color={color} />
-      </div>
+      </CardInfoPopover>
       {/* the column stretches to the fort's height; each building takes an even
           share capped at half, so two split the height and a lone building
           stays half-height — no fort growth or measurement needed */}
@@ -73,8 +75,9 @@ const FortGroup: React.FC<FortGroupProps> = ({
             gap: 4,
           }}>
           {buildings.map(building => (
-            <div
+            <CardInfoPopover
               key={building.id}
+              info={buildingTooltip(building)}
               style={{ flex: 1, minHeight: 0, maxHeight: '50%' }}>
               <Building
                 building={building}
@@ -82,7 +85,7 @@ const FortGroup: React.FC<FortGroupProps> = ({
                 compact
                 color={color}
               />
-            </div>
+            </CardInfoPopover>
           ))}
         </div>
       )}

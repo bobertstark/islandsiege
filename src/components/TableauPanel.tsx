@@ -3,6 +3,8 @@ import IGameStateView from 'common/IGameStateView'
 import IShip from 'common/IShip'
 import FortGroup from './FortGroup'
 import Ship from './Ship'
+import CardInfoPopover from './CardInfoPopover'
+import { shipTooltip } from './cardTooltip'
 import { rotateFrom } from 'common/order'
 import PlayerShip from './PlayerShip'
 
@@ -23,7 +25,9 @@ const ShipCard: React.FC<{ ship: IShip; color?: string }> = ({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{ display: 'flex', padding: 6 }}>
-      <Ship ship={ship} highlighted={hovered} fill color={color} />
+      <CardInfoPopover info={shipTooltip(ship)} style={{ display: 'flex' }}>
+        <Ship ship={ship} highlighted={hovered} fill color={color} />
+      </CardInfoPopover>
     </div>
   )
 }
