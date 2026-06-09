@@ -76,7 +76,7 @@ const TableauPanel: React.FC<TableauPanelProps> = ({ view, playerIdx }) => {
                 gap: 8,
                 marginBottom: 8,
               }}>
-              {i === playerIdx ? (
+              {i === 0 ? (
                 <span style={sectionLabel}>Your Tableau</span>
               ) : (
                 <span

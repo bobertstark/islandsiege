@@ -36,8 +36,16 @@ const Card: React.FC<CardProps> = ({
 
   return (
     <div className={cls} onClick={() => onClick?.(card.id)}>
-      <div className="card-title">{card.name}</div>
-      {!hideType && <div className="card-type">{card.type}</div>}
+      {fortGrid && (
+        <div
+          style={{
+            margin: '8px 0',
+            display: 'flex',
+            justifyContent: 'center',
+          }}>
+          <FortGrid grid={fortGrid} view="hand" showLabels />
+        </div>
+      )}
       {isBuilding(card) && (
         <div
           style={{
@@ -121,23 +129,19 @@ const Card: React.FC<CardProps> = ({
             )}
           </div>
         )}
-      {fortGrid && (
-        <div
-          style={{
-            margin: '8px 0',
-            display: 'flex',
-            justifyContent: 'center',
-          }}>
-          <FortGrid grid={fortGrid} view="hand" showLabels />
-        </div>
-      )}
+      <div className="card-title">{card.name}</div>
+      {!hideType && <div className="card-type">{card.type}</div>}
+      <div className="card-description">
+        <DescriptionText text={card.description} />
+      </div>
       {typeof card.slots === 'number' && (
         <div
           style={{
             display: 'flex',
             justifyContent: 'center',
             gap: 6,
-            margin: '6px 0',
+            marginTop: 'auto',
+            paddingTop: 6,
           }}>
           {Array.from({ length: card.slots }).map((_, i) => (
             <div
@@ -154,9 +158,6 @@ const Card: React.FC<CardProps> = ({
           ))}
         </div>
       )}
-      <div className="card-description">
-        <DescriptionText text={card.description} />
-      </div>
     </div>
   )
 }

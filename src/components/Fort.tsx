@@ -29,18 +29,20 @@ const Fort: React.FC<FortProps> = ({
   <TableauCard
     title={fort.name}
     description={fort.description}
-    highlighted={highlighted}>
-    <div className="tableau-card-grid">
-      <FortGrid
-        grid={fort.grid}
-        view="tableau"
-        showLabels
-        highlights={highlights}
-        dims={dims}
-        selectedGroup={selectedGroup}
-        onCellClick={onCellClick}
-      />
-    </div>
+    highlighted={highlighted}
+    above={
+      <div className="tableau-card-grid">
+        <FortGrid
+          grid={fort.grid}
+          view="tableau"
+          showLabels
+          highlights={highlights}
+          dims={dims}
+          selectedGroup={selectedGroup}
+          onCellClick={onCellClick}
+        />
+      </div>
+    }>
     <Pips count={fort.slots} filled={fort.usedSlots} color={color} />
   </TableauCard>
 )
