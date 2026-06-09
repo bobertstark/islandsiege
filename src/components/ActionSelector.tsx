@@ -200,6 +200,15 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
 
       {showAttackPicker && (
         <div style={{ padding: '12px 0' }}>
+          <p
+            style={{
+              margin: '0 0 10px',
+              fontSize: 13,
+              color: '#555',
+              fontStyle: 'italic',
+            }}>
+            Select a fort to attack
+          </p>
           {attackTargets.length === 0 ? (
             <button
               onClick={() => {
@@ -218,122 +227,159 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
               Open Waters
             </button>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {attackTargets.map(t => (
-                <div
-                  key={`${t.targetPlayerIndex}-${t.fortID}`}
-                  onClick={() => {
-                    setActivePicker(null)
-                    onSelect(
-                      'attack',
-                      undefined,
-                      t.fortID,
-                      undefined,
-                      t.targetPlayerIndex,
-                    )
-                  }}
-                  style={{
-                    cursor: 'pointer',
-                    outline: '2px solid transparent',
-                    borderRadius: 6,
-                    padding: 8,
-                    transition: 'outline-color 0.15s, background 0.15s',
-                  }}
-                  onMouseEnter={e => {
-                    const el = e.currentTarget as HTMLDivElement
-                    el.style.outlineColor = '#c0392b'
-                    el.style.background = '#fff5f5'
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLDivElement
-                    el.style.outlineColor = 'transparent'
-                    el.style.background = 'transparent'
-                  }}>
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      color: t.playerColor,
-                      marginBottom: 6,
-                      fontSize: 13,
-                    }}>
-                    {t.playerName}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {Object.values(
+                attackTargets.reduce<Record<number, FortTarget[]>>((acc, t) => {
+                  ;(acc[t.targetPlayerIndex] ??= []).push(t)
+                  return acc
+                }, {}),
+              ).map(group => {
+                const {
+                  targetPlayerIndex,
+                  playerName,
+                  playerColor,
+                  playerShips,
+                } = group[0]
+                return (
+                  <div key={targetPlayerIndex}>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        color: playerColor,
+                        marginBottom: 6,
+                        fontSize: 13,
+                      }}>
+                      {playerName}
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 12,
+                        flexWrap: 'wrap',
+                        alignItems: 'flex-start',
+                      }}>
+                      {group.map(t => (
+                        <div
+                          key={t.fortID}
+                          onClick={() => {
+                            setActivePicker(null)
+                            onSelect(
+                              'attack',
+                              undefined,
+                              t.fortID,
+                              undefined,
+                              targetPlayerIndex,
+                            )
+                          }}
+                          style={{
+                            cursor: 'pointer',
+                            outline: '2px solid transparent',
+                            borderRadius: 6,
+                            padding: 6,
+                            transition: 'outline-color 0.15s, background 0.15s',
+                            width: 'fit-content',
+                          }}
+                          onMouseEnter={e => {
+                            const el = e.currentTarget as HTMLDivElement
+                            el.style.outlineColor = '#c0392b'
+                            el.style.background = '#fff5f5'
+                          }}
+                          onMouseLeave={e => {
+                            const el = e.currentTarget as HTMLDivElement
+                            el.style.outlineColor = 'transparent'
+                            el.style.background = 'transparent'
+                          }}>
+                          <Fort fort={t.fort} color={playerColor} />
+                          {t.fort.buildings.map(b => (
+                            <Building
+                              key={b.id}
+                              building={b}
+                              color={playerColor}
+                            />
+                          ))}
+                        </div>
+                      ))}
+                      {playerShips.map(s => (
+                        <Ship key={s.id} ship={s} color={playerColor} />
+                      ))}
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: 8,
-                      flexWrap: 'wrap',
-                      alignItems: 'flex-start',
-                    }}>
-                    <Fort fort={t.fort} color={t.playerColor} />
-                    {t.fort.buildings.map(b => (
-                      <Building key={b.id} building={b} color={t.playerColor} />
-                    ))}
-                    {t.playerShips.map(s => (
-                      <Ship key={s.id} ship={s} color={t.playerColor} />
-                    ))}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
       )}
 
       {showFortPicker && (
-        <div
-          style={{
-            display: 'flex',
-            gap: 16,
-            flexWrap: 'wrap',
-            padding: '12px 0',
-          }}>
-          {fortCards.map(card => (
-            <Card
-              key={card.id}
-              card={card}
-              hideType
-              onClick={() => pick('buildFort', card.id)}
-            />
-          ))}
+        <div style={{ padding: '12px 0' }}>
+          <p
+            style={{
+              margin: '0 0 10px',
+              fontSize: 13,
+              color: '#555',
+              fontStyle: 'italic',
+            }}>
+            Select a fort to build
+          </p>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            {fortCards.map(card => (
+              <Card
+                key={card.id}
+                card={card}
+                hideType
+                onClick={() => pick('buildFort', card.id)}
+              />
+            ))}
+          </div>
         </div>
       )}
 
       {showBuildingPicker && !pendingBuildAction && (
-        <div
-          style={{
-            display: 'flex',
-            gap: 16,
-            flexWrap: 'wrap',
-            padding: '12px 0',
-          }}>
-          {buildingCards.map(card => (
-            <Card
-              key={card.id}
-              card={card}
-              hideType
-              onClick={() => handleCardPicked('buildBuilding', card)}
-            />
-          ))}
+        <div style={{ padding: '12px 0' }}>
+          <p
+            style={{
+              margin: '0 0 10px',
+              fontSize: 13,
+              color: '#555',
+              fontStyle: 'italic',
+            }}>
+            Select a building to build
+          </p>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            {buildingCards.map(card => (
+              <Card
+                key={card.id}
+                card={card}
+                hideType
+                onClick={() => handleCardPicked('buildBuilding', card)}
+              />
+            ))}
+          </div>
         </div>
       )}
 
       {showShipPicker && !pendingBuildAction && (
-        <div
-          style={{
-            display: 'flex',
-            gap: 16,
-            flexWrap: 'wrap',
-            padding: '12px 0',
-          }}>
-          {shipCards.map(card => (
-            <Card
-              key={card.id}
-              card={card}
-              hideType
-              onClick={() => handleCardPicked('buildShip', card)}
-            />
-          ))}
+        <div style={{ padding: '12px 0' }}>
+          <p
+            style={{
+              margin: '0 0 10px',
+              fontSize: 13,
+              color: '#555',
+              fontStyle: 'italic',
+            }}>
+            Select a ship to build
+          </p>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            {shipCards.map(card => (
+              <Card
+                key={card.id}
+                card={card}
+                hideType
+                onClick={() => handleCardPicked('buildShip', card)}
+              />
+            ))}
+          </div>
         </div>
       )}
 
