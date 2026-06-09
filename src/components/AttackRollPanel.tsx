@@ -123,7 +123,7 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
               fontSize: 15,
               cursor: 'pointer',
             }}>
-            Confirm
+            Finalize
           </button>
         </div>
       )}

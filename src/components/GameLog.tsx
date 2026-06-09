@@ -70,7 +70,7 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
         : `${actor} reinforced (no shells available)`
     }
     case 'attackDestroy':
-      return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s fort`
+      return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s ${cardName(d.fortID as string)}`
     case 'colonize':
       return `${actor} moved ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''} to forts`
     case 'victory':

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import IGameStateView from 'common/IGameStateView'
+import { shellInfo } from 'common/fortGrid'
 import Fort from 'components/Fort'
 import ActionInstructions from 'components/ActionInstructions'
 import AttackTargetDisplay, {
@@ -26,8 +27,17 @@ export const AttackWave2Phase: React.FC<Props> = ({
   const { targetFort } = useAttackTarget(view)
 
   const numT = view.diceBank['T'] ?? 0
-  const remaining = numT - selected.length
-  const ready = selected.length === numT
+
+  const allShellLocs: [number, number][] = targetFort
+    ? shellInfo(targetFort.grid)
+        .filter(s => s.color !== null)
+        .map(s => s.loc)
+    : []
+
+  // Can't select more cells than exist — if T > available cells, all cells count as ready
+  const required = Math.min(numT, allShellLocs.length)
+  const remaining = required - selected.length
+  const ready = selected.length === required
 
   function handleCellClick(loc: [number, number]) {
     const key = locKey(loc[0], loc[1])
@@ -36,7 +46,7 @@ export const AttackWave2Phase: React.FC<Props> = ({
       if (existingIdx !== -1) {
         return prev.filter((_, i) => i !== existingIdx)
       }
-      if (prev.length >= numT) return prev
+      if (prev.length >= required) return prev
       return [...prev, loc]
     })
   }
@@ -47,16 +57,6 @@ export const AttackWave2Phase: React.FC<Props> = ({
       payload: { attackLocs: selected },
     })
   }
-
-  const allShellLocs: [number, number][] = targetFort
-    ? targetFort.grid.flatMap((row, r) =>
-        row.flatMap((cell, c) =>
-          cell.type === 'shell' && cell.color !== null
-            ? ([[r, c]] as [number, number][])
-            : [],
-        ),
-      )
-    : []
 
   const selectedKeys = new Set(selected.map(([r, c]) => locKey(r, c)))
   const highlights = allShellLocs.filter(
@@ -71,7 +71,7 @@ export const AttackWave2Phase: React.FC<Props> = ({
         title="Second Wave Attack"
         description={
           isMyTurn
-            ? `Select ${numT} shell${numT !== 1 ? 's' : ''} to destroy.`
+            ? `Select ${required} shell${required !== 1 ? 's' : ''} to destroy.`
             : 'Watching the attacker select shells to destroy.'
         }
       />
@@ -88,7 +88,7 @@ export const AttackWave2Phase: React.FC<Props> = ({
                   fontSize: 13,
                 }}>
                 {ready
-                  ? `${numT} shell${numT !== 1 ? 's' : ''} selected — ready to confirm.`
+                  ? `${required} shell${required !== 1 ? 's' : ''} selected — ready to confirm.`
                   : `Select ${remaining} more shell${remaining !== 1 ? 's' : ''}.`}
               </p>
               <button
