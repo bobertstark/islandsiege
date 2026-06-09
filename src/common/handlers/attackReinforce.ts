@@ -22,6 +22,9 @@ export function handleAttackReinforce(state: IGameState): IGameState {
 
   players[state.currentPlayerIndex] = { ...player, shells }
 
+  const diceBank = { ...state.diceBank }
+  for (const symb of allowed) delete diceBank[symb as DieValue]
+
   const shellsAdded: Record<string, number> = {}
   for (const symb of Object.keys(state.diceBank)) {
     if (!allowed.includes(symb)) continue
@@ -39,6 +42,7 @@ export function handleAttackReinforce(state: IGameState): IGameState {
   return {
     ...state,
     players,
+    diceBank,
     shellReserve: reserve,
     phase: 'attackDestroy',
     log: [...state.log, logEntry],

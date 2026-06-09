@@ -408,7 +408,7 @@ describe('gameReducer', () => {
       type: GamePhases.attackRoll,
       payload: { action: 'keep' },
     })
-    expect(state.phase).toBe('attackWave1')
+    expect(state.phase).toBe('attackLeadership')
   })
 
   describe('attackLeadership', () => {
@@ -529,7 +529,7 @@ describe('gameReducer', () => {
       payload: { attackColor: 'G', attackLoc: [1, 2] },
     }
     let state = gameReducer(gs, payload)
-    expect(state.phase).toBe('attackReinforceOrWave2')
+    expect(state.phase).toBe('attackReinforce')
     expect(state.diceBank).toEqual({ B: 1, W: 2 })
     const updatedFort = findFort(state.players[1], 'testFort')
     expect(fortShellsRemaining(updatedFort)).toBe(3)
@@ -540,25 +540,21 @@ describe('gameReducer', () => {
     expect(fortShellsRemaining(fort2)).toBe(3) // attack should fail
   })
 
-  it('attackReinforceOrWave2 - reinforce if no target', () => {
-    gs.diceBank = { B: 2 }
-    let payload = {
-      type: GamePhases.attackReinforceOrWave2,
-      payload: { choice: 'attackWave2' },
-    }
-
+  it('attackReinforceOrWave2 - player choice respected when both shelled and target dice present', () => {
+    gs.diceBank = { B: 2, T: 1 }
     gs.players[1] = addFort(gs.players[1], createMockFort())
     gs.shipLocations[0] = { targetPlayerIndex: 1, fortID: 'testFort' }
 
-    let state = gameReducer(gs, payload)
-    // no target rolls, so default to reinforce
-    expect(state.phase).toBe('attackReinforce')
-    // now with target, wave2
-    gs.diceBank = { B: 2, T: 1 }
-    state = gameReducer(gs, payload)
+    let state = gameReducer(gs, {
+      type: GamePhases.attackReinforceOrWave2,
+      payload: { choice: 'wave2' },
+    })
     expect(state.phase).toBe('attackWave2')
-    payload.payload.choice = 'reinforce'
-    state = gameReducer(gs, payload)
+
+    state = gameReducer(gs, {
+      type: GamePhases.attackReinforceOrWave2,
+      payload: { choice: 'reinforce' },
+    })
     expect(state.phase).toBe('attackReinforce')
   })
 

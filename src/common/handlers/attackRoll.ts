@@ -90,9 +90,7 @@ export function handleAttackRoll(
     return {
       ...state,
       diceBank: bank,
-      phase: canAffordLeadership
-        ? 'attackLeadership'
-        : nextPhaseAfterLeadership(bank, state.attackIsOpenWater),
+      phase: 'attackLeadership',
       log: [...(state.log ?? []), finalizeEntry],
     }
   }

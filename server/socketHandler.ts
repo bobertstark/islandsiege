@@ -5,6 +5,16 @@ import { gameReducer } from 'common/gameReducer'
 import { redactStateForPlayer, redactStateForWaiting } from './redact'
 import IGameState from 'common/IGameState'
 
+const AUTO_PHASES = new Set([
+  'victory',
+  'colonize',
+  'draw',
+  'attackLeadership',
+  'attackReinforce',
+  'attackDestroy',
+  'endTurn',
+])
+
 // gameId → connected sockets (identified by playerId, not cached index)
 const gameSockets = new Map<string, { ws: WebSocket; playerId: string }[]>()
 
@@ -30,12 +40,32 @@ export function attachWebSocket(wss: WebSocketServer): void {
     gameSockets.get(gameId)!.push({ ws, playerId })
 
     if (seated >= 0) {
-      send(ws, 'state', redactStateForPlayer(state, seated))
+      // If this player reconnects while the game is waiting on their colonize
+      // auto-step, advance it now and broadcast to all players
+      let liveState = state
+      if (
+        liveState.phase === 'colonize' &&
+        liveState.currentPlayerIndex === seated
+      ) {
+        try {
+          let advanced = gameReducer(liveState, { type: 'colonize' as any })
+          while (AUTO_PHASES.has(advanced.phase)) {
+            advanced = gameReducer(advanced, { type: advanced.phase as any })
+          }
+          setGame(gameId, advanced)
+          liveState = advanced
+        } catch (err) {
+          console.error('[colonize auto-advance on reconnect]', err)
+        }
+        broadcastState(gameId, liveState)
+      } else {
+        send(ws, 'state', redactStateForPlayer(liveState, seated))
+      }
     } else {
       send(ws, 'state', redactStateForWaiting(state, waiting))
     }
 
-    ws.on('message', raw => {
+    ws.on('message', async raw => {
       let msg: { action: { type: string; payload?: unknown } }
       try {
         msg = JSON.parse(String(raw))
@@ -158,17 +188,13 @@ export function attachWebSocket(wss: WebSocketServer): void {
         stateBeforeReduce = { ...current, log: [...current.log, readyEntry] }
       }
 
-      const AUTO_PHASES = new Set([
-        'victory',
-        'draw',
-        'attackReinforce',
-        'attackDestroy',
-        'endTurn',
-      ])
       let result
       try {
         result = gameReducer(stateBeforeReduce, action as any)
         while (AUTO_PHASES.has(result.phase)) {
+          setGame(gameId, result)
+          broadcastState(gameId, result)
+          await new Promise(r => setTimeout(r, 1000))
           result = gameReducer(result, { type: result.phase as any })
         }
       } catch (err) {

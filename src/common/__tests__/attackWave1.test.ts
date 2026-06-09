@@ -32,7 +32,7 @@ describe('handleAttackWave1', () => {
       attackColor: 'B',
       attackLoc: [0, 0],
     })
-    expect(next.phase).toBe('attackReinforceOrWave2')
+    expect(next.phase).toBe('attackReinforce')
     expect(next.diceBank.B).toBeUndefined()
     expect(next.diceBank.W).toBe(1)
     const fort = next.players[1].forts.find(f => f.id === 'f1')!
@@ -44,7 +44,7 @@ describe('handleAttackWave1', () => {
   it('removes color dice but leaves grid unchanged when attackLoc is absent', () => {
     const state = stateWithFort({ B: 1, W: 1 })
     const next = handleAttackWave1(state, { attackColor: 'B' })
-    expect(next.phase).toBe('attackReinforceOrWave2')
+    expect(next.phase).toBe('attackReinforce')
     expect(next.diceBank.B).toBeUndefined()
     expect(next.diceBank.W).toBe(1)
     const fort = next.players[1].forts.find(f => f.id === 'f1')!
