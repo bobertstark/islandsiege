@@ -35,7 +35,7 @@ const PhaseSlider: React.FC<{ phase: string }> = ({ phase }) => {
   const state = getSliderState(phase)
 
   if (state.track === 'main') {
-    const steps: MainStep[] = ['victory', 'colonize', 'action']
+    const steps = Object.keys(MAIN_LABELS) as MainStep[]
     return (
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {steps.map((step, i) => (

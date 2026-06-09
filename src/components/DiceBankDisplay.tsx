@@ -2,6 +2,7 @@ import React from 'react'
 import { rollCounts } from 'common/attackRoll'
 import { DieValue, DIE_STYLE } from 'common/die'
 import { ShellColor } from 'common/colors'
+import { iconLabel } from './styles'
 
 const WAVE_COLORS: Array<{ symbol: 'B' | 'W' | 'G'; color: ShellColor }> = [
   { symbol: 'B', color: 'black' },
@@ -33,9 +34,7 @@ export const DiceBankDisplay: React.FC<DiceBankDisplayProps> = ({
         const color = WAVE_COLORS.find(c => c.symbol === face)?.color ?? null
         const isSelected = color !== null && selectedColor === color
         return (
-          <div
-            key={face}
-            style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div key={face} style={iconLabel}>
             <div
               onClick={onDieClick ? () => onDieClick(face) : undefined}
               style={{

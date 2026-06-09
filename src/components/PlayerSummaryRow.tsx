@@ -5,6 +5,7 @@ import CoinIcon from './CoinIcon'
 import HandIcon from './HandIcon'
 import { ShellColor, ShellColors } from 'common/colors'
 import { rotateFrom } from 'common/order'
+import { iconLabel } from './styles'
 
 interface PlayerSummaryRowProps {
   players: IPlayerView[]
@@ -65,7 +66,7 @@ const PlayerSummaryRow: React.FC<PlayerSummaryRowProps> = ({
                 }}>
                 {player.name}
               </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={iconLabel}>
                 <MeepleIcon size={16} color={player.color} />
                 <span
                   style={{
@@ -76,7 +77,7 @@ const PlayerSummaryRow: React.FC<PlayerSummaryRowProps> = ({
                   {player.colonists}
                 </span>
               </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={iconLabel}>
                 <CoinIcon size={16} />
                 <span
                   style={{
@@ -87,7 +88,7 @@ const PlayerSummaryRow: React.FC<PlayerSummaryRowProps> = ({
                   {player.coins}
                 </span>
               </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={iconLabel}>
                 <HandIcon size={16} />
                 <span style={{ fontWeight: 600, fontSize: 13 }}>
                   {handCount}
