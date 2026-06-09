@@ -75,6 +75,16 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
       return `${actor} moved ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''} to forts`
     case 'victory':
       return `${playerName(players, d.winningPlayerIndex as number)} wins!`
+    case 'lobbyJoin':
+      return `${d.playerName ?? actor} joined`
+    case 'lobbyKick':
+      return `${d.kickedName ?? actor} was removed`
+    case 'lobbyReady':
+      return `${actor} is ready`
+    case 'lobbyUnready':
+      return `${actor} is no longer ready`
+    case 'lobbyStart':
+      return 'Game started'
     default:
       return `${actor}: ${entry.phase}`
   }

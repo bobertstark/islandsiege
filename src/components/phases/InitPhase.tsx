@@ -4,19 +4,26 @@ import '../shared.css'
 interface InitPhaseProps {
   onJoin: (gameId: string, playerId: string) => void
   prefilledGameId?: string
+  kickedFromGame?: boolean
 }
 
 type PendingAction = { kind: 'create' } | { kind: 'join'; gameId: string }
 
+interface LobbyInfo {
+  playerCount: number | null
+  players: { name: string }[]
+}
+
 export const InitPhase: React.FC<InitPhaseProps> = ({
   onJoin,
   prefilledGameId = '',
+  kickedFromGame = false,
 }) => {
   const [joinInput, setJoinInput] = useState(prefilledGameId)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
-    // pre-fill join flow when arriving via invite link
     prefilledGameId ? { kind: 'join', gameId: prefilledGameId } : null,
   )
+  const [lobbyInfo, setLobbyInfo] = useState<LobbyInfo | null>(null)
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -24,6 +31,28 @@ export const InitPhase: React.FC<InitPhaseProps> = ({
 
   useEffect(() => {
     if (pendingAction) nameRef.current?.focus()
+  }, [pendingAction])
+
+  // Fetch lobby info when a join modal opens
+  useEffect(() => {
+    if (pendingAction?.kind !== 'join') {
+      setLobbyInfo(null)
+      return
+    }
+    let cancelled = false
+    fetch(`/api/games/${pendingAction.gameId}/lobby`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => {
+        if (!cancelled && data)
+          setLobbyInfo({
+            playerCount: data.playerCount ?? null,
+            players: data.players ?? [],
+          })
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
   }, [pendingAction])
 
   async function joinGame(gameId: string, playerName: string) {
@@ -68,14 +97,24 @@ export const InitPhase: React.FC<InitPhaseProps> = ({
     setPendingAction(null)
     setName('')
     setError(null)
+    setLobbyInfo(null)
   }
 
   const modalTitle =
     pendingAction?.kind === 'create' ? 'Create game' : 'Join game'
 
+  const lobbyStatus =
+    lobbyInfo &&
+    (lobbyInfo.playerCount !== null
+      ? `${lobbyInfo.players.length} / ${lobbyInfo.playerCount} players`
+      : `${lobbyInfo.players.length} player${lobbyInfo.players.length !== 1 ? 's' : ''} in lobby`)
+
   return (
     <div className="start-game-container">
       <h1>Island Siege</h1>
+      {kickedFromGame && (
+        <p style={{ color: '#c00' }}>You were removed from the game.</p>
+      )}
       {!prefilledGameId && (
         <div style={{ marginBottom: 32 }}>
           <h2>Create Game</h2>
@@ -133,7 +172,12 @@ export const InitPhase: React.FC<InitPhaseProps> = ({
               flexDirection: 'column',
               gap: 16,
             }}>
-            <h2 style={{ margin: 0 }}>{modalTitle}</h2>
+            <h2 style={{ margin: 0 }}>Enter your name</h2>
+            {lobbyStatus && (
+              <p style={{ margin: 0, color: '#555', fontSize: 14 }}>
+                {lobbyStatus}
+              </p>
+            )}
             {error && <p style={{ color: 'red', margin: 0 }}>{error}</p>}
             <input
               ref={nameRef}
@@ -153,7 +197,14 @@ export const InitPhase: React.FC<InitPhaseProps> = ({
               <button onClick={dismiss} disabled={loading}>
                 Cancel
               </button>
-              <button onClick={confirm} disabled={loading || !name.trim()}>
+              <button
+                onClick={confirm}
+                disabled={loading || !name.trim()}
+                style={{
+                  background: loading || !name.trim() ? undefined : '#2a9d2a',
+                  color: loading || !name.trim() ? undefined : '#fff',
+                  borderColor: loading || !name.trim() ? undefined : '#1e7a1e',
+                }}>
                 {loading ? `${modalTitle}…` : modalTitle}
               </button>
             </div>

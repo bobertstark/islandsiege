@@ -28,7 +28,7 @@ router.get('/games/:id/lobby', (req, res) => {
 router.post('/games', (req, res) => {
   const deckState = createDeck()
   const initial: IGameState = {
-    playerCount: undefined,
+    playerCount: 2,
     waitingPlayers: [],
     readyPlayers: [],
     players: [],

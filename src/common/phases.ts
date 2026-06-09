@@ -21,6 +21,7 @@ export type Phase =
   | 'lobbyJoin'
   | 'lobbyKick'
   | 'lobbyReady'
+  | 'lobbyUnready'
   | 'lobbyStart'
   | 'startGame'
   | 'setColor'
@@ -51,6 +52,7 @@ export const GamePhases = {
   lobbyJoin: 'lobbyJoin',
   lobbyKick: 'lobbyKick',
   lobbyReady: 'lobbyReady',
+  lobbyUnready: 'lobbyUnready',
   lobbyStart: 'lobbyStart',
   startGame: 'startGame',
   setColor: 'setColor',

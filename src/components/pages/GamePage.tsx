@@ -43,9 +43,12 @@ function getTurnState(
   playerIdx: number,
 ): { isMyTurn: boolean; waitingFor: WaitingForPlayer[] } {
   const isSimultaneous = SIMULTANEOUS_PHASES.has(view.phase)
-  const isMyTurn = isSimultaneous
-    ? view.pending?.[playerIdx] === undefined
-    : view.currentPlayerIndex === playerIdx
+  const isMyTurn =
+    playerIdx < 0
+      ? false
+      : isSimultaneous
+        ? view.pending?.[playerIdx] === undefined
+        : view.currentPlayerIndex === playerIdx
   const waitingFor: WaitingForPlayer[] = isSimultaneous
     ? view.players
         .filter((_, i) => view.pending?.[i] === undefined)

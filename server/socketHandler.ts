@@ -93,6 +93,26 @@ export function attachWebSocket(wss: WebSocketServer): void {
         return
       }
 
+      if (msg.action.type === 'unready') {
+        const unreadyEntry = {
+          phase: 'lobbyUnready' as const,
+          playerIndex: playerIdx,
+          turn: 0,
+          timestamp: new Date().toISOString(),
+          data: {},
+        }
+        const updated = {
+          ...current,
+          readyPlayers: (current.readyPlayers ?? []).filter(
+            i => i !== playerIdx,
+          ),
+          log: [...current.log, unreadyEntry],
+        }
+        setGame(gameId, updated)
+        broadcastState(gameId, updated)
+        return
+      }
+
       // Actions any seated player can dispatch regardless of turn order
       const nonTurnActions = new Set(['initDraw', 'startGame', 'setColor'])
 
