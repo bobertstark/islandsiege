@@ -160,6 +160,28 @@ describe('gameReducer', () => {
     expect(state.discard.map(c => c.id)).not.toContain('b')
   })
 
+  it('drawPick - with targetPlayerIndex: selected card goes to opponent, remaining 2 go to current player', () => {
+    const drawn = [
+      { name: 'A', id: 'a', type: 'fort' as CardType, description: 'test' },
+      { name: 'B', id: 'b', type: 'ship' as CardType, description: 'test' },
+      { name: 'C', id: 'c', type: 'building' as CardType, description: 'test' },
+    ]
+    gs.drawnCards = drawn
+
+    const state = gameReducer(gs, {
+      type: GamePhases.drawPick,
+      payload: { cardID: 'b', targetPlayerIndex: 1 },
+    })
+    expect(state.players[0].hand.map(c => c.id)).toEqual(
+      expect.arrayContaining(['a', 'c']),
+    )
+    expect(state.players[0].hand).toHaveLength(2)
+    expect(state.players[1].hand.map(c => c.id)).toContain('b')
+    expect(state.discard.map(c => c.id)).not.toContain('b')
+    expect(state.drawnCards).toHaveLength(0)
+    expect(state.phase).toBe('endTurn')
+  })
+
   it('victory - will check for victory conditions', () => {
     const payload = { type: GamePhases.victory }
     let state = gameReducer(gs, payload)
