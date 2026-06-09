@@ -9,7 +9,6 @@ const AUTO_PHASES = new Set([
   'victory',
   'colonize',
   'draw',
-  'attackLeadership',
   'attackReinforce',
   'attackDestroy',
   'endTurn',
