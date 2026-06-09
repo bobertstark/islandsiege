@@ -1,7 +1,7 @@
 import React from 'react'
 import type { FortGridCell } from 'common/fortGrid'
 import { ShellColors } from '../common/colors'
-import './shared.css'
+import './styles.css'
 
 function getCellLabel(cell: FortGridCell) {
   if (cell.type === 'shell' && cell.color) return cell.color[0].toUpperCase()

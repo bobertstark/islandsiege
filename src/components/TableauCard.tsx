@@ -1,6 +1,6 @@
 import React from 'react'
 import DescriptionText from 'components/DescriptionText'
-import './shared.css'
+import './styles.css'
 
 interface TableauCardProps {
   title: string

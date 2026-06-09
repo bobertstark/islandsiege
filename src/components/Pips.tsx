@@ -1,6 +1,6 @@
 import React from 'react'
 import MeepleIcon from './MeepleIcon'
-import './shared.css'
+import './styles.css'
 
 interface PipsProps {
   count: number

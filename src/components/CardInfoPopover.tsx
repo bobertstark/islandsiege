@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import './shared.css'
+import './styles.css'
 
 interface CardInfoPopoverProps {
   info: string

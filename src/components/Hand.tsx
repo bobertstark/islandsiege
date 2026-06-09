@@ -1,7 +1,7 @@
 import React from 'react'
 import Card from './Card'
 import ICard from 'common/ICard'
-import './shared.css'
+import './styles.css'
 
 interface HandProps {
   cards: ICard[]

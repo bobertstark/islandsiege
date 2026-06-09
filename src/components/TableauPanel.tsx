@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import './shared.css'
+import { sectionLabel } from './styles'
 import IGameStateView from 'common/IGameStateView'
 import IShip from 'common/IShip'
 import FortGroup from './FortGroup'
@@ -77,7 +77,7 @@ const TableauPanel: React.FC<TableauPanelProps> = ({ view, playerIdx }) => {
                 marginBottom: 8,
               }}>
               {i === playerIdx ? (
-                <span className="section-label">Your Tableau</span>
+                <span style={sectionLabel}>Your Tableau</span>
               ) : (
                 <span
                   style={{

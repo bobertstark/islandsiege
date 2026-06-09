@@ -1,11 +1,5 @@
 /* Shared styles for all components */
 
-.section-label {
-  font-weight: 600;
-  font-size: 13px;
-  color: #666;
-}
-
 .card {
   border: 2px solid #ccc;
   border-radius: 4px;

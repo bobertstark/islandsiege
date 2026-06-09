@@ -1,5 +1,5 @@
 import React from 'react'
-import './shared.css'
+import { sectionLabel } from './styles'
 import IGameStateView from 'common/IGameStateView'
 import ICard from 'common/ICard'
 import { TurnBanner, WaitingForPlayer } from './TurnBanner'
@@ -68,9 +68,7 @@ const GameShell: React.FC<GameShellProps> = ({
               borderBottom: '1px solid #ddd',
               overflowX: 'auto',
             }}>
-            <div className="section-label" style={{ marginBottom: 8 }}>
-              Your Hand
-            </div>
+            <div style={{ ...sectionLabel, marginBottom: 8 }}>Your Hand</div>
             <Hand cards={handCards} />
           </div>
         )}
