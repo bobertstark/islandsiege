@@ -131,6 +131,9 @@ const Card: React.FC<CardProps> = ({
           <FortGrid grid={fortGrid} view="hand" showLabels />
         </div>
       )}
+      <div className="card-description">
+        <DescriptionText text={card.description} />
+      </div>
       {typeof card.slots === 'number' && (
         <div
           style={{
@@ -154,9 +157,6 @@ const Card: React.FC<CardProps> = ({
           ))}
         </div>
       )}
-      <div className="card-description">
-        <DescriptionText text={card.description} />
-      </div>
     </div>
   )
 }

@@ -11,7 +11,9 @@ interface TableauCardProps {
   compact?: boolean
   // stretch to the row height (e.g. ships matching fort height)
   fill?: boolean
-  // body between the description and the footer (grid, pips, cost, …)
+  // content rendered before the description (e.g. fort grid)
+  above?: React.ReactNode
+  // body after the description (pips, cost, …)
   children?: React.ReactNode
 }
 
@@ -23,6 +25,7 @@ const TableauCard: React.FC<TableauCardProps> = ({
   highlighted,
   compact,
   fill,
+  above,
   children,
 }) => {
   const cls = [
@@ -37,6 +40,7 @@ const TableauCard: React.FC<TableauCardProps> = ({
   return (
     <div className={cls}>
       <strong>{title}</strong>
+      {above}
       <div className="tableau-card-description">
         <DescriptionText text={description} />
       </div>
