@@ -105,6 +105,16 @@
 .tableau-card.fill {
   height: 100%;
 }
+.tableau-card-above {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.tableau-card.fill .tableau-card-above {
+  flex: 1;
+  min-height: 0;
+}
 .tableau-card.compact {
   height: 100%;
   justify-content: space-between;

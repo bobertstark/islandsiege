@@ -39,7 +39,7 @@ const TableauCard: React.FC<TableauCardProps> = ({
 
   return (
     <div className={cls}>
-      {above}
+      <div className="tableau-card-above">{above}</div>
       <strong>{title}</strong>
       <div className="tableau-card-description">
         <DescriptionText text={description} />

@@ -8,6 +8,8 @@ import MeepleIcon from 'components/MeepleIcon'
 import CoinIcon from 'components/CoinIcon'
 import HammerIcon from 'components/HammerIcon'
 import DescriptionText from 'components/DescriptionText'
+import ShipIcon from 'components/ShipIcon'
+import BuildingIcon from 'components/BuildingIcon'
 import { iconLabel, symbolBox } from './styles'
 import './styles.css'
 
@@ -45,6 +47,16 @@ const Card: React.FC<CardProps> = ({
             justifyContent: 'center',
           }}>
           <FortGrid grid={fortGrid} view="hand" showLabels />
+        </div>
+      )}
+      {isBuilding(card) && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            margin: '6px 0 2px',
+          }}>
+          <BuildingIcon width={48} />
         </div>
       )}
       {isBuilding(card) && (
@@ -95,6 +107,16 @@ const Card: React.FC<CardProps> = ({
               })}
             </span>
           )}
+        </div>
+      )}
+      {isShip(card) && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            margin: '6px 0 2px',
+          }}>
+          <ShipIcon width={48} />
         </div>
       )}
       {isShip(card) &&
