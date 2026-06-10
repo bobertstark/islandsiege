@@ -41,40 +41,40 @@ function attackerState(buildingIds: string[]): IGameState {
 }
 
 describe('attacker bonus dice (addDieOnAttack)', () => {
-  it('appends one bonus die per in-play addDieOnAttack building', () => {
+  it('bonus face visible in diceBank immediately on init and logs it (armory → G)', () => {
     const next = handleAttackRoll(attackerState(['armory']), { action: 'init' })
-    expect(next.attackRoll).toHaveLength(3)
-    expect(next.attackRoll!.slice(0, 2).every(d => DIE_FACES.includes(d))).toBe(
-      true,
+    expect(next.attackRoll).toHaveLength(2)
+    expect(next.diceBank['G']).toBe(1)
+    expect(next.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ bonusDie: 'G', cardID: 'armory' }),
+      }),
     )
-    expect(next.attackRoll![2]).toBe('G')
   })
 
-  it('appends the face matching each building (cannonSmith → B, cannonballForge → W, gunpowderHouse → T)', () => {
+  it('multiple bonus buildings each appear in diceBank and log (cannonSmith B, cannonballForge W, gunpowderHouse T)', () => {
     const next = handleAttackRoll(
       attackerState(['cannonSmith', 'cannonballForge', 'gunpowderHouse']),
       { action: 'init' },
     )
-    expect(next.attackRoll).toHaveLength(5)
-    expect(next.attackRoll!.slice(2)).toEqual(['B', 'W', 'T'])
+    expect(next.diceBank['B']).toBe(1)
+    expect(next.diceBank['W']).toBe(1)
+    expect(next.diceBank['T']).toBe(1)
+    expect(next.log.filter(e => e.data.bonusDie)).toHaveLength(3)
   })
 
-  it('adds no extra dice when the attacker has no bonus buildings', () => {
+  it('no bonus dice when the attacker has no bonus buildings', () => {
     const next = handleAttackRoll(attackerState([]), { action: 'init' })
     expect(next.attackRoll).toHaveLength(2)
+    expect(next.log.filter(e => e.data.bonusDie)).toHaveLength(0)
   })
 
-  it('keeps bonus dice fixed when a reroll requests their indices', () => {
+  it('bonus faces persist in diceBank after locking', () => {
     const rolled = handleAttackRoll(attackerState(['armory']), {
       action: 'init',
     })
-    const next = handleAttackRoll(rolled, {
-      action: 'reroll',
-      diceIndicesReroll: [0, 1, 2],
-    })
-    // index 2 is the armory bonus and must survive the reroll
-    expect(next.attackRoll![2]).toBe('G')
-    expect(next.attackRoll).toHaveLength(3)
+    const locked = handleAttackRoll(rolled, { action: 'keep' })
+    expect(locked.diceBank['G']).toBeGreaterThanOrEqual(1)
   })
 })
 

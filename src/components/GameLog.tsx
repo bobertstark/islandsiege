@@ -53,6 +53,8 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     case 'buildShip':
       return `${actor} built ${cardName(d.cardID as string)}, moving ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''}`
     case 'attackRoll': {
+      if (d.bonusDie !== undefined)
+        return `${actor}'s ${cardName(d.cardID as string)} adds [${d.bonusDie}] to attack`
       const rollArr =
         (d.roll as string[] | undefined) ?? (d.finalRoll as string[])
       const rollStr = rollArr.join(', ')

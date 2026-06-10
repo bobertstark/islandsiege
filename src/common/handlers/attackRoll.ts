@@ -1,6 +1,12 @@
 import IGameState from 'common/IGameState'
 import { Phase } from 'common/phases'
-import { rollDice, rerollDice, reduceDice, rollCounts } from 'common/attackRoll'
+import {
+  rollDice,
+  rerollDice,
+  reduceDice,
+  addDice,
+  rollCounts,
+} from 'common/attackRoll'
 import { createRng } from 'common/rng'
 import { allLeadershipAbilities } from 'common/player'
 import { ILogEntry } from 'common/ILog'
@@ -33,39 +39,48 @@ export function handleAttackRoll(
       0,
       player.diceRerolls - (state.attackFlags?.attackerRerollsMinus ?? 0),
     )
-    const roll = [
-      ...rollDice(diceCount, rng.next.bind(rng)),
-      ...attackerBonusDice(player),
-    ]
-    const initEntry: ILogEntry = {
+    const roll = rollDice(diceCount, rng.next.bind(rng))
+    const bonusDice = attackerBonusDice(player)
+    const bonusBank = bonusDice.reduce(
+      (b, { face }) => addDice(b, face, 1),
+      {} as rollCounts,
+    )
+    const ts = new Date().toISOString()
+    const mk = (data: Record<string, unknown>): ILogEntry => ({
       phase: 'attackRoll',
       playerIndex: state.currentPlayerIndex,
       turn: state.currentPlayerIndex,
-      timestamp: new Date().toISOString(),
-      data: { roll, rerollsRemaining: rerolls },
-    }
+      timestamp: ts,
+      data,
+    })
+    const bonusEntries = bonusDice.map(({ face, cardID }) =>
+      mk({ bonusDie: face, cardID }),
+    )
     return {
       ...state,
       attackRoll: roll,
       attackRerollsRemaining: rerolls,
+      diceBank: bonusBank,
       phase: 'attackRoll',
       rngSeed: rng.seed(),
-      log: [...(state.log ?? []), initEntry],
+      log: [
+        ...(state.log ?? []),
+        ...bonusEntries,
+        mk({ roll, rerollsRemaining: rerolls }),
+      ],
     }
   }
 
   if (payload.action === 'reroll' && state.attackRerollsRemaining > 0) {
     const rng = createRng(state.rngSeed)
-    // Bonus dice occupy the trailing slots and are fixed — drop them from reroll.
-    const baseCount =
-      state.attackRoll!.length - attackerBonusDice(player).length
     const banned = state.attackFlags?.banRerollFaces ?? []
-    // steepWalledStronghold: a reroll must re-roll every (base) die.
+    const rollLen = state.attackRoll!.length
+    // steepWalledStronghold: a reroll must re-roll every die.
     const requested = state.attackFlags?.mustRerollAll
-      ? Array.from({ length: baseCount }, (_, i) => i)
+      ? Array.from({ length: rollLen }, (_, i) => i)
       : (payload.diceIndicesReroll ?? [])
     const indices = requested.filter(
-      i => i < baseCount && !banned.includes(state.attackRoll![i]),
+      i => i < rollLen && !banned.includes(state.attackRoll![i]),
     )
     const roll = rerollDice(state.attackRoll!, indices, rng.next.bind(rng))
     const rerollEntry: ILogEntry = {
@@ -89,7 +104,10 @@ export function handleAttackRoll(
   }
 
   if (payload.action === 'keep' || state.attackRerollsRemaining === 0) {
-    const bank = reduceDice(state.attackRoll!)
+    const bank = attackerBonusDice(player).reduce(
+      (b, { face }) => addDice(b, face, 1),
+      reduceDice(state.attackRoll!),
+    )
     const abilities = allLeadershipAbilities(
       state.players[state.currentPlayerIndex],
     )

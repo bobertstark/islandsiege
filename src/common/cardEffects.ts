@@ -139,13 +139,17 @@ export function deriveAttackFlags(
   return flags
 }
 
-// Fixed bonus dice contributed by a player's in-play buildings (i.e. armory).
-// Appended after the rolled dice; they are not rerollable.
-export function attackerBonusDice(player: Pick<IPlayer, 'forts'>): DieValue[] {
+// Fixed bonus dice contributed by a player's in-play buildings (e.g. armory).
+// Returns {face, cardID} pairs so callers can log which building contributed.
+export function attackerBonusDice(
+  player: Pick<IPlayer, 'forts'>,
+): { face: DieValue; cardID: string }[] {
   return player.forts
     .flatMap(f => f.buildings)
     .flatMap(b => {
       const fx = CARD_EFFECTS[b.id]?.passive
-      return fx?.type === 'addDieOnAttack' ? [fx.face] : []
+      return fx?.type === 'addDieOnAttack'
+        ? [{ face: fx.face, cardID: b.id }]
+        : []
     })
 }
