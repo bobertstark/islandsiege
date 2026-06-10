@@ -18,6 +18,7 @@ export function handleEndTurn(state: IGameState): IGameState {
     attackRerollsRemaining: 0,
     diceBank: {},
     attackIsOpenWater: false,
+    attackFlags: undefined,
     log: [...state.log, turnEntry],
   }
 }

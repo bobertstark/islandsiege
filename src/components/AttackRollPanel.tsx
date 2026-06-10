@@ -7,6 +7,7 @@ interface AttackRollPanelProps {
   rerollsRemaining: number
   dispatch: (action: { type: string; payload?: unknown }) => void
   readonly?: boolean
+  banRerollFaces?: DieValue[]
 }
 
 const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
@@ -14,6 +15,7 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
   rerollsRemaining,
   dispatch,
   readonly = false,
+  banRerollFaces = [],
 }) => {
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set())
   const [dieKeys, setDieKeys] = useState<number[]>(() => dice.map(() => 0))
@@ -24,6 +26,7 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
 
   function toggleDie(idx: number) {
     if (readonly) return
+    if (banRerollFaces.includes(dice[idx])) return
     setSelectedIndices(prev => {
       const next = new Set(prev)
       next.has(idx) ? next.delete(idx) : next.add(idx)
@@ -48,10 +51,15 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
   }
 
   const canReroll = rerollsRemaining > 0 && selectedIndices.size > 0
-  const allSelected = dice.length > 0 && selectedIndices.size === dice.length
+  const selectableIndices = dice
+    .map((face, i) => i)
+    .filter(i => !banRerollFaces.includes(dice[i]))
+  const allSelected =
+    selectableIndices.length > 0 &&
+    selectableIndices.every(i => selectedIndices.has(i))
 
   function toggleSelectAll() {
-    setSelectedIndices(allSelected ? new Set() : new Set(dice.map((_, i) => i)))
+    setSelectedIndices(allSelected ? new Set() : new Set(selectableIndices))
   }
 
   return (
@@ -85,15 +93,40 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
           flexWrap: 'wrap',
           margin: '0 0 12px',
         }}>
-        {dice.map((face, idx) => (
-          <Die
-            key={`${idx}-${dieKeys[idx] ?? 0}`}
-            face={face}
-            selected={!readonly && selectedIndices.has(idx)}
-            onClick={readonly ? undefined : () => toggleDie(idx)}
-            readonly={readonly}
-          />
-        ))}
+        {dice.map((face, idx) => {
+          const isBanned = !readonly && banRerollFaces.includes(face)
+          const die = (
+            <Die
+              key={`${idx}-${dieKeys[idx] ?? 0}`}
+              face={face}
+              selected={!readonly && selectedIndices.has(idx)}
+              onClick={readonly || isBanned ? undefined : () => toggleDie(idx)}
+              readonly={readonly || isBanned}
+            />
+          )
+          if (!isBanned) return die
+          return (
+            <div
+              key={`${idx}-${dieKeys[idx] ?? 0}`}
+              style={{ position: 'relative', display: 'inline-flex' }}>
+              <div style={{ opacity: 0.4, pointerEvents: 'none' }}>{die}</div>
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  fontSize: 10,
+                  lineHeight: 1,
+                  background: 'rgba(0,0,0,0.65)',
+                  color: '#fff',
+                  borderRadius: '0 6px 0 4px',
+                  padding: '1px 3px',
+                }}>
+                🔒
+              </span>
+            </div>
+          )
+        })}
       </div>
       {!readonly && (
         <div style={{ display: 'flex', gap: 8 }}>

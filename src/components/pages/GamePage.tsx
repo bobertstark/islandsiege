@@ -192,6 +192,7 @@ const AttackRollContent: React.FC<{
                 rerollsRemaining={view.attackRerollsRemaining}
                 dispatch={dispatch}
                 readonly={!isMyTurn}
+                banRerollFaces={view.attackFlags?.banRerollFaces}
               />
             )}
           </>

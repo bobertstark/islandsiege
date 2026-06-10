@@ -398,9 +398,9 @@ describe('gameReducer', () => {
     expect(state.attackRerollsRemaining).toBe(1)
     expect(state.phase).toBe('attackRoll')
 
-    // even if reroll is called again, finalization happens
+    // reroll with 0 remaining — diceBank is empty until the roll is locked
     state = gameReducer(state, payload)
-    expect(state.diceBank).toEqual({ B: 3, G: 0, L: 0, T: 0, W: 0 })
+    expect(state.diceBank).toEqual({})
     expect(state.phase).toBe('attackRoll')
 
     // finalize the roll to advance

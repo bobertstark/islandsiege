@@ -6,6 +6,7 @@ import IShip from './IShip'
 import { createFort, FortData } from './fort'
 import { createBuilding, BuildingData } from './building'
 import { createShip, ShipData } from './ship'
+import { CARD_EFFECTS } from './cardEffects'
 
 // cards.json is the single source of truth
 // The cast is only needed because TS infers the grid tuples too loosely to match FortGridSpec.
@@ -58,6 +59,7 @@ export function createShipById(id: string): IShip {
     description: c.description,
     cost: c.cost!,
     coins: c.coins!,
+    leadershipAbility: CARD_EFFECTS[id]?.shipAbility,
   }
   return createShip(data)
 }

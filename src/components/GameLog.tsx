@@ -19,6 +19,16 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     case 'endTurn':
       return `— ${actor}'s turn —`
     case 'action': {
+      switch (d.defenderEffect) {
+        case 'diceMinus':
+          return `${actor} rolls ${d.amount} fewer di${d.amount === 1 ? 'e' : 'ce'}`
+        case 'rerollsMinus':
+          return `${actor} has ${d.amount} fewer reroll${d.amount !== 1 ? 's' : ''}`
+        case 'banReroll':
+          return `${actor} cannot reroll [${d.face}] results`
+        case 'mustRerollAll':
+          return `${actor} must reroll all dice`
+      }
       if (d.openWater) return `${actor} attacked open water`
       const target = playerName(players, d.targetPlayerIndex as number)
       const fort = d.fortID ? cardName(d.fortID as string) : ''
@@ -39,10 +49,24 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     case 'buildFort':
       return `${actor} built ${cardName(d.cardID as string)} (+${d.shellsAdded} shells, +${d.coinsGained} coins)`
     case 'buildBuilding':
+      switch (d.onBuild) {
+        case 'returnOpponentFortColonist':
+          return `${actor}'s Prison returned colonists from opponents' forts`
+        case 'discardOpponentCard':
+          return `${actor} discarded ${cardName(d.cardID as string)} from ${playerName(players, d.targetPlayerIndex as number)}'s hand`
+        case 'destroyOpponentBuilding':
+          return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s ${cardName(d.buildingID as string)}`
+        case 'destroyOpponentShip':
+          return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s ${cardName(d.shipID as string)}`
+        case 'convertColonistsToCoins':
+          return `${actor}'s Silver Smelter converted colonists into ${d.coinsGained} coin${(d.coinsGained as number) !== 1 ? 's' : ''}`
+      }
       return `${actor} built ${cardName(d.cardID as string)} on ${cardName(d.fortID as string)}, moving ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''}${d.repairUsed ? ' (repair used)' : ''}`
     case 'buildShip':
       return `${actor} built ${cardName(d.cardID as string)}, moving ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''}`
     case 'attackRoll': {
+      if (d.bonusDie !== undefined)
+        return `${actor}'s ${cardName(d.cardID as string)} adds [${d.bonusDie}] to attack`
       const rollArr =
         (d.roll as string[] | undefined) ?? (d.finalRoll as string[])
       const rollStr = rollArr.join(', ')
@@ -55,9 +79,20 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
       // so we just show it uniformly as "rolled")
       return `${actor} rolled [${rollStr}] (${remaining} reroll${remaining !== 1 ? 's' : ''} remaining)`
     }
-    case 'attackLeadership':
+    case 'attackLeadership': {
       if (d.skip) return `${actor} skipped leadership`
-      return `${actor} used leadership to destroy ${cardName(d.destroyedCardID as string)} (${d.lSpent}L spent)`
+      switch (d.effect) {
+        case 'destroyShip':
+          return `${actor} destroyed ${cardName(d.destroyedCardID as string)} (${d.lSpent}L spent)`
+        case 'addDie':
+          return `${actor} added [${d.face}] to attack (${d.lSpent}L spent)`
+        case 'gainCoin':
+          return `${actor} gained 1 coin (${d.lSpent}L spent)`
+        case 'returnFortColonist':
+          return `${actor} returned a colonist from ${cardName(d.fortID as string)} (${d.lSpent}L spent)`
+      }
+      return `${actor} used leadership (${d.lSpent}L spent)`
+    }
     case 'attackWave1':
       return `${actor} attacked ${playerName(players, d.targetPlayerIndex as number)} with ${d.strength} ${d.attackColor} dice`
     case 'attackWave2':
@@ -72,6 +107,8 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     case 'attackDestroy':
       return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s ${cardName(d.fortID as string)}`
     case 'colonize':
+      if (d.prohibited === 'banFortColonistGain')
+        return `${actor}'s forts cannot gain colonists (Prison)`
       return `${actor} moved ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''} to forts`
     case 'victory':
       return `${playerName(players, d.winningPlayerIndex as number)} wins!`

@@ -3,10 +3,19 @@ import { createBuildingById } from 'common/cardRegistry'
 import { findFort, removeCardInHand } from 'common/player'
 import { addBuilding } from 'common/fort'
 import { ILogEntry } from 'common/ILog'
+import {
+  applyOnBuildEffect,
+  EffectTarget,
+} from 'common/handlers/onBuildEffects'
 
 export function handleBuildBuilding(
   state: IGameState,
-  payload: { fortID: string; buildingID: string; repairAt?: [number, number] },
+  payload: {
+    fortID: string
+    buildingID: string
+    repairAt?: [number, number]
+    effectTarget?: EffectTarget
+  },
 ): IGameState {
   const players = [...state.players]
   let player = players[state.currentPlayerIndex]
@@ -33,11 +42,16 @@ export function handleBuildBuilding(
       repairUsed: payload.repairAt !== undefined,
     },
   }
-  return {
+  const placed: IGameState = {
     ...state,
     players,
-    phase: 'endTurn',
-    pendingBuildCardID: undefined,
     log: [...state.log, logEntry],
   }
+  const resolved = applyOnBuildEffect(
+    placed,
+    state.currentPlayerIndex,
+    payload.buildingID,
+    payload.effectTarget,
+  )
+  return { ...resolved, phase: 'endTurn', pendingBuildCardID: undefined }
 }
