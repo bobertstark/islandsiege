@@ -25,6 +25,7 @@ import AttackLayout from 'components/AttackLayout'
 import Fort from 'components/Fort'
 import Ship from 'components/Ship'
 import ActionInstructions from 'components/ActionInstructions'
+import { DevOverlay } from 'components/dev/DevOverlay'
 import 'components/phases/Game.css'
 
 const SIMULTANEOUS_PHASES = new Set<string>(['initDraw'])
@@ -417,167 +418,176 @@ export const GamePage: React.FC = () => {
   const playerIdx = view.myPlayerIndex
   const { isMyTurn, waitingFor } = getTurnState(view, playerIdx)
 
-  switch (view.phase) {
-    case GamePhases.gameOver:
-      return <GameOverPhase view={view} playerIdx={playerIdx} />
-    case GamePhases.colonize:
-      return (
-        <ColonizePhase
-          view={view}
-          playerIdx={playerIdx}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-          logOpen={logOpen}
-          onToggleLog={onToggleLog}
-        />
-      )
-    case GamePhases.attackRoll:
-      return (
-        <AttackRollPhase
-          view={view}
-          playerIdx={playerIdx}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-          logOpen={logOpen}
-          onToggleLog={onToggleLog}
-        />
-      )
-    case GamePhases.attackLeadership:
-      return (
-        <AttackLeadershipPhase
-          view={view}
-          playerIdx={playerIdx}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          dispatch={dispatch}
-          logOpen={logOpen}
-          onToggleLog={onToggleLog}
-        />
-      )
-    default: {
-      const attackDice = ATTACK_DISPLAY_PHASES.has(view.phase)
-        ? countsToArray(view.diceBank)
-        : []
-      const actionContent = (() => {
-        switch (view.phase) {
-          case GamePhases.initDraw:
-            return (
-              <InitDrawPhase
-                view={view}
-                playerIdx={playerIdx}
-                isMyTurn={isMyTurn}
-                dispatch={dispatch}
-              />
-            )
-          case GamePhases.action:
-            return (
-              <ActionPhase
-                state={view}
-                playerIdx={playerIdx}
-                isMyTurn={isMyTurn}
-                dispatch={dispatch}
-              />
-            )
-          case GamePhases.drawPick:
-            return (
-              <DrawPickPhase
-                view={view}
-                isMyTurn={isMyTurn}
-                dispatch={dispatch}
-              />
-            )
-          case GamePhases.attackWave1:
-            return (
-              <AttackWave1Phase
-                view={view}
-                isMyTurn={isMyTurn}
-                dispatch={dispatch}
-              />
-            )
-          case GamePhases.attackReinforceOrWave2:
-            return (
-              <AttackReinforceOrWave2Phase
-                view={view}
-                isMyTurn={isMyTurn}
-                dispatch={dispatch}
-              />
-            )
-          case GamePhases.attackWave2:
-            return (
-              <AttackWave2Phase
-                view={view}
-                isMyTurn={isMyTurn}
-                dispatch={dispatch}
-              />
-            )
-          case GamePhases.attackReinforce:
-            return (
-              <>
-                <ActionInstructions
-                  title="Reinforce"
-                  description="Adding shells to your reserve…"
+  const renderPhase = (): React.ReactNode => {
+    switch (view.phase) {
+      case GamePhases.gameOver:
+        return <GameOverPhase view={view} playerIdx={playerIdx} />
+      case GamePhases.colonize:
+        return (
+          <ColonizePhase
+            view={view}
+            playerIdx={playerIdx}
+            isMyTurn={isMyTurn}
+            waitingFor={waitingFor}
+            dispatch={dispatch}
+            logOpen={logOpen}
+            onToggleLog={onToggleLog}
+          />
+        )
+      case GamePhases.attackRoll:
+        return (
+          <AttackRollPhase
+            view={view}
+            playerIdx={playerIdx}
+            isMyTurn={isMyTurn}
+            waitingFor={waitingFor}
+            dispatch={dispatch}
+            logOpen={logOpen}
+            onToggleLog={onToggleLog}
+          />
+        )
+      case GamePhases.attackLeadership:
+        return (
+          <AttackLeadershipPhase
+            view={view}
+            playerIdx={playerIdx}
+            isMyTurn={isMyTurn}
+            waitingFor={waitingFor}
+            dispatch={dispatch}
+            logOpen={logOpen}
+            onToggleLog={onToggleLog}
+          />
+        )
+      default: {
+        const attackDice = ATTACK_DISPLAY_PHASES.has(view.phase)
+          ? countsToArray(view.diceBank)
+          : []
+        const actionContent = (() => {
+          switch (view.phase) {
+            case GamePhases.initDraw:
+              return (
+                <InitDrawPhase
+                  view={view}
+                  playerIdx={playerIdx}
+                  isMyTurn={isMyTurn}
+                  dispatch={dispatch}
                 />
-                <AttackTargetDisplay view={view} />
-              </>
-            )
-          case GamePhases.attackDestroy:
-            return (
-              <>
-                <ActionInstructions
-                  title="Destruction"
-                  description="Resolving fort damage…"
+              )
+            case GamePhases.action:
+              return (
+                <ActionPhase
+                  state={view}
+                  playerIdx={playerIdx}
+                  isMyTurn={isMyTurn}
+                  dispatch={dispatch}
                 />
-                <AttackTargetDisplay view={view} />
-              </>
-            )
-          case GamePhases.buildFort:
-            return (
-              <BuildFortPhase
-                view={view}
-                isMyTurn={isMyTurn}
-                dispatch={dispatch}
-              />
-            )
-          case GamePhases.buildBuilding:
-            return (
-              <BuildBuildingPhase
-                view={view}
-                isMyTurn={isMyTurn}
-                dispatch={dispatch}
-              />
-            )
-          case GamePhases.buildShip:
-            return (
-              <BuildShipPhase
-                view={view}
-                isMyTurn={isMyTurn}
-                dispatch={dispatch}
-              />
-            )
-          default:
-            return attackDice.length > 0 ? (
-              <AttackRollPanel
-                dice={attackDice}
-                rerollsRemaining={0}
-                dispatch={dispatch}
-                readonly
-              />
-            ) : null
-        }
-      })()
-      return (
-        <GameShell
-          view={view}
-          playerIdx={playerIdx}
-          isMyTurn={isMyTurn}
-          waitingFor={waitingFor}
-          actionContent={actionContent}
-          logOpen={logOpen}
-          onToggleLog={onToggleLog}
-        />
-      )
+              )
+            case GamePhases.drawPick:
+              return (
+                <DrawPickPhase
+                  view={view}
+                  isMyTurn={isMyTurn}
+                  dispatch={dispatch}
+                />
+              )
+            case GamePhases.attackWave1:
+              return (
+                <AttackWave1Phase
+                  view={view}
+                  isMyTurn={isMyTurn}
+                  dispatch={dispatch}
+                />
+              )
+            case GamePhases.attackReinforceOrWave2:
+              return (
+                <AttackReinforceOrWave2Phase
+                  view={view}
+                  isMyTurn={isMyTurn}
+                  dispatch={dispatch}
+                />
+              )
+            case GamePhases.attackWave2:
+              return (
+                <AttackWave2Phase
+                  view={view}
+                  isMyTurn={isMyTurn}
+                  dispatch={dispatch}
+                />
+              )
+            case GamePhases.attackReinforce:
+              return (
+                <>
+                  <ActionInstructions
+                    title="Reinforce"
+                    description="Adding shells to your reserve…"
+                  />
+                  <AttackTargetDisplay view={view} />
+                </>
+              )
+            case GamePhases.attackDestroy:
+              return (
+                <>
+                  <ActionInstructions
+                    title="Destruction"
+                    description="Resolving fort damage…"
+                  />
+                  <AttackTargetDisplay view={view} />
+                </>
+              )
+            case GamePhases.buildFort:
+              return (
+                <BuildFortPhase
+                  view={view}
+                  isMyTurn={isMyTurn}
+                  dispatch={dispatch}
+                />
+              )
+            case GamePhases.buildBuilding:
+              return (
+                <BuildBuildingPhase
+                  view={view}
+                  isMyTurn={isMyTurn}
+                  dispatch={dispatch}
+                />
+              )
+            case GamePhases.buildShip:
+              return (
+                <BuildShipPhase
+                  view={view}
+                  isMyTurn={isMyTurn}
+                  dispatch={dispatch}
+                />
+              )
+            default:
+              return attackDice.length > 0 ? (
+                <AttackRollPanel
+                  dice={attackDice}
+                  rerollsRemaining={0}
+                  dispatch={dispatch}
+                  readonly
+                />
+              ) : null
+          }
+        })()
+        return (
+          <GameShell
+            view={view}
+            playerIdx={playerIdx}
+            isMyTurn={isMyTurn}
+            waitingFor={waitingFor}
+            actionContent={actionContent}
+            logOpen={logOpen}
+            onToggleLog={onToggleLog}
+          />
+        )
+      }
     }
   }
+
+  return (
+    <>
+      {renderPhase()}
+      {import.meta.env.DEV && <DevOverlay gameId={gameId} />}
+    </>
+  )
 }
