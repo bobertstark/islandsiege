@@ -1,5 +1,6 @@
 import { handleAttackRoll } from '../handlers/attackRoll'
 import { handleAction } from '../handlers/action'
+import { handleColonize } from '../handlers/colonize'
 import { handleEndTurn } from '../handlers/endTurn'
 import { handleAttackLeadership } from '../handlers/attackLeadership'
 import { mockGameState } from 'common/__mocks__/mockGameState'
@@ -354,5 +355,99 @@ describe('ship leadership abilities', () => {
     expect(() =>
       handleAttackLeadership(state, { effect: 'addDie', face: 'B' }),
     ).toThrow()
+  })
+})
+
+describe('persistent prohibitions', () => {
+  function withOpponentBuilding(buildingId: string): IGameState {
+    const base = mockGameState({})
+    const players = [...base.players]
+    players[1] = {
+      ...players[1],
+      forts: [
+        {
+          ...createFortById('startingFort'),
+          buildings: [createBuildingById(buildingId)],
+        },
+      ],
+    }
+    return { ...base, players, currentPlayerIndex: 0 }
+  }
+
+  it('governorsMansion bans opponents from drawing', () => {
+    expect(() =>
+      handleAction(withOpponentBuilding('governorsMansion'), {
+        actionChosen: 'draw',
+      }),
+    ).toThrow()
+  })
+
+  it('tradeCompany bans opponents from building buildings', () => {
+    expect(() =>
+      handleAction(withOpponentBuilding('tradeCompany'), {
+        actionChosen: 'buildBuilding',
+      }),
+    ).toThrow()
+  })
+
+  it('watchtower bans opponents from building ships', () => {
+    expect(() =>
+      handleAction(withOpponentBuilding('watchtower'), {
+        actionChosen: 'buildShip',
+      }),
+    ).toThrow()
+  })
+
+  it('does not restrict the building owner', () => {
+    const state = {
+      ...withOpponentBuilding('governorsMansion'),
+      currentPlayerIndex: 1,
+    }
+    expect(handleAction(state, { actionChosen: 'draw' }).phase).toBe('draw')
+  })
+
+  it('allows the action when no opponent has the prohibition building', () => {
+    const state = { ...mockGameState({}), currentPlayerIndex: 0 }
+    expect(handleAction(state, { actionChosen: 'draw' }).phase).toBe('draw')
+  })
+})
+
+describe('prison — banFortColonistGain', () => {
+  function colonizeState(opponentHasPrison: boolean): IGameState {
+    const base = mockGameState({})
+    const players = [...base.players]
+    players[0] = {
+      ...players[0],
+      colonists: 3,
+      forts: [createFortById('startingFort')],
+    }
+    players[1] = {
+      ...players[1],
+      forts: opponentHasPrison
+        ? [
+            {
+              ...createFortById('startingFort'),
+              buildings: [createBuildingById('prison')],
+            },
+          ]
+        : [createFortById('startingFort')],
+    }
+    return { ...base, players, currentPlayerIndex: 0 }
+  }
+
+  it('normally moves colonists onto forts during colonize', () => {
+    const s = handleColonize(colonizeState(false))
+    expect(s.players[0].colonists).toBeLessThan(3)
+  })
+
+  it('suppresses fort colonist gain and logs it when an opponent has prison', () => {
+    const s = handleColonize(colonizeState(true))
+    expect(s.players[0].colonists).toBe(3)
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        phase: 'colonize',
+        data: expect.objectContaining({ prohibited: 'banFortColonistGain' }),
+      }),
+    )
   })
 })

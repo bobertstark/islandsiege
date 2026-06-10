@@ -139,6 +139,39 @@ export function deriveAttackFlags(
   return flags
 }
 
+// Persistent restrictions a building imposes on its owner's opponents.
+export type ProhibitionType =
+  | 'banDraw' // governorsMansion
+  | 'banFortColonistGain' // prison
+  | 'banBuildBuilding' // tradeCompany
+  | 'banBuildShip' // watchtower
+
+const PROHIBITION_TYPES = new Set<string>([
+  'banDraw',
+  'banFortColonistGain',
+  'banBuildBuilding',
+  'banBuildShip',
+])
+
+// Prohibitions imposed on `playerIndex` by every *other* player's in-play
+// buildings. A prohibition never restricts its own owner.
+export function prohibitionsAgainst(
+  players: Pick<IPlayer, 'forts'>[],
+  playerIndex: number,
+): ProhibitionType[] {
+  const types = new Set<ProhibitionType>()
+  players.forEach((player, idx) => {
+    if (idx === playerIndex) return
+    for (const fort of player.forts)
+      for (const building of fort.buildings) {
+        const fx = CARD_EFFECTS[building.id]?.passive
+        if (fx && PROHIBITION_TYPES.has(fx.type))
+          types.add(fx.type as ProhibitionType)
+      }
+  })
+  return [...types]
+}
+
 // Fixed bonus dice contributed by a player's in-play buildings (e.g. armory).
 // Returns {face, cardID} pairs so callers can log which building contributed.
 export function attackerBonusDice(

@@ -2,7 +2,7 @@ import IGameState from 'common/IGameState'
 import { handleBuildBuilding } from './buildBuilding'
 import { handleBuildShip } from './buildShip'
 import { ILogEntry } from 'common/ILog'
-import { deriveAttackFlags } from 'common/cardEffects'
+import { deriveAttackFlags, prohibitionsAgainst } from 'common/cardEffects'
 
 export function handleAction(
   state: IGameState,
@@ -19,12 +19,22 @@ export function handleAction(
     ...state,
     pendingBuildCardID: payload.cardID,
   }
+  const prohibited = prohibitionsAgainst(
+    state.players,
+    state.currentPlayerIndex,
+  )
   switch (action) {
     case 'draw':
+      if (prohibited.includes('banDraw'))
+        throw new Error('Draw is prohibited by an opponent building')
       return { ...base, phase: 'draw' }
     case 'buildFort':
       return { ...base, phase: 'buildFort' }
     case 'buildBuilding':
+      if (prohibited.includes('banBuildBuilding'))
+        throw new Error(
+          'Building buildings is prohibited by an opponent building',
+        )
       if (payload.cardID && payload.fortID) {
         return handleBuildBuilding(state, {
           buildingID: payload.cardID,
@@ -34,6 +44,8 @@ export function handleAction(
       }
       return { ...base, phase: 'buildBuilding' }
     case 'buildShip':
+      if (prohibited.includes('banBuildShip'))
+        throw new Error('Building ships is prohibited by an opponent building')
       if (payload.cardID && payload.fortID) {
         return handleBuildShip(state, {
           shipID: payload.cardID,

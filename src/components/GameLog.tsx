@@ -95,6 +95,8 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     case 'attackDestroy':
       return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s ${cardName(d.fortID as string)}`
     case 'colonize':
+      if (d.prohibited === 'banFortColonistGain')
+        return `${actor}'s forts cannot gain colonists (Prison)`
       return `${actor} moved ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''} to forts`
     case 'victory':
       return `${playerName(players, d.winningPlayerIndex as number)} wins!`
