@@ -49,6 +49,16 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     case 'buildFort':
       return `${actor} built ${cardName(d.cardID as string)} (+${d.shellsAdded} shells, +${d.coinsGained} coins)`
     case 'buildBuilding':
+      switch (d.onBuild) {
+        case 'returnOpponentFortColonist':
+          return `${actor}'s Prison returned colonists from opponents' forts`
+        case 'discardOpponentCard':
+          return `${actor} discarded ${cardName(d.cardID as string)} from ${playerName(players, d.targetPlayerIndex as number)}'s hand`
+        case 'destroyOpponentBuilding':
+          return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s ${cardName(d.buildingID as string)}`
+        case 'destroyOpponentShip':
+          return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s ${cardName(d.shipID as string)}`
+      }
       return `${actor} built ${cardName(d.cardID as string)} on ${cardName(d.fortID as string)}, moving ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''}${d.repairUsed ? ' (repair used)' : ''}`
     case 'buildShip':
       return `${actor} built ${cardName(d.cardID as string)}, moving ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''}`

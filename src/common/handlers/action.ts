@@ -3,6 +3,7 @@ import { handleBuildBuilding } from './buildBuilding'
 import { handleBuildShip } from './buildShip'
 import { ILogEntry } from 'common/ILog'
 import { deriveAttackFlags, prohibitionsAgainst } from 'common/cardEffects'
+import { EffectTarget } from 'common/handlers/onBuildEffects'
 
 export function handleAction(
   state: IGameState,
@@ -12,6 +13,7 @@ export function handleAction(
     fortID?: string
     repairAt?: [number, number]
     targetPlayerIndex?: number
+    effectTarget?: EffectTarget
   },
 ): IGameState {
   const action = payload.actionChosen
@@ -40,6 +42,7 @@ export function handleAction(
           buildingID: payload.cardID,
           fortID: payload.fortID,
           repairAt: payload.repairAt,
+          effectTarget: payload.effectTarget,
         })
       }
       return { ...base, phase: 'buildBuilding' }

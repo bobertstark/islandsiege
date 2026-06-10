@@ -4,6 +4,8 @@ import ICard from 'common/ICard'
 import IFort from 'common/IFort'
 import Card from 'components/Card'
 import ActionInstructions from 'components/ActionInstructions'
+import { CARD_EFFECTS } from 'common/cardEffects'
+import { EffectTarget } from 'common/handlers/onBuildEffects'
 
 interface BuildBuildingPhaseProps {
   view: IGameStateView
@@ -13,6 +15,21 @@ interface BuildBuildingPhaseProps {
 
 function eligibleForts(forts: IFort[], cost: number): IFort[] {
   return forts.filter(f => f.usedSlots >= cost)
+}
+
+type TargetKind = 'opponent' | 'opponentBuilding' | 'opponentShip' | null
+
+function targetKind(cardID: string): TargetKind {
+  switch (CARD_EFFECTS[cardID]?.onBuild?.type) {
+    case 'discardOpponentCard':
+      return 'opponent'
+    case 'destroyOpponentBuilding':
+      return 'opponentBuilding'
+    case 'destroyOpponentShip':
+      return 'opponentShip'
+    default:
+      return null
+  }
 }
 
 export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
@@ -29,18 +46,44 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
     : null
 
   const [selectedCard, setSelectedCard] = useState<ICard | null>(preselected)
+  const [fortID, setFortID] = useState<string | null>(null)
 
-  function handleSelectCard(cardID: string) {
-    const card = buildingCards.find(c => c.id === cardID) ?? null
-    setSelectedCard(card)
-  }
+  const opponents = view.players
+    .map((p, idx) => ({ p, idx }))
+    .filter(({ idx }) => idx !== view.currentPlayerIndex)
 
-  function handleSelectFort(fortID: string) {
-    if (!selectedCard) return
+  function build(target?: EffectTarget) {
+    if (!selectedCard || !fortID) return
     dispatch({
       type: 'buildBuilding',
-      payload: { fortID, buildingID: selectedCard.id },
+      payload: { fortID, buildingID: selectedCard.id, effectTarget: target },
     })
+  }
+
+  function handleSelectFort(id: string) {
+    if (!selectedCard) return
+    const kind = targetKind(selectedCard.id)
+    if (kind === null) {
+      dispatch({
+        type: 'buildBuilding',
+        payload: { fortID: id, buildingID: selectedCard.id },
+      })
+      return
+    }
+    if (kind === 'opponent') {
+      if (opponents.length === 1) {
+        dispatch({
+          type: 'buildBuilding',
+          payload: {
+            fortID: id,
+            buildingID: selectedCard.id,
+            effectTarget: { targetPlayerIndex: opponents[0].idx },
+          },
+        })
+        return
+      }
+    }
+    setFortID(id)
   }
 
   const forts = player?.forts ?? []
@@ -56,6 +99,65 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
         title="Build a Building"
         description="Waiting for the active player to construct a building."
       />
+    )
+  }
+
+  if (selectedCard && fortID) {
+    const kind = targetKind(selectedCard.id)
+    return (
+      <div style={{ padding: '16px 20px' }}>
+        <ActionInstructions
+          title={`${selectedCard.name} — choose a target`}
+          description="Select the target for this building's effect."
+        />
+        {kind === 'opponent' && (
+          <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+            {opponents.map(({ p, idx }) => (
+              <li key={idx} style={{ marginBottom: 8 }}>
+                <button onClick={() => build({ targetPlayerIndex: idx })}>
+                  {p.name} (
+                  {typeof p.hand === 'number' ? p.hand : p.hand.length} cards)
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {kind === 'opponentBuilding' && (
+          <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+            {opponents.flatMap(({ p, idx }) =>
+              p.forts.flatMap(f =>
+                f.buildings.map(b => (
+                  <li key={`${idx}-${b.id}`} style={{ marginBottom: 8 }}>
+                    <button
+                      onClick={() =>
+                        build({ targetPlayerIndex: idx, buildingID: b.id })
+                      }>
+                      {p.name}: {b.name} (on {f.name})
+                    </button>
+                  </li>
+                )),
+              ),
+            )}
+          </ul>
+        )}
+        {kind === 'opponentShip' && (
+          <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+            {opponents.flatMap(({ p, idx }) =>
+              p.ships.map(s => (
+                <li key={`${idx}-${s.id}`} style={{ marginBottom: 8 }}>
+                  <button
+                    onClick={() =>
+                      build({ targetPlayerIndex: idx, shipID: s.id })
+                    }>
+                    {p.name}: {s.name}
+                  </button>
+                </li>
+              )),
+            )}
+          </ul>
+        )}
+        <button onClick={() => setFortID(null)}>← Back</button>
+      </div>
     )
   }
 
@@ -87,7 +189,9 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
                   }}>
                   <Card
                     card={card}
-                    onClick={canAfford ? handleSelectCard : undefined}
+                    onClick={
+                      canAfford ? id => setSelectedCard(card) : undefined
+                    }
                   />
                 </div>
               )
@@ -95,7 +199,7 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
           </div>
         </div>
       )}
-      {selectedCard && (
+      {selectedCard && !fortID && (
         <div style={{ padding: '16px 20px' }}>
           <ActionInstructions
             title={`Choose a Fort for ${selectedCard.name}`}
