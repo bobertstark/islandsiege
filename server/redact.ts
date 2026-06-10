@@ -64,6 +64,7 @@ export function redactStateForPlayer(
     diceBank: state.diceBank,
     winningPlayerIndex: state.winningPlayerIndex,
     pendingBuildCardID: state.pendingBuildCardID,
+    attackFlags: state.attackFlags,
     log: redactLog(state.log, viewerIdx),
   }
 }
@@ -100,6 +101,7 @@ export function redactStateForWaiting(
     attackRerollsRemaining: state.attackRerollsRemaining,
     diceBank: state.diceBank,
     winningPlayerIndex: state.winningPlayerIndex,
+    attackFlags: state.attackFlags,
     log: redactLog(state.log, -1),
   }
 }
