@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { useGameSocket } from 'hooks/useGameSocket'
 import { GamePhases } from 'common/phases'
 import { DieValue } from 'common/die'
+import { attackerBonusDice } from 'common/cardEffects'
 import IGameStateView from 'common/IGameStateView'
 import GameShell from 'components/GameShell'
 import { WaitingForPlayer } from 'components/TurnBanner'
@@ -192,6 +193,10 @@ const AttackRollContent: React.FC<{
                 rerollsRemaining={view.attackRerollsRemaining}
                 dispatch={dispatch}
                 readonly={!isMyTurn}
+                lockedCount={
+                  attackerBonusDice(view.players[view.currentPlayerIndex])
+                    .length
+                }
               />
             )}
           </>

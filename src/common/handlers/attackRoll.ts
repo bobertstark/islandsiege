@@ -4,6 +4,7 @@ import { rollDice, rerollDice, reduceDice, rollCounts } from 'common/attackRoll'
 import { createRng } from 'common/rng'
 import { allLeadershipAbilities } from 'common/player'
 import { ILogEntry } from 'common/ILog'
+import { attackerBonusDice } from 'common/cardEffects'
 
 export function nextPhaseAfterLeadership(
   bank: rollCounts,
@@ -23,7 +24,10 @@ export function handleAttackRoll(
   if (payload.action === 'init') {
     if (state.attackRoll !== undefined) return state
     const rng = createRng(state.rngSeed)
-    const roll = rollDice(player.attackDice, rng.next.bind(rng))
+    const roll = [
+      ...rollDice(player.attackDice, rng.next.bind(rng)),
+      ...attackerBonusDice(player),
+    ]
     const initEntry: ILogEntry = {
       phase: 'attackRoll',
       playerIndex: state.currentPlayerIndex,
@@ -43,11 +47,11 @@ export function handleAttackRoll(
 
   if (payload.action === 'reroll' && state.attackRerollsRemaining > 0) {
     const rng = createRng(state.rngSeed)
-    const roll = rerollDice(
-      state.attackRoll!,
-      payload.diceIndicesReroll ?? [],
-      rng.next.bind(rng),
-    )
+    // Bonus dice occupy the trailing slots and are fixed — drop them from reroll.
+    const baseCount =
+      state.attackRoll!.length - attackerBonusDice(player).length
+    const indices = (payload.diceIndicesReroll ?? []).filter(i => i < baseCount)
+    const roll = rerollDice(state.attackRoll!, indices, rng.next.bind(rng))
     const rerollEntry: ILogEntry = {
       phase: 'attackRoll',
       playerIndex: state.currentPlayerIndex,

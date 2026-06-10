@@ -7,6 +7,8 @@ interface AttackRollPanelProps {
   rerollsRemaining: number
   dispatch: (action: { type: string; payload?: unknown }) => void
   readonly?: boolean
+  // Number of trailing dice that are fixed bonuses (e.g. armory) and cannot reroll.
+  lockedCount?: number
 }
 
 const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
@@ -14,6 +16,7 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
   rerollsRemaining,
   dispatch,
   readonly = false,
+  lockedCount = 0,
 }) => {
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set())
   const [dieKeys, setDieKeys] = useState<number[]>(() => dice.map(() => 0))
@@ -22,8 +25,11 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
     setDieKeys(dice.map(() => 0))
   }, [dice.length])
 
+  const rerollableCount = dice.length - lockedCount
+  const isLocked = (idx: number) => idx >= rerollableCount
+
   function toggleDie(idx: number) {
-    if (readonly) return
+    if (readonly || isLocked(idx)) return
     setSelectedIndices(prev => {
       const next = new Set(prev)
       next.has(idx) ? next.delete(idx) : next.add(idx)
@@ -48,10 +54,15 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
   }
 
   const canReroll = rerollsRemaining > 0 && selectedIndices.size > 0
-  const allSelected = dice.length > 0 && selectedIndices.size === dice.length
+  const allSelected =
+    rerollableCount > 0 && selectedIndices.size === rerollableCount
 
   function toggleSelectAll() {
-    setSelectedIndices(allSelected ? new Set() : new Set(dice.map((_, i) => i)))
+    setSelectedIndices(
+      allSelected
+        ? new Set()
+        : new Set(Array.from({ length: rerollableCount }, (_, i) => i)),
+    )
   }
 
   return (
@@ -85,15 +96,24 @@ const AttackRollPanel: React.FC<AttackRollPanelProps> = ({
           flexWrap: 'wrap',
           margin: '0 0 12px',
         }}>
-        {dice.map((face, idx) => (
-          <Die
-            key={`${idx}-${dieKeys[idx] ?? 0}`}
-            face={face}
-            selected={!readonly && selectedIndices.has(idx)}
-            onClick={readonly ? undefined : () => toggleDie(idx)}
-            readonly={readonly}
-          />
-        ))}
+        {dice.map((face, idx) =>
+          isLocked(idx) ? (
+            <div
+              key={`${idx}-${dieKeys[idx] ?? 0}`}
+              title="Bonus die — fixed, cannot be rerolled"
+              style={{ opacity: 0.85 }}>
+              <Die face={face} readonly />
+            </div>
+          ) : (
+            <Die
+              key={`${idx}-${dieKeys[idx] ?? 0}`}
+              face={face}
+              selected={!readonly && selectedIndices.has(idx)}
+              onClick={readonly ? undefined : () => toggleDie(idx)}
+              readonly={readonly}
+            />
+          ),
+        )}
       </div>
       {!readonly && (
         <div style={{ display: 'flex', gap: 8 }}>
