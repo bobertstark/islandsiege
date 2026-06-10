@@ -41,6 +41,14 @@ export interface CardEffects {
   passive?: PassiveEffect
 }
 
+// Dice/reroll modifiers a defender's forts impose on the current attack.
+export interface AttackFlags {
+  attackerDiceMinus: number // formidableFortress, flotillaOutpost
+  attackerRerollsMinus: number // supportedStronghold
+  banRerollFaces: DieValue[] // braced/fortified/reinforcedStronghold
+  mustRerollAll: boolean // steepWalledStronghold
+}
+
 export const CARD_EFFECTS: Record<string, CardEffects> = {
   armory: { passive: { type: 'addDieOnAttack', face: 'G' } },
   cannonSmith: { passive: { type: 'addDieOnAttack', face: 'B' } },
@@ -83,6 +91,44 @@ export const CARD_EFFECTS: Record<string, CardEffects> = {
     passive: { type: 'banBuildShip' },
   },
   silverSmelter: { onBuild: { type: 'convertColonistsToCoins' } },
+}
+
+// Dice/reroll modifiers the defender's forts impose on an attack targeting
+// `targetFortId`. Most effects apply only to their own fort; flotillaOutpost
+// applies when *another* of the defender's forts is the target.
+export function deriveAttackFlags(
+  defenderForts: { id: string }[],
+  targetFortId: string,
+): AttackFlags {
+  const flags: AttackFlags = {
+    attackerDiceMinus: 0,
+    attackerRerollsMinus: 0,
+    banRerollFaces: [],
+    mustRerollAll: false,
+  }
+  for (const fort of defenderForts) {
+    const fx = CARD_EFFECTS[fort.id]?.passive
+    if (!fx) continue
+    const isTarget = fort.id === targetFortId
+    switch (fx.type) {
+      case 'attackerRollsMinus1':
+        if (isTarget) flags.attackerDiceMinus += 1
+        break
+      case 'attackerRerollsMinus1':
+        if (isTarget) flags.attackerRerollsMinus += 1
+        break
+      case 'banRerollFace':
+        if (isTarget) flags.banRerollFaces.push(fx.face)
+        break
+      case 'mustRerollAll':
+        if (isTarget) flags.mustRerollAll = true
+        break
+      case 'flotillaRollMinus1':
+        if (!isTarget) flags.attackerDiceMinus += 1
+        break
+    }
+  }
+  return flags
 }
 
 // Fixed bonus dice contributed by a player's in-play buildings (i.e. armory).

@@ -5,6 +5,7 @@ import { DieValue } from './die'
 import { Phase } from './phases'
 import { rollCounts } from './attackRoll'
 import { ILogEntry } from './ILog'
+import { AttackFlags } from './cardEffects'
 
 // Full game state: plain data, safe to store or send over the wire.
 export default interface IGameState {
@@ -46,6 +47,10 @@ export default interface IGameState {
   attackRoll: DieValue[] | undefined
   attackRerollsRemaining: number
   diceBank: rollCounts
+
+  // Defender passive dice/reroll modifiers for the current attack; set when the
+  // target fort is locked, cleared at end of turn.
+  attackFlags?: AttackFlags
 
   winningPlayerIndex: number | undefined
 

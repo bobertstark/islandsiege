@@ -2,6 +2,7 @@ import IGameState from 'common/IGameState'
 import { handleBuildBuilding } from './buildBuilding'
 import { handleBuildShip } from './buildShip'
 import { ILogEntry } from 'common/ILog'
+import { deriveAttackFlags } from 'common/cardEffects'
 
 export function handleAction(
   state: IGameState,
@@ -87,6 +88,36 @@ export function handleAction(
           fortID: payload.fortID ?? '',
         },
       }
+      const attackFlags = deriveAttackFlags(
+        state.players[targetPlayerIndex].forts,
+        payload.fortID ?? '',
+      )
+      const effectEntry = (data: Record<string, unknown>): ILogEntry => ({
+        phase: 'action',
+        playerIndex: state.currentPlayerIndex,
+        turn: state.currentPlayerIndex,
+        timestamp: new Date().toISOString(),
+        data,
+      })
+      const effectEntries: ILogEntry[] = []
+      if (attackFlags.attackerDiceMinus > 0)
+        effectEntries.push(
+          effectEntry({
+            defenderEffect: 'diceMinus',
+            amount: attackFlags.attackerDiceMinus,
+          }),
+        )
+      if (attackFlags.attackerRerollsMinus > 0)
+        effectEntries.push(
+          effectEntry({
+            defenderEffect: 'rerollsMinus',
+            amount: attackFlags.attackerRerollsMinus,
+          }),
+        )
+      for (const face of attackFlags.banRerollFaces)
+        effectEntries.push(effectEntry({ defenderEffect: 'banReroll', face }))
+      if (attackFlags.mustRerollAll)
+        effectEntries.push(effectEntry({ defenderEffect: 'mustRerollAll' }))
       return {
         ...base,
         attackIsOpenWater: false,
@@ -97,8 +128,9 @@ export function handleAction(
             fortID: payload.fortID ?? '',
           },
         },
+        attackFlags,
         phase: 'attackRoll',
-        log: [...(state.log ?? []), attackEntry],
+        log: [...(state.log ?? []), attackEntry, ...effectEntries],
       }
     }
     default:

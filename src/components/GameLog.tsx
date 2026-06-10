@@ -19,6 +19,16 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     case 'endTurn':
       return `— ${actor}'s turn —`
     case 'action': {
+      switch (d.defenderEffect) {
+        case 'diceMinus':
+          return `${actor} rolls ${d.amount} fewer di${d.amount === 1 ? 'e' : 'ce'}`
+        case 'rerollsMinus':
+          return `${actor} has ${d.amount} fewer reroll${d.amount !== 1 ? 's' : ''}`
+        case 'banReroll':
+          return `${actor} cannot reroll [${d.face}] results`
+        case 'mustRerollAll':
+          return `${actor} must reroll all dice`
+      }
       if (d.openWater) return `${actor} attacked open water`
       const target = playerName(players, d.targetPlayerIndex as number)
       const fort = d.fortID ? cardName(d.fortID as string) : ''

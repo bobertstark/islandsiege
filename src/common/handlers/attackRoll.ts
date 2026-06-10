@@ -24,8 +24,17 @@ export function handleAttackRoll(
   if (payload.action === 'init') {
     if (state.attackRoll !== undefined) return state
     const rng = createRng(state.rngSeed)
+    // Defender forts may reduce the attacker's dice and rerolls.
+    const diceCount = Math.max(
+      1,
+      player.attackDice - (state.attackFlags?.attackerDiceMinus ?? 0),
+    )
+    const rerolls = Math.max(
+      0,
+      player.diceRerolls - (state.attackFlags?.attackerRerollsMinus ?? 0),
+    )
     const roll = [
-      ...rollDice(player.attackDice, rng.next.bind(rng)),
+      ...rollDice(diceCount, rng.next.bind(rng)),
       ...attackerBonusDice(player),
     ]
     const initEntry: ILogEntry = {
@@ -33,12 +42,12 @@ export function handleAttackRoll(
       playerIndex: state.currentPlayerIndex,
       turn: state.currentPlayerIndex,
       timestamp: new Date().toISOString(),
-      data: { roll, rerollsRemaining: player.diceRerolls },
+      data: { roll, rerollsRemaining: rerolls },
     }
     return {
       ...state,
       attackRoll: roll,
-      attackRerollsRemaining: player.diceRerolls,
+      attackRerollsRemaining: rerolls,
       phase: 'attackRoll',
       rngSeed: rng.seed(),
       log: [...(state.log ?? []), initEntry],
@@ -50,7 +59,14 @@ export function handleAttackRoll(
     // Bonus dice occupy the trailing slots and are fixed — drop them from reroll.
     const baseCount =
       state.attackRoll!.length - attackerBonusDice(player).length
-    const indices = (payload.diceIndicesReroll ?? []).filter(i => i < baseCount)
+    const banned = state.attackFlags?.banRerollFaces ?? []
+    // steepWalledStronghold: a reroll must re-roll every (base) die.
+    const requested = state.attackFlags?.mustRerollAll
+      ? Array.from({ length: baseCount }, (_, i) => i)
+      : (payload.diceIndicesReroll ?? [])
+    const indices = requested.filter(
+      i => i < baseCount && !banned.includes(state.attackRoll![i]),
+    )
     const roll = rerollDice(state.attackRoll!, indices, rng.next.bind(rng))
     const rerollEntry: ILogEntry = {
       phase: 'attackRoll',
