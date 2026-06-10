@@ -257,6 +257,89 @@ describe('watchtower — destroyOpponentShip', () => {
 
 import { handleAction } from '../handlers/action'
 
+describe('silverSmelter — convertColonistsToCoins', () => {
+  function smelterState(): IGameState {
+    const base = mockGameState({})
+    const players = [...base.players]
+    const fortA = {
+      ...placeColonists(createFortById('startingFort'), 3).fort,
+      id: 'fortA',
+    }
+    const fortB = {
+      ...placeColonists(createFortById('startingFort'), 2).fort,
+      id: 'fortB',
+    }
+    players[0] = { ...players[0], coins: 0, forts: [fortA, fortB] }
+    return { ...base, players, currentPlayerIndex: 0 }
+  }
+
+  it('removes specified colonists from each listed fort and credits the builder', () => {
+    const before = smelterState()
+    const s = applyOnBuildEffect(before, 0, 'silverSmelter', {
+      fortColonistRemovals: { fortA: 2, fortB: 1 },
+    })
+    expect(s.players[0].coins).toBe(3)
+    expect(s.players[0].forts[0].usedSlots).toBe(1)
+    expect(s.players[0].forts[1].usedSlots).toBe(1)
+  })
+
+  it('leaves unlisted forts untouched', () => {
+    const before = smelterState()
+    const s = applyOnBuildEffect(before, 0, 'silverSmelter', {
+      fortColonistRemovals: { fortA: 1 },
+    })
+    expect(s.players[0].forts[1].usedSlots).toBe(2)
+  })
+
+  it('returns state unchanged when removals map is empty', () => {
+    const before = smelterState()
+    expect(
+      applyOnBuildEffect(before, 0, 'silverSmelter', {
+        fortColonistRemovals: {},
+      }),
+    ).toBe(before)
+  })
+
+  it('returns state unchanged when effectTarget is absent', () => {
+    const before = smelterState()
+    expect(applyOnBuildEffect(before, 0, 'silverSmelter')).toBe(before)
+  })
+
+  it('throws when count exceeds usedSlots', () => {
+    const before = smelterState()
+    expect(() =>
+      applyOnBuildEffect(before, 0, 'silverSmelter', {
+        fortColonistRemovals: { fortA: 99 },
+      }),
+    ).toThrow()
+  })
+
+  it('throws when fortID does not belong to builder', () => {
+    const before = smelterState()
+    expect(() =>
+      applyOnBuildEffect(before, 0, 'silverSmelter', {
+        fortColonistRemovals: { nonexistent: 1 },
+      }),
+    ).toThrow()
+  })
+
+  it('logs the effect with coinsGained and removals', () => {
+    const before = smelterState()
+    const s = applyOnBuildEffect(before, 0, 'silverSmelter', {
+      fortColonistRemovals: { fortA: 2 },
+    })
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        phase: 'buildBuilding',
+        data: expect.objectContaining({
+          onBuild: 'convertColonistsToCoins',
+          coinsGained: 2,
+        }),
+      }),
+    )
+  })
+})
+
 describe('handleAction forwards effectTarget to buildBuilding', () => {
   it('resolves governorsMansion against the chosen opponent end-to-end', () => {
     const base = mockGameState({})

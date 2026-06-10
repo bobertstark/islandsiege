@@ -9,6 +9,7 @@ export interface EffectTarget {
   targetPlayerIndex?: number
   buildingID?: string
   shipID?: string
+  fortColonistRemovals?: Record<string, number>
 }
 
 function effectLog(
@@ -62,6 +63,8 @@ export function applyOnBuildEffect(
       return destroyOpponentBuilding(state, builderIdx, target)
     case 'destroyOpponentShip':
       return destroyOpponentShip(state, builderIdx, target)
+    case 'convertColonistsToCoins':
+      return convertColonistsToCoins(state, builderIdx, target)
     default:
       return state
   }
@@ -192,6 +195,52 @@ function destroyOpponentShip(
         onBuild: 'destroyOpponentShip',
         targetPlayerIndex: targetIdx,
         shipID: target.shipID,
+      }),
+    ],
+  }
+}
+
+function convertColonistsToCoins(
+  state: IGameState,
+  builderIdx: number,
+  target?: EffectTarget,
+): IGameState {
+  const removals = target?.fortColonistRemovals ?? {}
+  const entries = Object.entries(removals).filter(([, count]) => count > 0)
+  if (entries.length === 0) return state
+
+  const player = state.players[builderIdx]
+  let forts = [...player.forts]
+  let total = 0
+
+  for (const [fortID, count] of entries) {
+    const idx = forts.findIndex(f => f.id === fortID)
+    if (idx === -1)
+      throw new Error(`Player ${builderIdx} has no fort ${fortID}`)
+    const fort = forts[idx]
+    if (count > fort.usedSlots)
+      throw new Error(
+        `Cannot remove ${count} colonists from ${fortID} (only ${fort.usedSlots} available)`,
+      )
+    forts = [
+      ...forts.slice(0, idx),
+      removeColonists(fort, count).fort,
+      ...forts.slice(idx + 1),
+    ]
+    total += count
+  }
+
+  const players = [...state.players]
+  players[builderIdx] = { ...player, coins: player.coins + total, forts }
+  return {
+    ...state,
+    players,
+    log: [
+      ...state.log,
+      effectLog(builderIdx, {
+        onBuild: 'convertColonistsToCoins',
+        coinsGained: total,
+        removals,
       }),
     ],
   }

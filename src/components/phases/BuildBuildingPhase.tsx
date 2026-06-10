@@ -17,7 +17,12 @@ function eligibleForts(forts: IFort[], cost: number): IFort[] {
   return forts.filter(f => f.usedSlots >= cost)
 }
 
-type TargetKind = 'opponent' | 'opponentBuilding' | 'opponentShip' | null
+type TargetKind =
+  | 'opponent'
+  | 'opponentBuilding'
+  | 'opponentShip'
+  | 'selfForts'
+  | null
 
 function targetKind(cardID: string): TargetKind {
   switch (CARD_EFFECTS[cardID]?.onBuild?.type) {
@@ -27,6 +32,8 @@ function targetKind(cardID: string): TargetKind {
       return 'opponentBuilding'
     case 'destroyOpponentShip':
       return 'opponentShip'
+    case 'convertColonistsToCoins':
+      return 'selfForts'
     default:
       return null
   }
@@ -47,6 +54,9 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
 
   const [selectedCard, setSelectedCard] = useState<ICard | null>(preselected)
   const [fortID, setFortID] = useState<string | null>(null)
+  const [colonistRemovals, setColonistRemovals] = useState<
+    Record<string, number>
+  >({})
 
   const opponents = view.players
     .map((p, idx) => ({ p, idx }))
@@ -83,7 +93,18 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
         return
       }
     }
+    if (kind === 'selfForts') {
+      const hasRemovable = forts.some(f => f.id !== id && f.usedSlots > 0)
+      if (!hasRemovable) {
+        dispatch({
+          type: 'buildBuilding',
+          payload: { fortID: id, buildingID: selectedCard.id },
+        })
+        return
+      }
+    }
     setFortID(id)
+    setColonistRemovals({})
   }
 
   const forts = player?.forts ?? []
@@ -156,7 +177,87 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
             )}
           </ul>
         )}
-        <button onClick={() => setFortID(null)}>← Back</button>
+        {kind === 'selfForts' &&
+          (() => {
+            const otherForts = forts.filter(f => f.id !== fortID)
+            const total = Object.values(colonistRemovals).reduce(
+              (s, n) => s + n,
+              0,
+            )
+            return (
+              <>
+                <p style={{ margin: '8px 0 4px', fontWeight: 600 }}>
+                  Coins gained: {total}
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+                  {otherForts.map(fort => {
+                    const current = colonistRemovals[fort.id] ?? 0
+                    return (
+                      <li
+                        key={fort.id}
+                        style={{
+                          marginBottom: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                        }}>
+                        <span style={{ minWidth: 140 }}>
+                          {fort.name} ({fort.usedSlots} available)
+                        </span>
+                        <button
+                          onClick={() =>
+                            setColonistRemovals(prev => ({
+                              ...prev,
+                              [fort.id]: Math.max(0, (prev[fort.id] ?? 0) - 1),
+                            }))
+                          }
+                          disabled={current === 0}>
+                          −
+                        </button>
+                        <span style={{ minWidth: 20, textAlign: 'center' }}>
+                          {current}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setColonistRemovals(prev => ({
+                              ...prev,
+                              [fort.id]: Math.min(
+                                fort.usedSlots,
+                                (prev[fort.id] ?? 0) + 1,
+                              ),
+                            }))
+                          }
+                          disabled={current >= fort.usedSlots}>
+                          +
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </>
+            )
+          })()}
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <button
+            onClick={() => {
+              setFortID(null)
+              setColonistRemovals({})
+            }}>
+            ← Back
+          </button>
+          {kind === 'selfForts' && (
+            <button
+              onClick={() =>
+                build({
+                  fortColonistRemovals: Object.fromEntries(
+                    Object.entries(colonistRemovals).filter(([, n]) => n > 0),
+                  ),
+                })
+              }>
+              Confirm
+            </button>
+          )}
+        </div>
       </div>
     )
   }
