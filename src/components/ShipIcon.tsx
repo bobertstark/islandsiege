@@ -1,13 +1,12 @@
 import React from 'react'
 
 interface ShipIconProps {
-  size?: number
+  width?: number | string
 }
 
-const ShipIcon: React.FC<ShipIconProps> = ({ size = 48 }) => (
+const ShipIcon: React.FC<ShipIconProps> = ({ width = 48 }) => (
   <svg
-    width={size}
-    height={size}
+    width={width}
     viewBox="0 0 60 56"
     xmlns="http://www.w3.org/2000/svg"
     aria-label="Ship">

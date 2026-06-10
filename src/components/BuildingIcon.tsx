@@ -1,13 +1,12 @@
 import React from 'react'
 
 interface BuildingIconProps {
-  size?: number
+  width?: number | string
 }
 
-const BuildingIcon: React.FC<BuildingIconProps> = ({ size = 48 }) => (
+const BuildingIcon: React.FC<BuildingIconProps> = ({ width = 48 }) => (
   <svg
-    width={size}
-    height={size}
+    width={width}
     viewBox="0 0 60 56"
     xmlns="http://www.w3.org/2000/svg"
     aria-label="Building">

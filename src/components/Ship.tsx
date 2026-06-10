@@ -2,6 +2,7 @@ import React from 'react'
 import IShip from 'common/IShip'
 import TableauCard from './TableauCard'
 import Pips from './Pips'
+import ShipIcon from './ShipIcon'
 
 interface ShipProps {
   ship: IShip
@@ -23,7 +24,8 @@ const Ship: React.FC<ShipProps> = ({
     title={ship.name}
     description={ship.description}
     highlighted={highlighted}
-    fill={fill}>
+    fill={fill}
+    above={<ShipIcon width={80} />}>
     {preview ? (
       <div className="tableau-card-cost">Cost: {ship.cost} colonists</div>
     ) : (

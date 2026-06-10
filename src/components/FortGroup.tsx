@@ -64,31 +64,19 @@ const FortGroup: React.FC<FortGroupProps> = ({
       <CardInfoPopover info={fortTooltip(fort)} style={{ flexShrink: 0 }}>
         <Fort fort={fort} highlighted={hovered} color={color} />
       </CardInfoPopover>
-      {/* the column stretches to the fort's height; each building takes an even
-          share capped at half, so two split the height and a lone building
-          stays half-height — no fort growth or measurement needed */}
-      {buildings.length > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}>
-          {buildings.map(building => (
-            <CardInfoPopover
-              key={building.id}
-              info={buildingTooltip(building)}
-              style={{ flex: 1, minHeight: 0, maxHeight: '50%' }}>
-              <Building
-                building={building}
-                highlighted={hovered}
-                compact
-                color={color}
-              />
-            </CardInfoPopover>
-          ))}
-        </div>
-      )}
+      {buildings.map(building => (
+        <CardInfoPopover
+          key={building.id}
+          info={buildingTooltip(building)}
+          style={{ flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+          <Building
+            building={building}
+            highlighted={hovered}
+            fill
+            color={color}
+          />
+        </CardInfoPopover>
+      ))}
     </div>
   )
 }

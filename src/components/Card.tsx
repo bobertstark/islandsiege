@@ -56,7 +56,7 @@ const Card: React.FC<CardProps> = ({
             justifyContent: 'center',
             margin: '6px 0 2px',
           }}>
-          <BuildingIcon size={48} />
+          <BuildingIcon width={48} />
         </div>
       )}
       {isBuilding(card) && (
@@ -116,7 +116,7 @@ const Card: React.FC<CardProps> = ({
             justifyContent: 'center',
             margin: '6px 0 2px',
           }}>
-          <ShipIcon size={48} />
+          <ShipIcon width={48} />
         </div>
       )}
       {isShip(card) &&
