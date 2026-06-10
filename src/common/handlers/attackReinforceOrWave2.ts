@@ -21,7 +21,7 @@ export function resolvePostWave1Phase(
   const remainingShellCells = targetFort ? shellsRemaining(targetFort.grid) : 0
 
   const canWave2 = targetDice > 0 && remainingShellCells > 0
-  const canReinforce = shelledDice > 0
+  const canReinforce = shelledDice > 0 && !state.attackFlags?.skipReinforce
 
   if (!canWave2 && !canReinforce) return 'attackDestroy'
   if (canReinforce && !canWave2) return 'attackReinforce'

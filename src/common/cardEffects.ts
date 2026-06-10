@@ -49,6 +49,9 @@ export interface AttackFlags {
   attackerRerollsMinus: number // supportedStronghold
   banRerollFaces: DieValue[] // braced/fortified/reinforcedStronghold
   mustRerollAll: boolean // steepWalledStronghold
+  skipReinforce: boolean // secretFortress
+  banShipAbilities: boolean // reefsideFortress
+  banBuildingAbilities: boolean // secludedFortress
 }
 
 export const CARD_EFFECTS: Record<string, CardEffects> = {
@@ -113,6 +116,9 @@ export function deriveAttackFlags(
     attackerRerollsMinus: 0,
     banRerollFaces: [],
     mustRerollAll: false,
+    skipReinforce: false,
+    banShipAbilities: false,
+    banBuildingAbilities: false,
   }
   for (const fort of defenderForts) {
     const fx = CARD_EFFECTS[fort.id]?.passive
@@ -133,6 +139,15 @@ export function deriveAttackFlags(
         break
       case 'flotillaRollMinus1':
         if (!isTarget) flags.attackerDiceMinus += 1
+        break
+      case 'skipReinforce':
+        if (isTarget) flags.skipReinforce = true
+        break
+      case 'banShipAbilities':
+        if (isTarget) flags.banShipAbilities = true
+        break
+      case 'banBuildingAbilities':
+        if (isTarget) flags.banBuildingAbilities = true
         break
     }
   }

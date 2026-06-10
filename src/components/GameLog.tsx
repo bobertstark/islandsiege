@@ -28,6 +28,12 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
           return `${actor} cannot reroll [${d.face}] results`
         case 'mustRerollAll':
           return `${actor} must reroll all dice`
+        case 'skipReinforce':
+          return `${actor} cannot reinforce (Secret Fortress)`
+        case 'banShipAbilities':
+          return `${actor}'s ships' abilities are disabled (Reefside Fortress)`
+        case 'banBuildingAbilities':
+          return `${actor}'s building abilities are disabled (Secluded Fortress)`
       }
       if (d.openWater) return `${actor} attacked open water`
       const target = playerName(players, d.targetPlayerIndex as number)

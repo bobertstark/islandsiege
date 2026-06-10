@@ -133,6 +133,14 @@ export function handleAction(
         effectEntries.push(effectEntry({ defenderEffect: 'banReroll', face }))
       if (attackFlags.mustRerollAll)
         effectEntries.push(effectEntry({ defenderEffect: 'mustRerollAll' }))
+      if (attackFlags.skipReinforce)
+        effectEntries.push(effectEntry({ defenderEffect: 'skipReinforce' }))
+      if (attackFlags.banShipAbilities)
+        effectEntries.push(effectEntry({ defenderEffect: 'banShipAbilities' }))
+      if (attackFlags.banBuildingAbilities)
+        effectEntries.push(
+          effectEntry({ defenderEffect: 'banBuildingAbilities' }),
+        )
       return {
         ...base,
         attackIsOpenWater: false,

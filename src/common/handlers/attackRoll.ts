@@ -40,7 +40,9 @@ export function handleAttackRoll(
       player.diceRerolls - (state.attackFlags?.attackerRerollsMinus ?? 0),
     )
     const roll = rollDice(diceCount, rng.next.bind(rng))
-    const bonusDice = attackerBonusDice(player)
+    const bonusDice = state.attackFlags?.banBuildingAbilities
+      ? []
+      : attackerBonusDice(player)
     const bonusBank = bonusDice.reduce(
       (b, { face }) => addDice(b, face, 1),
       {} as rollCounts,
@@ -104,7 +106,10 @@ export function handleAttackRoll(
   }
 
   if (payload.action === 'keep' || state.attackRerollsRemaining === 0) {
-    const bank = attackerBonusDice(player).reduce(
+    const bonusDiceForBank = state.attackFlags?.banBuildingAbilities
+      ? []
+      : attackerBonusDice(player)
+    const bank = bonusDiceForBank.reduce(
       (b, { face }) => addDice(b, face, 1),
       reduceDice(state.attackRoll!),
     )

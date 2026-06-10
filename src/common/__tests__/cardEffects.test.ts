@@ -174,8 +174,43 @@ describe('defender attack flags', () => {
       attackerRerollsMinus: 0,
       banRerollFaces: [],
       mustRerollAll: false,
+      skipReinforce: false,
+      banShipAbilities: false,
+      banBuildingAbilities: false,
     })
     expect(effectLog(s)).toEqual([])
+  })
+
+  it('secretFortress: sets skipReinforce and logs it', () => {
+    const s = attack(defenderState(['secretFortress']), 'secretFortress')
+    expect(s.attackFlags?.skipReinforce).toBe(true)
+    expect(effectLog(s)).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ defenderEffect: 'skipReinforce' }),
+      }),
+    )
+  })
+
+  it('reefsideFortress: sets banShipAbilities and logs it', () => {
+    const s = attack(defenderState(['reefsideFortress']), 'reefsideFortress')
+    expect(s.attackFlags?.banShipAbilities).toBe(true)
+    expect(effectLog(s)).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ defenderEffect: 'banShipAbilities' }),
+      }),
+    )
+  })
+
+  it('secludedFortress: sets banBuildingAbilities and logs it', () => {
+    const s = attack(defenderState(['secludedFortress']), 'secludedFortress')
+    expect(s.attackFlags?.banBuildingAbilities).toBe(true)
+    expect(effectLog(s)).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          defenderEffect: 'banBuildingAbilities',
+        }),
+      }),
+    )
   })
 })
 
@@ -195,6 +230,9 @@ describe('defender attack flags — consumption', () => {
           attackerRerollsMinus: 0,
           banRerollFaces: [],
           mustRerollAll: false,
+          skipReinforce: false,
+          banShipAbilities: false,
+          banBuildingAbilities: false,
         },
       }),
       { action: 'init' },
@@ -209,6 +247,9 @@ describe('defender attack flags — consumption', () => {
         attackerRerollsMinus: 0,
         banRerollFaces: [],
         mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
       },
     })
     state.players[0] = { ...state.players[0], attackDice: 2 }
@@ -225,6 +266,9 @@ describe('defender attack flags — consumption', () => {
           attackerRerollsMinus: 1,
           banRerollFaces: [],
           mustRerollAll: false,
+          skipReinforce: false,
+          banShipAbilities: false,
+          banBuildingAbilities: false,
         },
       }),
       { action: 'init' },
@@ -242,6 +286,9 @@ describe('defender attack flags — consumption', () => {
         attackerRerollsMinus: 0,
         banRerollFaces: ['L'],
         mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
       },
     })
     const next = handleAttackRoll(state, {
@@ -264,6 +311,9 @@ describe('defender attack flags — consumption', () => {
         attackerRerollsMinus: 0,
         banRerollFaces: [],
         mustRerollAll: true,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
       },
     })
     const next = handleAttackRoll(state, {
@@ -284,6 +334,9 @@ describe('endTurn', () => {
         attackerRerollsMinus: 0,
         banRerollFaces: [],
         mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
       },
     })
     expect(handleEndTurn(state).attackFlags).toBeUndefined()
@@ -449,5 +502,94 @@ describe('prison — banFortColonistGain', () => {
         data: expect.objectContaining({ prohibited: 'banFortColonistGain' }),
       }),
     )
+  })
+})
+
+describe('reefsideFortress — banShipAbilities', () => {
+  function withBanShips(attackerShipIds: string[]): IGameState {
+    const base = mockGameState({
+      diceBank: { L: 4 },
+      shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'startingFort' } },
+    })
+    const players = [...base.players]
+    players[0] = { ...players[0], ships: attackerShipIds.map(createShipById) }
+    const targetFort = placeColonists(createFortById('startingFort'), 2).fort
+    players[1] = {
+      ...players[1],
+      forts: [targetFort],
+      ships: [createShipById('raven')],
+    }
+    return {
+      ...base,
+      players,
+      currentPlayerIndex: 0,
+      attackFlags: {
+        attackerDiceMinus: 0,
+        attackerRerollsMinus: 0,
+        banRerollFaces: [],
+        mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: true,
+        banBuildingAbilities: false,
+      },
+    }
+  }
+
+  it('throws when attempting a ship-granted ability (raven addDie)', () => {
+    expect(() =>
+      handleAttackLeadership(withBanShips(['raven']), {
+        effect: 'addDie',
+        face: 'B',
+      }),
+    ).toThrow()
+  })
+
+  it('innate destroyShip (cost 2L) still works when banShipAbilities is set', () => {
+    const s = handleAttackLeadership(withBanShips([]), {
+      effect: 'destroyShip',
+      shipID: 'raven',
+    })
+    expect(s.players[1].ships).toHaveLength(0)
+  })
+})
+
+describe('secludedFortress — banBuildingAbilities', () => {
+  function withBanBuildings(buildingIds: string[]): IGameState {
+    return {
+      ...attackerState(buildingIds),
+      attackFlags: {
+        attackerDiceMinus: 0,
+        attackerRerollsMinus: 0,
+        banRerollFaces: [],
+        mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: true,
+      },
+    }
+  }
+
+  it('suppresses armory bonus die on init when banBuildingAbilities is set', () => {
+    const next = handleAttackRoll(withBanBuildings(['armory']), {
+      action: 'init',
+    })
+    expect(next.diceBank['G']).toBeUndefined()
+    expect(next.log.filter(e => e.data.bonusDie)).toHaveLength(0)
+  })
+
+  it('suppresses bonus dice in the final bank on keep', () => {
+    // Use a controlled roll with no G so we can assert G is absent after keep
+    const state: IGameState = {
+      ...withBanBuildings(['armory']),
+      attackRoll: ['L', 'B', 'W'],
+      attackRerollsRemaining: 0,
+    }
+    const kept = handleAttackRoll(state, { action: 'keep' })
+    expect(kept.diceBank['G']).toBeUndefined()
+  })
+
+  it('bonus dice still appear when flag is false', () => {
+    const next = handleAttackRoll(attackerState(['armory']), { action: 'init' })
+    expect(next.diceBank['G']).toBe(1)
   })
 })
