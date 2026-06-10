@@ -1,9 +1,14 @@
 import { handleAttackRoll } from '../handlers/attackRoll'
 import { handleAction } from '../handlers/action'
 import { handleEndTurn } from '../handlers/endTurn'
+import { handleAttackLeadership } from '../handlers/attackLeadership'
 import { mockGameState } from 'common/__mocks__/mockGameState'
-import { createFort } from 'common/fort'
-import { createBuildingById, createFortById } from 'common/cardRegistry'
+import { createFort, placeColonists, totalColonists } from 'common/fort'
+import {
+  createBuildingById,
+  createFortById,
+  createShipById,
+} from 'common/cardRegistry'
 import { rerollDice } from 'common/attackRoll'
 import { createRng } from 'common/rng'
 import { DIE_FACES, DieValue } from 'common/die'
@@ -281,5 +286,73 @@ describe('endTurn', () => {
       },
     })
     expect(handleEndTurn(state).attackFlags).toBeUndefined()
+  })
+})
+
+describe('ship leadership abilities', () => {
+  function leadershipState(attackerShipIds: string[]): IGameState {
+    const base = mockGameState({
+      diceBank: { B: 1, L: 3 },
+      shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'startingFort' } },
+    })
+    const players = [...base.players]
+    players[0] = { ...players[0], ships: attackerShipIds.map(createShipById) }
+    const targetFort = placeColonists(createFortById('startingFort'), 2).fort
+    players[1] = { ...players[1], forts: [targetFort] }
+    return { ...base, players, currentPlayerIndex: 0 }
+  }
+
+  it.each<[string, DieValue]>([
+    ['raven', 'B'],
+    ['sisterCatarina', 'G'],
+    ['stDaniel', 'W'],
+    ['victory', 'T'],
+  ])('%s: spends 1L, adds [%s] to diceBank, and logs it', (shipId, face) => {
+    const s = handleAttackLeadership(leadershipState([shipId]), {
+      effect: 'addDie',
+      face,
+    })
+    expect(s.diceBank['L']).toBe(2)
+    expect(s.diceBank[face]).toBe((face === 'B' ? 1 : 0) + 1)
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ effect: 'addDie', face, lSpent: 1 }),
+      }),
+    )
+  })
+
+  it('magnifique: spends 1L, gives attacker 1 coin, and logs it', () => {
+    const state = leadershipState(['magnifique'])
+    const s = handleAttackLeadership(state, { effect: 'gainCoin' })
+    expect(s.diceBank['L']).toBe(2)
+    expect(s.players[0].coins).toBe(state.players[0].coins + 1)
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ effect: 'gainCoin', lSpent: 1 }),
+      }),
+    )
+  })
+
+  it('dominica: spends 1L, removes 1 colonist from target fort, and logs it', () => {
+    const state = leadershipState(['dominica'])
+    const s = handleAttackLeadership(state, { effect: 'returnFortColonist' })
+    expect(s.diceBank['L']).toBe(2)
+    const targetFort = s.players[1].forts.find(f => f.id === 'startingFort')!
+    expect(totalColonists(targetFort)).toBe(1)
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          effect: 'returnFortColonist',
+          lSpent: 1,
+        }),
+      }),
+    )
+  })
+
+  it('throws when the player has no ship with the requested ability', () => {
+    const state = leadershipState([])
+    expect(() =>
+      handleAttackLeadership(state, { effect: 'addDie', face: 'B' }),
+    ).toThrow()
   })
 })

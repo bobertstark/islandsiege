@@ -1,5 +1,6 @@
 import { DieValue } from './die'
 import IPlayer from './IPlayer'
+import type ILeadershipAbility from './ILeadershipAbility'
 
 export type OnBuildEffect =
   | { type: 'discardOpponentCard' }
@@ -39,6 +40,7 @@ export type PassiveEffect =
 export interface CardEffects {
   onBuild?: OnBuildEffect
   passive?: PassiveEffect
+  shipAbility?: ILeadershipAbility
 }
 
 // Dice/reroll modifiers a defender's forts impose on the current attack.
@@ -91,6 +93,12 @@ export const CARD_EFFECTS: Record<string, CardEffects> = {
     passive: { type: 'banBuildShip' },
   },
   silverSmelter: { onBuild: { type: 'convertColonistsToCoins' } },
+  raven: { shipAbility: { cost: 1, effect: 'addDie', face: 'B' } },
+  sisterCatarina: { shipAbility: { cost: 1, effect: 'addDie', face: 'G' } },
+  stDaniel: { shipAbility: { cost: 1, effect: 'addDie', face: 'W' } },
+  victory: { shipAbility: { cost: 1, effect: 'addDie', face: 'T' } },
+  dominica: { shipAbility: { cost: 1, effect: 'returnFortColonist' } },
+  magnifique: { shipAbility: { cost: 1, effect: 'gainCoin' } },
 }
 
 // Dice/reroll modifiers the defender's forts impose on an attack targeting

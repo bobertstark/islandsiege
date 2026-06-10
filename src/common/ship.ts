@@ -1,5 +1,6 @@
 import IShip from './IShip'
 import ICard from './ICard'
+import type ILeadershipAbility from './ILeadershipAbility'
 
 export interface ShipData {
   id: string
@@ -7,6 +8,7 @@ export interface ShipData {
   description: string
   cost: number
   coins: number
+  leadershipAbility?: ILeadershipAbility
 }
 
 export function createShip(data: ShipData): IShip {
@@ -18,6 +20,7 @@ export function createShip(data: ShipData): IShip {
     cost: data.cost,
     coins: data.coins,
     colonists: 0,
+    leadershipAbility: data.leadershipAbility,
   }
 }
 

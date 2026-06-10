@@ -65,9 +65,20 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
       // so we just show it uniformly as "rolled")
       return `${actor} rolled [${rollStr}] (${remaining} reroll${remaining !== 1 ? 's' : ''} remaining)`
     }
-    case 'attackLeadership':
+    case 'attackLeadership': {
       if (d.skip) return `${actor} skipped leadership`
-      return `${actor} used leadership to destroy ${cardName(d.destroyedCardID as string)} (${d.lSpent}L spent)`
+      switch (d.effect) {
+        case 'destroyShip':
+          return `${actor} destroyed ${cardName(d.destroyedCardID as string)} (${d.lSpent}L spent)`
+        case 'addDie':
+          return `${actor} added [${d.face}] to attack (${d.lSpent}L spent)`
+        case 'gainCoin':
+          return `${actor} gained 1 coin (${d.lSpent}L spent)`
+        case 'returnFortColonist':
+          return `${actor} returned a colonist from ${cardName(d.fortID as string)} (${d.lSpent}L spent)`
+      }
+      return `${actor} used leadership (${d.lSpent}L spent)`
+    }
     case 'attackWave1':
       return `${actor} attacked ${playerName(players, d.targetPlayerIndex as number)} with ${d.strength} ${d.attackColor} dice`
     case 'attackWave2':
