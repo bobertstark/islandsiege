@@ -3,6 +3,7 @@ import http from 'http'
 import path from 'path'
 import { WebSocketServer } from 'ws'
 import router from './router'
+import devRouter from './devRouter'
 import { attachWebSocket } from './socketHandler'
 import { setGame } from './gameRegistry'
 import { createPlayer } from 'common/player'
@@ -17,6 +18,9 @@ const PORT = parseInt(process.env.PORT ?? '3001', 10)
 const app = express()
 app.use(express.json())
 app.use('/api', router)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/dev', devRouter)
+}
 
 const buildDir = path.join(process.cwd(), 'dist')
 app.use(express.static(buildDir))
