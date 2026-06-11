@@ -2,7 +2,12 @@ import IGameState from 'common/IGameState'
 import { handleBuildBuilding } from './buildBuilding'
 import { handleBuildShip } from './buildShip'
 import { ILogEntry } from 'common/ILog'
-import { deriveAttackFlags, prohibitionsAgainst } from 'common/cardEffects'
+import {
+  CARD_EFFECTS,
+  deriveAttackFlags,
+  prohibitionsAgainst,
+} from 'common/cardEffects'
+import { removeColonists as removeShipColonists } from 'common/ship'
 import { EffectTarget } from 'common/handlers/onBuildEffects'
 
 export function handleAction(
@@ -141,8 +146,40 @@ export function handleAction(
         effectEntries.push(
           effectEntry({ defenderEffect: 'banBuildingAbilities' }),
         )
+
+      const targetFortPassive = CARD_EFFECTS[payload.fortID ?? '']?.passive
+      const attackerPlayers = [...state.players]
+      let attacker = attackerPlayers[state.currentPlayerIndex]
+
+      if (targetFortPassive?.type === 'returnAttackerShipColonist') {
+        const shipIdx = attacker.ships.findIndex(s => s.colonists > 0)
+        if (shipIdx >= 0) {
+          const ships = [...attacker.ships]
+          ships[shipIdx] = removeShipColonists(ships[shipIdx], 1)
+          attacker = { ...attacker, ships }
+          attackerPlayers[state.currentPlayerIndex] = attacker
+          effectEntries.push(
+            effectEntry({
+              defenderEffect: 'returnAttackerShipColonist',
+              shipID: ships[shipIdx].id,
+            }),
+          )
+        }
+      }
+
+      if (targetFortPassive?.type === 'saboteurDestroyCube') {
+        if (attacker.colonists > 0) {
+          attacker = { ...attacker, colonists: attacker.colonists - 1 }
+          attackerPlayers[state.currentPlayerIndex] = attacker
+          effectEntries.push(
+            effectEntry({ defenderEffect: 'saboteurDestroyCube' }),
+          )
+        }
+      }
+
       return {
         ...base,
+        players: attackerPlayers,
         attackIsOpenWater: false,
         shipLocations: {
           ...shipLocations,

@@ -593,3 +593,61 @@ describe('secludedFortress — banBuildingAbilities', () => {
     expect(next.diceBank['G']).toBe(1)
   })
 })
+
+describe('coveOutpost — returnAttackerShipColonist', () => {
+  function coveState(shipColonists: number): IGameState {
+    const base = defenderState(['coveOutpost'])
+    const players = [...base.players]
+    const ship = { ...createShipById('raven'), colonists: shipColonists }
+    players[0] = { ...players[0], ships: [ship] }
+    return { ...base, players }
+  }
+
+  it('removes 1 colonist from the first ship with colonists and logs it', () => {
+    const s = attack(coveState(2), 'coveOutpost')
+    expect(s.players[0].ships[0].colonists).toBe(1)
+    const effectLog = s.log.filter(e => e.data.defenderEffect)
+    expect(effectLog).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          defenderEffect: 'returnAttackerShipColonist',
+          shipID: 'raven',
+        }),
+      }),
+    )
+  })
+
+  it('skips the effect when no ship has colonists', () => {
+    const s = attack(coveState(0), 'coveOutpost')
+    expect(s.players[0].ships[0].colonists).toBe(0)
+    expect(s.log.filter(e => e.data.defenderEffect)).toHaveLength(0)
+  })
+})
+
+describe('saboteurOutpost — saboteurDestroyCube', () => {
+  function saboteurState(supplyColonists: number): IGameState {
+    const base = defenderState(['saboteurOutpost'])
+    const players = [...base.players]
+    players[0] = { ...players[0], colonists: supplyColonists }
+    return { ...base, players }
+  }
+
+  it('removes 1 colonist from attacker supply and logs it', () => {
+    const s = attack(saboteurState(3), 'saboteurOutpost')
+    expect(s.players[0].colonists).toBe(2)
+    const effectLog = s.log.filter(e => e.data.defenderEffect)
+    expect(effectLog).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          defenderEffect: 'saboteurDestroyCube',
+        }),
+      }),
+    )
+  })
+
+  it('skips the effect when supply is already 0', () => {
+    const s = attack(saboteurState(0), 'saboteurOutpost')
+    expect(s.players[0].colonists).toBe(0)
+    expect(s.log.filter(e => e.data.defenderEffect)).toHaveLength(0)
+  })
+})

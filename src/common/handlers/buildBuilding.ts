@@ -7,6 +7,7 @@ import {
   applyOnBuildEffect,
   EffectTarget,
 } from 'common/handlers/onBuildEffects'
+import { CARD_EFFECTS } from 'common/cardEffects'
 
 export function handleBuildBuilding(
   state: IGameState,
@@ -47,11 +48,32 @@ export function handleBuildBuilding(
     players,
     log: [...state.log, logEntry],
   }
-  const resolved = applyOnBuildEffect(
+  let resolved = applyOnBuildEffect(
     placed,
     state.currentPlayerIndex,
     payload.buildingID,
     payload.effectTarget,
   )
+
+  if (CARD_EFFECTS[payload.fortID]?.passive?.type === 'robustGainCoin') {
+    const rPlayers = [...resolved.players]
+    rPlayers[state.currentPlayerIndex] = {
+      ...rPlayers[state.currentPlayerIndex],
+      coins: rPlayers[state.currentPlayerIndex].coins + 1,
+    }
+    const robustEntry: ILogEntry = {
+      phase: 'buildBuilding',
+      playerIndex: state.currentPlayerIndex,
+      turn: state.currentPlayerIndex,
+      timestamp: new Date().toISOString(),
+      data: { onBuild: 'robustGainCoin' },
+    }
+    resolved = {
+      ...resolved,
+      players: rPlayers,
+      log: [...resolved.log, robustEntry],
+    }
+  }
+
   return { ...resolved, phase: 'endTurn', pendingBuildCardID: undefined }
 }

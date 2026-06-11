@@ -34,6 +34,10 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
           return `${actor}'s ships' abilities are disabled (Reefside Fortress)`
         case 'banBuildingAbilities':
           return `${actor}'s building abilities are disabled (Secluded Fortress)`
+        case 'returnAttackerShipColonist':
+          return `${actor} loses a colonist from ${cardName(d.shipID as string)} (Cove Outpost)`
+        case 'saboteurDestroyCube':
+          return `${actor} loses 1 colonist from supply (Saboteur Outpost)`
       }
       if (d.openWater) return `${actor} attacked open water`
       const target = playerName(players, d.targetPlayerIndex as number)
@@ -66,6 +70,8 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
           return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s ${cardName(d.shipID as string)}`
         case 'convertColonistsToCoins':
           return `${actor}'s Silver Smelter converted colonists into ${d.coinsGained} coin${(d.coinsGained as number) !== 1 ? 's' : ''}`
+        case 'robustGainCoin':
+          return `${actor} gains 1 coin (Robust Stronghold)`
       }
       return `${actor} built ${cardName(d.cardID as string)} on ${cardName(d.fortID as string)}, moving ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''}${d.repairUsed ? ' (repair used)' : ''}`
     case 'buildShip':
