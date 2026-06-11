@@ -21,6 +21,7 @@ import { handleAttackReinforceOrWave2 } from 'common/handlers/attackReinforceOrW
 import { handleAttackReinforce } from 'common/handlers/attackReinforce'
 import { handleAttackWave2 } from 'common/handlers/attackWave2'
 import { handleAttackDestroy } from 'common/handlers/attackDestroy'
+import { handleNonActiveChoice } from 'common/handlers/nonActiveChoice'
 import { handleEndTurn } from 'common/handlers/endTurn'
 
 export function gameReducer(
@@ -52,6 +53,8 @@ export function gameReducer(
       return handleBuildBuilding(state, phase.payload)
     case GamePhases.buildShip:
       return handleBuildShip(state, phase.payload)
+    case GamePhases.nonActiveChoice:
+      return handleNonActiveChoice(state, phase.payload)
     case GamePhases.attackRoll:
       return handleAttackRoll(state, phase.payload)
     case GamePhases.attackLeadership:

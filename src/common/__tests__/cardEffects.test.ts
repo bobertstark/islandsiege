@@ -625,29 +625,79 @@ describe('coveOutpost — returnAttackerShipColonist', () => {
 })
 
 describe('saboteurOutpost — saboteurDestroyCube', () => {
-  function saboteurState(supplyColonists: number): IGameState {
+  function saboteurState(
+    attackerShells: Partial<Record<string, number>>,
+  ): IGameState {
     const base = defenderState(['saboteurOutpost'])
     const players = [...base.players]
-    players[0] = { ...players[0], colonists: supplyColonists }
+    players[0] = { ...players[0], shells: attackerShells as never }
     return { ...base, players }
   }
 
-  it('removes 1 colonist from attacker supply and logs it', () => {
-    const s = attack(saboteurState(3), 'saboteurOutpost')
-    expect(s.players[0].colonists).toBe(2)
-    const effectLog = s.log.filter(e => e.data.defenderEffect)
-    expect(effectLog).toContainEqual(
+  it('enters nonActiveChoice and sets defenderChoice when attacker has shells', () => {
+    const s = attack(saboteurState({ black: 2 }), 'saboteurOutpost')
+    expect(s.phase).toBe('nonActiveChoice')
+    expect(s.defenderChoice).toEqual({ type: 'saboteurShell' })
+    expect(s.log.filter(e => e.data.defenderEffect)).toHaveLength(0)
+  })
+
+  it('skips nonActiveChoice and goes to attackRoll when attacker has no shells', () => {
+    const s = attack(saboteurState({}), 'saboteurOutpost')
+    expect(s.phase).toBe('attackRoll')
+    expect(s.defenderChoice).toBeUndefined()
+  })
+})
+
+import { handleNonActiveChoice } from '../handlers/nonActiveChoice'
+import { ShellColor } from 'common/colors'
+
+describe('handleNonActiveChoice — saboteurShell', () => {
+  function pendingState(
+    shells: Partial<Record<ShellColor, number>>,
+  ): IGameState {
+    const base = mockGameState({ attackRoll: undefined, rngSeed: 1 })
+    const players = [...base.players]
+    players[0] = {
+      ...players[0],
+      shells: { black: 0, white: 0, gray: 0, ...shells },
+    }
+    return {
+      ...base,
+      players,
+      phase: 'nonActiveChoice',
+      defenderChoice: { type: 'saboteurShell' },
+      shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'saboteurOutpost' } },
+    }
+  }
+
+  it('removes 1 shell of the chosen color and transitions to attackRoll', () => {
+    const s = handleNonActiveChoice(pendingState({ black: 2 }), {
+      shellColor: 'black',
+    })
+    expect(s.players[0].shells.black).toBe(1)
+    expect(s.phase).toBe('attackRoll')
+    expect(s.defenderChoice).toBeUndefined()
+  })
+
+  it('logs the effect with the chosen shellColor', () => {
+    const s = handleNonActiveChoice(pendingState({ white: 1 }), {
+      shellColor: 'white',
+    })
+    expect(s.log).toContainEqual(
       expect.objectContaining({
         data: expect.objectContaining({
           defenderEffect: 'saboteurDestroyCube',
+          shellColor: 'white',
         }),
       }),
     )
   })
 
-  it('skips the effect when supply is already 0', () => {
-    const s = attack(saboteurState(0), 'saboteurOutpost')
-    expect(s.players[0].colonists).toBe(0)
-    expect(s.log.filter(e => e.data.defenderEffect)).toHaveLength(0)
+  it('throws when the attacker does not have the chosen color', () => {
+    expect(() =>
+      handleNonActiveChoice(pendingState({ black: 1 }), {
+        shellColor: 'white',
+      }),
+    ).toThrow()
   })
 })

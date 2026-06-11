@@ -37,7 +37,7 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
         case 'returnAttackerShipColonist':
           return `${actor} loses a colonist from ${cardName(d.shipID as string)} (Cove Outpost)`
         case 'saboteurDestroyCube':
-          return `${actor} loses 1 colonist from supply (Saboteur Outpost)`
+          return `${actor} loses 1 ${d.shellColor} shell (Saboteur Outpost)`
       }
       if (d.openWater) return `${actor} attacked open water`
       const target = playerName(players, d.targetPlayerIndex as number)

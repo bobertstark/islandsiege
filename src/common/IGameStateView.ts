@@ -6,6 +6,7 @@ import { DieValue } from './die'
 import { rollCounts } from './attackRoll'
 import { ILogEntry } from './ILog'
 import { AttackFlags } from './cardEffects'
+import { DefenderChoiceSpec } from './IGameState'
 
 // Per-player view: hidden information removed.
 // deck → deckCount; opponents' hands → count; own hand + discard in full.
@@ -43,5 +44,6 @@ export default interface IGameStateView {
   winningPlayerIndex: number | undefined
   pendingBuildCardID?: string
   attackFlags?: AttackFlags
+  defenderChoice?: DefenderChoiceSpec
   log: ILogEntry[]
 }

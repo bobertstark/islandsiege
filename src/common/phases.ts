@@ -36,6 +36,7 @@ export type Phase =
   | 'buildFort'
   | 'buildBuilding'
   | 'buildShip'
+  | 'nonActiveChoice'
   | 'attackRoll'
   | 'attackLeadership'
   | 'attackWave1'
@@ -69,6 +70,7 @@ export const GamePhases = {
   buildFort: 'buildFort',
   buildBuilding: 'buildBuilding',
   buildShip: 'buildShip',
+  nonActiveChoice: 'nonActiveChoice',
   attackRoll: 'attackRoll',
   attackLeadership: 'attackLeadership',
   attackWave1: 'attackWave1',

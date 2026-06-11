@@ -15,6 +15,7 @@ import { BuildBuildingPhase } from 'components/phases/BuildBuildingPhase'
 import { BuildShipPhase } from 'components/phases/BuildShipPhase'
 import { DrawPickPhase } from 'components/phases/DrawPickPhase'
 import { InitDrawPhase } from 'components/phases/InitDrawPhase'
+import { NonActiveChoicePhase } from 'components/phases/NonActiveChoicePhase'
 import AttackRollPanel from 'components/AttackRollPanel'
 import { ROLL_DURATION_MS } from 'components/Die'
 import AttackTargetDisplay, {
@@ -425,6 +426,18 @@ export const GamePage: React.FC = () => {
       case GamePhases.colonize:
         return (
           <ColonizePhase
+            view={view}
+            playerIdx={playerIdx}
+            isMyTurn={isMyTurn}
+            waitingFor={waitingFor}
+            dispatch={dispatch}
+            logOpen={logOpen}
+            onToggleLog={onToggleLog}
+          />
+        )
+      case GamePhases.nonActiveChoice:
+        return (
+          <NonActiveChoicePhase
             view={view}
             playerIdx={playerIdx}
             isMyTurn={isMyTurn}

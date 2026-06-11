@@ -167,19 +167,18 @@ export function handleAction(
         }
       }
 
-      if (targetFortPassive?.type === 'saboteurDestroyCube') {
-        if (attacker.colonists > 0) {
-          attacker = { ...attacker, colonists: attacker.colonists - 1 }
-          attackerPlayers[state.currentPlayerIndex] = attacker
-          effectEntries.push(
-            effectEntry({ defenderEffect: 'saboteurDestroyCube' }),
-          )
-        }
-      }
+      const attackerHasShells = Object.values(attacker.shells).some(
+        n => (n ?? 0) > 0,
+      )
+      const saboteurTriggered =
+        targetFortPassive?.type === 'saboteurDestroyCube' && attackerHasShells
 
       return {
         ...base,
         players: attackerPlayers,
+        defenderChoice: saboteurTriggered
+          ? { type: 'saboteurShell' }
+          : undefined,
         attackIsOpenWater: false,
         shipLocations: {
           ...shipLocations,
@@ -189,7 +188,7 @@ export function handleAction(
           },
         },
         attackFlags,
-        phase: 'attackRoll',
+        phase: saboteurTriggered ? 'nonActiveChoice' : 'attackRoll',
         log: [...(state.log ?? []), attackEntry, ...effectEntries],
       }
     }
