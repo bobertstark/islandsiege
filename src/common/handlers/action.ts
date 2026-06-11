@@ -5,9 +5,9 @@ import { ILogEntry } from 'common/ILog'
 import {
   CARD_EFFECTS,
   deriveAttackFlags,
+  deriveDefenderChoice,
   prohibitionsAgainst,
 } from 'common/cardEffects'
-import { removeColonists as removeShipColonists } from 'common/ship'
 import { EffectTarget } from 'common/handlers/onBuildEffects'
 
 export function handleAction(
@@ -151,34 +151,12 @@ export function handleAction(
       const attackerPlayers = [...state.players]
       let attacker = attackerPlayers[state.currentPlayerIndex]
 
-      if (targetFortPassive?.type === 'returnAttackerShipColonist') {
-        const shipIdx = attacker.ships.findIndex(s => s.colonists > 0)
-        if (shipIdx >= 0) {
-          const ships = [...attacker.ships]
-          ships[shipIdx] = removeShipColonists(ships[shipIdx], 1)
-          attacker = { ...attacker, ships }
-          attackerPlayers[state.currentPlayerIndex] = attacker
-          effectEntries.push(
-            effectEntry({
-              defenderEffect: 'returnAttackerShipColonist',
-              shipID: ships[shipIdx].id,
-            }),
-          )
-        }
-      }
-
-      const attackerHasShells = Object.values(attacker.shells).some(
-        n => (n ?? 0) > 0,
-      )
-      const saboteurTriggered =
-        targetFortPassive?.type === 'saboteurDestroyCube' && attackerHasShells
+      const defenderChoice = deriveDefenderChoice(targetFortPassive, attacker)
 
       return {
         ...base,
         players: attackerPlayers,
-        defenderChoice: saboteurTriggered
-          ? { type: 'saboteurShell' }
-          : undefined,
+        defenderChoice,
         attackIsOpenWater: false,
         shipLocations: {
           ...shipLocations,
@@ -188,7 +166,7 @@ export function handleAction(
           },
         },
         attackFlags,
-        phase: saboteurTriggered ? 'nonActiveChoice' : 'attackRoll',
+        phase: defenderChoice ? 'nonActiveChoice' : 'attackRoll',
         log: [...(state.log ?? []), attackEntry, ...effectEntries],
       }
     }

@@ -1,5 +1,5 @@
 import React from 'react'
-import IGameStateView from 'common/IGameStateView'
+import IGameStateView, { IPlayerView } from 'common/IGameStateView'
 import { ShellColor, ShellColors } from 'common/colors'
 import ActionInstructions from 'components/ActionInstructions'
 import AttackTargetDisplay from 'components/AttackTargetDisplay'
@@ -14,6 +14,47 @@ interface Props {
   dispatch: (action: { type: string; payload?: unknown }) => void
   logOpen: boolean
   onToggleLog: () => void
+}
+
+function CoveShipPicker({
+  attacker,
+  dispatch,
+}: {
+  attacker: IPlayerView
+  dispatch: Props['dispatch']
+}) {
+  const ships = attacker.ships.filter(s => s.colonists > 0)
+  return (
+    <div style={{ marginTop: 12 }}>
+      <p style={{ margin: '0 0 8px', fontSize: 13 }}>
+        Choose a ship to remove a colonist from:
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {ships.map(ship => (
+          <button
+            key={ship.id}
+            onClick={() =>
+              dispatch({
+                type: 'nonActiveChoice',
+                payload: { shipID: ship.id },
+              })
+            }
+            style={{
+              padding: '8px 14px',
+              borderRadius: 6,
+              border: '2px solid #555',
+              background: '#2a3a5a',
+              color: '#eee',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontSize: 13,
+            }}>
+            {ship.name} ({ship.colonists})
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function SaboteurShellPicker({
@@ -79,6 +120,29 @@ export const NonActiveChoicePhase: React.FC<Props> = ({
     if (!spec) return null
 
     switch (spec.type) {
+      case 'coveShip': {
+        const attacker = view.players[attackerIdx]
+        return (
+          <>
+            <ActionInstructions
+              title="Cove Outpost"
+              description={
+                isDefender
+                  ? 'Your Cove Outpost activates — choose a ship to remove a colonist from.'
+                  : 'Waiting for the defender to pick a ship…'
+              }
+            />
+            <AttackTargetDisplay
+              view={view}
+              leftFooter={
+                isDefender ? (
+                  <CoveShipPicker attacker={attacker} dispatch={dispatch} />
+                ) : undefined
+              }
+            />
+          </>
+        )
+      }
       case 'saboteurShell': {
         const attacker = view.players[attackerIdx]
         const attackerShells =

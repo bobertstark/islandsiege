@@ -1,6 +1,7 @@
 import { DieValue } from './die'
 import IPlayer from './IPlayer'
 import type ILeadershipAbility from './ILeadershipAbility'
+import { DefenderChoiceSpec } from './IGameState'
 
 export type OnBuildEffect =
   | { type: 'discardOpponentCard' }
@@ -102,6 +103,28 @@ export const CARD_EFFECTS: Record<string, CardEffects> = {
   victory: { shipAbility: { cost: 1, effect: 'addDie', face: 'T' } },
   dominica: { shipAbility: { cost: 1, effect: 'returnFortColonist' } },
   magnifique: { shipAbility: { cost: 1, effect: 'gainCoin' } },
+}
+
+// Maps a target fort's passive effect to the defender choice it triggers, given
+// the attacker's current state. Returns undefined if the effect doesn't apply
+// or the precondition isn't met.
+export function deriveDefenderChoice(
+  passive: PassiveEffect | undefined,
+  attacker: IPlayer,
+): DefenderChoiceSpec | undefined {
+  if (!passive) return undefined
+  switch (passive.type) {
+    case 'returnAttackerShipColonist':
+      return attacker.ships.some(s => s.colonists > 0)
+        ? { type: 'coveShip' }
+        : undefined
+    case 'saboteurDestroyCube':
+      return Object.values(attacker.shells).some(n => (n ?? 0) > 0)
+        ? { type: 'saboteurShell' }
+        : undefined
+    default:
+      return undefined
+  }
 }
 
 // Dice/reroll modifiers the defender's forts impose on an attack targeting

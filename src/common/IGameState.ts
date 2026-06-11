@@ -9,7 +9,9 @@ import { AttackFlags } from './cardEffects'
 
 // Describes a choice the non-active (defender) player must make before the
 // attacker's turn continues. Add new variants here as more cards need it.
-export type DefenderChoiceSpec = { type: 'saboteurShell' }
+export type DefenderChoiceSpec =
+  | { type: 'saboteurShell' }
+  | { type: 'coveShip' }
 
 // Full game state: plain data, safe to store or send over the wire.
 export default interface IGameState {

@@ -603,23 +603,17 @@ describe('coveOutpost — returnAttackerShipColonist', () => {
     return { ...base, players }
   }
 
-  it('removes 1 colonist from the first ship with colonists and logs it', () => {
+  it('enters nonActiveChoice and sets defenderChoice when attacker has ship colonists', () => {
     const s = attack(coveState(2), 'coveOutpost')
-    expect(s.players[0].ships[0].colonists).toBe(1)
-    const effectLog = s.log.filter(e => e.data.defenderEffect)
-    expect(effectLog).toContainEqual(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          defenderEffect: 'returnAttackerShipColonist',
-          shipID: 'raven',
-        }),
-      }),
-    )
+    expect(s.phase).toBe('nonActiveChoice')
+    expect(s.defenderChoice).toEqual({ type: 'coveShip' })
+    expect(s.players[0].ships[0].colonists).toBe(2)
   })
 
-  it('skips the effect when no ship has colonists', () => {
+  it('goes directly to attackRoll when no ship has colonists', () => {
     const s = attack(coveState(0), 'coveOutpost')
-    expect(s.players[0].ships[0].colonists).toBe(0)
+    expect(s.phase).toBe('attackRoll')
+    expect(s.defenderChoice).toBeUndefined()
     expect(s.log.filter(e => e.data.defenderEffect)).toHaveLength(0)
   })
 })
@@ -698,6 +692,51 @@ describe('handleNonActiveChoice — saboteurShell', () => {
       handleNonActiveChoice(pendingState({ black: 1 }), {
         shellColor: 'white',
       }),
+    ).toThrow()
+  })
+})
+
+describe('handleNonActiveChoice — coveShip', () => {
+  function pendingState(shipColonists: number): IGameState {
+    const base = mockGameState({ attackRoll: undefined, rngSeed: 1 })
+    const players = [...base.players]
+    const ship = { ...createShipById('raven'), colonists: shipColonists }
+    players[0] = { ...players[0], ships: [ship] }
+    return {
+      ...base,
+      players,
+      phase: 'nonActiveChoice',
+      defenderChoice: { type: 'coveShip' },
+      shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'coveOutpost' } },
+    }
+  }
+
+  it('removes 1 colonist from the chosen ship and transitions to attackRoll', () => {
+    const s = handleNonActiveChoice(pendingState(2), { shipID: 'raven' })
+    expect(s.players[0].ships[0].colonists).toBe(1)
+    expect(s.phase).toBe('attackRoll')
+    expect(s.defenderChoice).toBeUndefined()
+  })
+
+  it('logs the effect with the chosen shipID', () => {
+    const s = handleNonActiveChoice(pendingState(1), { shipID: 'raven' })
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          defenderEffect: 'returnAttackerShipColonist',
+          shipID: 'raven',
+        }),
+      }),
+    )
+  })
+
+  it('throws when no shipID is provided', () => {
+    expect(() => handleNonActiveChoice(pendingState(1), {})).toThrow()
+  })
+
+  it('throws when the chosen ship has no colonists', () => {
+    expect(() =>
+      handleNonActiveChoice(pendingState(0), { shipID: 'raven' }),
     ).toThrow()
   })
 })
