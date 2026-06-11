@@ -1,10 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import IGameState from 'common/IGameState'
-import { DevAttackPanel } from './DevAttackPanel'
 import { DevPhasePanel } from './DevPhasePanel'
-import { DevCardsPanel } from './DevCardsPanel'
 import { DevPlayerPanel } from './DevPlayerPanel'
-import { DevTableauPanel } from './DevTableauPanel'
 
 interface Props {
   gameId: string
@@ -114,9 +111,6 @@ export const DevOverlay: React.FC<Props> = ({ gameId }) => {
           }}>
           <h3 style={{ margin: '0 0 12px' }}>Dev Sandbox</h3>
           {(() => {
-            // Merge draft into fullState so panels always read accumulated changes,
-            // not the stale snapshot. Without this, each panel update rebuilds from
-            // the original fetch and overwrites prior edits.
             const liveState: IGameState = { ...fullState, ...draft }
             return (
               <>
@@ -124,21 +118,7 @@ export const DevOverlay: React.FC<Props> = ({ gameId }) => {
                   fullState={liveState}
                   updateDraft={updateDraft}
                 />
-                {liveState.phase.startsWith('attack') && (
-                  <DevAttackPanel
-                    fullState={liveState}
-                    updateDraft={updateDraft}
-                  />
-                )}
-                <DevCardsPanel
-                  fullState={liveState}
-                  updateDraft={updateDraft}
-                />
                 <DevPlayerPanel
-                  fullState={liveState}
-                  updateDraft={updateDraft}
-                />
-                <DevTableauPanel
                   fullState={liveState}
                   updateDraft={updateDraft}
                 />

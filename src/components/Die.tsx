@@ -22,6 +22,7 @@ const Die: React.FC<DieProps> = ({
   const endRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const faceRef = useRef(face)
   faceRef.current = face
+  const isFirstRenderRef = useRef(true)
 
   useEffect(() => {
     setDisplay(DIE_FACES[0])
@@ -31,15 +32,29 @@ const Die: React.FC<DieProps> = ({
     }, ROLL_INTERVAL_MS)
 
     endRef.current = setTimeout(() => {
-      if (timerRef.current) clearInterval(timerRef.current)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
+      }
       setDisplay(faceRef.current)
     }, ROLL_DURATION_MS)
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
       if (endRef.current) clearTimeout(endRef.current)
+      timerRef.current = null
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync display when face changes from outside (e.g. dev panel patch).
+  // Skip on initial render to avoid interrupting the mount animation.
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false
+      return
+    }
+    if (!timerRef.current) setDisplay(face)
+  }, [face])
 
   const s = DIE_STYLE[display]
 
