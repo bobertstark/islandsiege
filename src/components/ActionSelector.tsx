@@ -21,6 +21,10 @@ export interface FortTarget {
 interface ActionSelectorProps {
   player: IPlayerView
   attackTargets: FortTarget[]
+  // Actions blocked by an opponent's in-play building, keyed by action
+  // ('draw'/'buildBuilding'/'buildShip') → a note naming the offending building.
+  // The matching button is locked and shows the note when clicked.
+  prohibitedNotes?: Partial<Record<string, string>>
   onSelect: (
     action: string,
     cardID?: string,
@@ -51,10 +55,12 @@ function buildableShips(hand: ICard[], forts: IFort[]): ICard[] {
 const ActionSelector: React.FC<ActionSelectorProps> = ({
   player,
   attackTargets,
+  prohibitedNotes = {},
   onSelect,
 }) => {
   type Picker = 'attack' | 'fort' | 'building' | 'ship'
   const [activePicker, setActivePicker] = useState<Picker | null>(null)
+  const [note, setNote] = useState<string | null>(null)
 
   const showAttackPicker = activePicker === 'attack'
   const showFortPicker = activePicker === 'fort'
@@ -62,6 +68,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
   const showShipPicker = activePicker === 'ship'
 
   function togglePicker(p: Picker) {
+    setNote(null)
     setActivePicker(v => (v === p ? null : p))
   }
 
@@ -73,8 +80,22 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
   const shipCards = buildableShips(hand, forts)
 
   function pick(action: string, cardID: string) {
+    setNote(null)
     setActivePicker(null)
     onSelect(action, cardID)
+  }
+
+  const drawLock = prohibitedNotes['draw']
+  const buildingLock = prohibitedNotes['buildBuilding']
+  const shipLock = prohibitedNotes['buildShip']
+  const lockedStyle: React.CSSProperties = {
+    background: '#9e9e9e',
+    color: '#eee',
+    border: 'none',
+    borderRadius: 6,
+    padding: '8px 16px',
+    fontWeight: 600,
+    cursor: 'help',
   }
 
   return (
@@ -96,17 +117,23 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
           Attack{showAttackPicker ? ' ▲' : ' ▼'}
         </button>
         <button
-          onClick={() => onSelect('draw')}
-          style={{
-            background: '#27ae60',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            padding: '8px 16px',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}>
-          Draw
+          onClick={() =>
+            drawLock ? setNote(drawLock) : (setNote(null), onSelect('draw'))
+          }
+          style={
+            drawLock
+              ? lockedStyle
+              : {
+                  background: '#27ae60',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '8px 16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }
+          }>
+          {drawLock ? '🔒 ' : ''}Draw
         </button>
         {fortCards.length > 0 && (
           <button
@@ -125,35 +152,64 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
         )}
         {buildingCards.length > 0 && (
           <button
-            onClick={() => togglePicker('building')}
-            style={{
-              background: '#795548',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '8px 16px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}>
-            Build Building{showBuildingPicker ? ' ▲' : ' ▼'}
+            onClick={() =>
+              buildingLock ? setNote(buildingLock) : togglePicker('building')
+            }
+            style={
+              buildingLock
+                ? lockedStyle
+                : {
+                    background: '#795548',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '8px 16px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }
+            }>
+            {buildingLock ? '🔒 ' : ''}Build Building
+            {buildingLock ? '' : showBuildingPicker ? ' ▲' : ' ▼'}
           </button>
         )}
         {shipCards.length > 0 && (
           <button
-            onClick={() => togglePicker('ship')}
-            style={{
-              background: '#795548',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '8px 16px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}>
-            Build Ship{showShipPicker ? ' ▲' : ' ▼'}
+            onClick={() =>
+              shipLock ? setNote(shipLock) : togglePicker('ship')
+            }
+            style={
+              shipLock
+                ? lockedStyle
+                : {
+                    background: '#795548',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '8px 16px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }
+            }>
+            {shipLock ? '🔒 ' : ''}Build Ship
+            {shipLock ? '' : showShipPicker ? ' ▲' : ' ▼'}
           </button>
         )}
       </div>
+
+      {note && (
+        <p
+          style={{
+            margin: '0 0 12px',
+            padding: '8px 12px',
+            background: '#fbeaea',
+            border: '1px solid #e0b4b4',
+            borderRadius: 6,
+            color: '#922',
+            fontSize: 13,
+          }}>
+          🔒 {note}
+        </p>
+      )}
 
       {showAttackPicker && (
         <div style={{ padding: '12px 0' }}>
