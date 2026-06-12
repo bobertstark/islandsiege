@@ -12,6 +12,8 @@ import { AttackFlags } from './cardEffects'
 export type DefenderChoiceSpec =
   | { type: 'saboteurShell' }
   | { type: 'coveShip' }
+  | { type: 'barricadedReroll'; rerolledIndex?: number }
+  | { type: 'guardedWave2' }
 
 // Full game state: plain data, safe to store or send over the wire.
 export default interface IGameState {

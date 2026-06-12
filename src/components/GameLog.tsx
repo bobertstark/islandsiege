@@ -79,6 +79,12 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     case 'attackRoll': {
       if (d.bonusDie !== undefined)
         return `${actor}'s ${cardName(d.cardID as string)} adds [${d.bonusDie}] to attack`
+      if (d.defenderEffect === 'barricadedReroll') {
+        const defender = playerName(players, entry.playerIndex)
+        return d.skipped
+          ? `${defender} passed (Barricaded Fortress)`
+          : `${defender} rerolled die ${(d.dieIndex as number) + 1} → [${d.result}] (Barricaded Fortress)`
+      }
       const rollArr =
         (d.roll as string[] | undefined) ?? (d.finalRoll as string[])
       const rollStr = rollArr.join(', ')
@@ -107,8 +113,13 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     }
     case 'attackWave1':
       return `${actor} attacked ${playerName(players, d.targetPlayerIndex as number)} with ${d.strength} ${d.attackColor} dice`
-    case 'attackWave2':
-      return `${actor} wave 2 attacked ${playerName(players, d.targetPlayerIndex as number)} (${(d.attackLocs as unknown[]).length} hit${(d.attackLocs as unknown[]).length !== 1 ? 's' : ''})`
+    case 'attackWave2': {
+      const hits = (d.attackLocs as unknown[]).length
+      const target = playerName(players, d.targetPlayerIndex as number)
+      if (d.defenderEffect === 'guardedWave2')
+        return `${target} chose ${hits} shell${hits !== 1 ? 's' : ''} to destroy (Guarded Fortress)`
+      return `${actor} wave 2 attacked ${target} (${hits} hit${hits !== 1 ? 's' : ''})`
+    }
     case 'attackReinforce': {
       const added = d.shellsAdded as Record<string, number>
       const parts = Object.entries(added).map(([c, n]) => `${n} ${c}`)

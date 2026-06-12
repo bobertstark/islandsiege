@@ -53,6 +53,8 @@ export interface AttackFlags {
   skipReinforce: boolean // secretFortress
   banShipAbilities: boolean // reefsideFortress
   banBuildingAbilities: boolean // secludedFortress
+  defenderReroll1: boolean // barricadedFortress
+  defenderChoosesWave2: boolean // guardedFortress
 }
 
 export const CARD_EFFECTS: Record<string, CardEffects> = {
@@ -142,6 +144,8 @@ export function deriveAttackFlags(
     skipReinforce: false,
     banShipAbilities: false,
     banBuildingAbilities: false,
+    defenderReroll1: false,
+    defenderChoosesWave2: false,
   }
   for (const fort of defenderForts) {
     const fx = CARD_EFFECTS[fort.id]?.passive
@@ -171,6 +175,12 @@ export function deriveAttackFlags(
         break
       case 'banBuildingAbilities':
         if (isTarget) flags.banBuildingAbilities = true
+        break
+      case 'defenderReroll1':
+        if (isTarget) flags.defenderReroll1 = true
+        break
+      case 'defenderChoosesWave2':
+        if (isTarget) flags.defenderChoosesWave2 = true
         break
     }
   }

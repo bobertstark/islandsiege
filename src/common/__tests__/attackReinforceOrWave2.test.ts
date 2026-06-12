@@ -70,6 +70,8 @@ describe('resolvePostWave1Phase', () => {
         skipReinforce: true,
         banShipAbilities: false,
         banBuildingAbilities: false,
+        defenderReroll1: false,
+        defenderChoosesWave2: false,
       },
     }
     expect(resolvePostWave1Phase(state)).toBe('attackDestroy')

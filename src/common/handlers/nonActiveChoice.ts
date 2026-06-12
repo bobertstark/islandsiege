@@ -1,10 +1,20 @@
 import IGameState from 'common/IGameState'
 import { ShellColor } from 'common/colors'
 import { ILogEntry } from 'common/ILog'
+import { createRng } from 'common/rng'
+import { rerollDice } from 'common/attackRoll'
+import { finalizeRoll } from 'common/handlers/attackRoll'
+import { applyWave2 } from 'common/handlers/attackWave2'
 
 export function handleNonActiveChoice(
   state: IGameState,
-  payload: { shellColor?: ShellColor; shipID?: string },
+  payload: {
+    shellColor?: ShellColor
+    shipID?: string
+    dieIndex?: number
+    attackLocs?: [number, number][]
+    finalize?: boolean
+  },
 ): IGameState {
   const spec = state.defenderChoice
   if (!spec) return state
@@ -67,6 +77,69 @@ export function handleNonActiveChoice(
         phase: 'attackRoll',
         log: [...state.log, logEntry],
       }
+    }
+    case 'barricadedReroll': {
+      const attackerIdx = state.currentPlayerIndex
+
+      // Finalize step: the reroll already happened and the client has shown the
+      // result; commit the roll into the dice bank and advance.
+      if (payload.finalize) {
+        return finalizeRoll(
+          { ...state, defenderChoice: undefined },
+          state.attackRoll!,
+        )
+      }
+
+      const currentRoll = state.attackRoll!
+
+      // Reroll step: apply the chosen die's reroll but stay in this phase so the
+      // client can animate the die landing on its new value before finalizing.
+      if (payload.dieIndex !== undefined) {
+        const idx = payload.dieIndex
+        if (idx < 0 || idx >= currentRoll.length)
+          throw new Error(`Invalid die index ${idx}`)
+        const rng = createRng(state.rngSeed)
+        const attackRoll = rerollDice(currentRoll, [idx], rng.next.bind(rng))
+        const logEntry: ILogEntry = {
+          phase: 'attackRoll',
+          playerIndex: attackerIdx,
+          turn: attackerIdx,
+          timestamp: new Date().toISOString(),
+          data: {
+            defenderEffect: 'barricadedReroll',
+            dieIndex: idx,
+            result: attackRoll[idx],
+          },
+        }
+        return {
+          ...state,
+          attackRoll,
+          rngSeed: rng.seed(),
+          defenderChoice: { type: 'barricadedReroll', rerolledIndex: idx },
+          log: [...state.log, logEntry],
+        }
+      }
+
+      // Pass step: no reroll, finalize directly.
+      const logEntry: ILogEntry = {
+        phase: 'attackRoll',
+        playerIndex: attackerIdx,
+        turn: attackerIdx,
+        timestamp: new Date().toISOString(),
+        data: { defenderEffect: 'barricadedReroll', skipped: true },
+      }
+      return finalizeRoll(
+        { ...state, defenderChoice: undefined, log: [...state.log, logEntry] },
+        currentRoll,
+      )
+    }
+    case 'guardedWave2': {
+      const locs = payload.attackLocs
+      if (!locs) throw new Error('guardedWave2 requires attackLocs')
+      return applyWave2(state, locs, {
+        defenderEffect: 'guardedWave2',
+        clearDefenderChoice: true,
+      })
     }
     default:
       return state

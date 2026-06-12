@@ -8,16 +8,22 @@ interface DieProps {
   face: DieValue
   selected?: boolean
   onClick?: () => void
+  onDoubleClick?: () => void
   readonly?: boolean
+  animateOnMount?: boolean
 }
 
 const Die: React.FC<DieProps> = ({
   face,
   selected = false,
   onClick,
+  onDoubleClick,
   readonly = false,
+  animateOnMount = true,
 }) => {
-  const [display, setDisplay] = useState<DieValue>(DIE_FACES[0])
+  const [display, setDisplay] = useState<DieValue>(
+    animateOnMount ? DIE_FACES[0] : face,
+  )
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const endRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const faceRef = useRef(face)
@@ -25,6 +31,10 @@ const Die: React.FC<DieProps> = ({
   const isFirstRenderRef = useRef(true)
 
   useEffect(() => {
+    if (!animateOnMount) {
+      setDisplay(faceRef.current)
+      return
+    }
     setDisplay(DIE_FACES[0])
 
     timerRef.current = setInterval(() => {
@@ -61,12 +71,14 @@ const Die: React.FC<DieProps> = ({
   return (
     <div
       onClick={readonly ? undefined : onClick}
+      onDoubleClick={readonly ? undefined : onDoubleClick}
       style={{
         width: 48,
         height: 48,
         fontWeight: 'bold',
         fontSize: 18,
-        cursor: readonly || !onClick ? 'default' : 'pointer',
+        cursor:
+          readonly || (!onClick && !onDoubleClick) ? 'default' : 'pointer',
         border: selected ? '3px solid #e74c3c' : '2px solid #555',
         borderRadius: 8,
         background: s.bg,

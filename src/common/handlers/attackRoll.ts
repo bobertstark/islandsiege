@@ -7,6 +7,7 @@ import {
   addDice,
   rollCounts,
 } from 'common/attackRoll'
+import { DieValue } from 'common/die'
 import { createRng } from 'common/rng'
 import { allLeadershipAbilities } from 'common/player'
 import { ILogEntry } from 'common/ILog'
@@ -106,37 +107,47 @@ export function handleAttackRoll(
   }
 
   if (payload.action === 'keep' || state.attackRerollsRemaining === 0) {
-    const bonusDiceForBank = state.attackFlags?.banBuildingAbilities
-      ? []
-      : attackerBonusDice(player)
-    const bank = bonusDiceForBank.reduce(
-      (b, { face }) => addDice(b, face, 1),
-      reduceDice(state.attackRoll!),
-    )
-    const abilities = allLeadershipAbilities(
-      state.players[state.currentPlayerIndex],
-    )
-    const lRolled = bank.L ?? 0
-    const canAffordLeadership =
-      abilities.length > 0 && lRolled >= Math.min(...abilities.map(a => a.cost))
-    const totalRerolls = player.diceRerolls - state.attackRerollsRemaining
-    const finalizeEntry: ILogEntry = {
-      phase: 'attackRoll',
-      playerIndex: state.currentPlayerIndex,
-      turn: state.currentPlayerIndex,
-      timestamp: new Date().toISOString(),
-      data: {
-        finalRoll: state.attackRoll,
-        totalRerolls,
-      },
+    if (state.attackFlags?.defenderReroll1) {
+      return {
+        ...state,
+        defenderChoice: { type: 'barricadedReroll' },
+        phase: 'nonActiveChoice',
+      }
     }
-    return {
-      ...state,
-      diceBank: bank,
-      phase: 'attackLeadership',
-      log: [...(state.log ?? []), finalizeEntry],
-    }
+    return finalizeRoll(state, state.attackRoll!)
   }
 
   return state
+}
+
+// Compute the dice bank from a finalized roll, log it, and advance to
+// attackLeadership. Called by handleAttackRoll (non-barricaded) and
+// handleNonActiveChoice (after barricaded defender reroll or pass).
+export function finalizeRoll(
+  state: IGameState,
+  attackRoll: DieValue[],
+): IGameState {
+  const player = state.players[state.currentPlayerIndex]
+  const bonusDiceForBank = state.attackFlags?.banBuildingAbilities
+    ? []
+    : attackerBonusDice(player)
+  const bank = bonusDiceForBank.reduce(
+    (b, { face }) => addDice(b, face, 1),
+    reduceDice(attackRoll),
+  )
+  const totalRerolls = player.diceRerolls - state.attackRerollsRemaining
+  const finalizeEntry: ILogEntry = {
+    phase: 'attackRoll',
+    playerIndex: state.currentPlayerIndex,
+    turn: state.currentPlayerIndex,
+    timestamp: new Date().toISOString(),
+    data: { finalRoll: attackRoll, totalRerolls },
+  }
+  return {
+    ...state,
+    attackRoll,
+    diceBank: bank,
+    phase: 'attackLeadership',
+    log: [...(state.log ?? []), finalizeEntry],
+  }
 }
