@@ -8,7 +8,6 @@ interface DieProps {
   face: DieValue
   selected?: boolean
   onClick?: () => void
-  onDoubleClick?: () => void
   readonly?: boolean
   animateOnMount?: boolean
 }
@@ -17,7 +16,6 @@ const Die: React.FC<DieProps> = ({
   face,
   selected = false,
   onClick,
-  onDoubleClick,
   readonly = false,
   animateOnMount = true,
 }) => {
@@ -71,14 +69,12 @@ const Die: React.FC<DieProps> = ({
   return (
     <div
       onClick={readonly ? undefined : onClick}
-      onDoubleClick={readonly ? undefined : onDoubleClick}
       style={{
         width: 48,
         height: 48,
         fontWeight: 'bold',
         fontSize: 18,
-        cursor:
-          readonly || (!onClick && !onDoubleClick) ? 'default' : 'pointer',
+        cursor: readonly || !onClick ? 'default' : 'pointer',
         border: selected ? '3px solid #e74c3c' : '2px solid #555',
         borderRadius: 8,
         background: s.bg,
