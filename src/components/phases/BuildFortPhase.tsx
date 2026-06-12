@@ -71,6 +71,11 @@ export const BuildFortPhase: React.FC<BuildFortPhaseProps> = ({
     setAssignments({})
   }
 
+  // Back out to the action menu uncommitted (until a general undo exists).
+  function cancel() {
+    dispatch({ type: 'action', payload: { actionChosen: 'cancel' } })
+  }
+
   function handleCellClick(loc: [number, number]) {
     if (!selectedCard?.gridSpec) return
     const key = `${loc[0]},${loc[1]}`
@@ -200,6 +205,7 @@ export const BuildFortPhase: React.FC<BuildFortPhaseProps> = ({
       <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
         <button onClick={handleConfirm}>Confirm</button>
         {coinsEarned > 0 && <button onClick={handleUndo}>Undo</button>}
+        <button onClick={cancel}>Cancel</button>
       </div>
     </div>
   )
