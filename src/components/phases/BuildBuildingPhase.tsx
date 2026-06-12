@@ -9,6 +9,8 @@ import { CARD_EFFECTS } from 'common/cardEffects'
 import { EffectTarget } from 'common/handlers/onBuildEffects'
 import Card from 'components/Card'
 import Fort from 'components/Fort'
+import Building from 'components/Building'
+import Ship from 'components/Ship'
 import DescriptionText from 'components/DescriptionText'
 import ActionInstructions from 'components/ActionInstructions'
 
@@ -48,6 +50,36 @@ function emptyCells(fort: IFort): [number, number][] {
 
 function needsRepair(card: ICard, fort: IFort): boolean {
   return !!card.repair?.[0] && emptyCells(fort).length > 0
+}
+
+// A tableau tile (Building/Ship/etc.) wrapped to be clickable with a hover
+// outline, matching the attack picker's selectable cards.
+function PickTile({
+  onClick,
+  children,
+}: {
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        cursor: 'pointer',
+        outline: '2px solid transparent',
+        borderRadius: 6,
+        padding: 6,
+        transition: 'outline-color 0.15s',
+      }}
+      onMouseEnter={e => {
+        ;(e.currentTarget as HTMLDivElement).style.outlineColor = '#27ae60'
+      }}
+      onMouseLeave={e => {
+        ;(e.currentTarget as HTMLDivElement).style.outlineColor = 'transparent'
+      }}>
+      {children}
+    </div>
+  )
 }
 
 type Stage = 'card' | 'fort' | 'repair' | 'target'
@@ -284,11 +316,34 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
       f => f.id !== chosenFortID && f.usedSlots > 0,
     )
     const total = Object.values(colonistRemovals).reduce((s, n) => s + n, 0)
+    const copy: Record<string, { title: string; description: string }> = {
+      opponent: {
+        title: `${selectedCard.name} — choose an opponent`,
+        description: 'Discard a random card from the chosen opponent’s hand.',
+      },
+      opponentBuilding: {
+        title: `${selectedCard.name} — choose a building to destroy`,
+        description: 'Destroy any opponent’s building.',
+      },
+      opponentShip: {
+        title: `${selectedCard.name} — choose a ship to destroy`,
+        description: 'Destroy any opponent’s ship.',
+      },
+      selfForts: {
+        title: `${selectedCard.name} — convert colonists`,
+        description:
+          'Remove colonists from your other forts to gain 1 coin each.',
+      },
+    }
+    const instructions = (kind && copy[kind]) ?? {
+      title: `${selectedCard.name} — choose a target`,
+      description: "Select the target for this building's effect.",
+    }
     return (
       <div style={{ padding: '16px 20px' }}>
         <ActionInstructions
-          title={`${selectedCard.name} — choose a target`}
-          description="Select the target for this building's effect."
+          title={instructions.title}
+          description={instructions.description}
         />
         {kind === 'opponent' && (
           <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
@@ -306,44 +361,84 @@ export const BuildBuildingPhase: React.FC<BuildBuildingPhaseProps> = ({
           </ul>
         )}
         {kind === 'opponentBuilding' && (
-          <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
-            {opponents.flatMap(({ p, idx }) =>
-              p.forts.flatMap(f =>
-                f.buildings.map(b => (
-                  <li key={`${idx}-${b.id}`} style={{ marginBottom: 8 }}>
-                    <button
-                      onClick={() =>
-                        build(chosenFortID, repairAt, {
-                          targetPlayerIndex: idx,
-                          buildingID: b.id,
-                        })
-                      }>
-                      {p.name}: {b.name} (on {f.name})
-                    </button>
-                  </li>
-                )),
-              ),
-            )}
-          </ul>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              margin: '12px 0',
+            }}>
+            {opponents
+              .filter(({ p }) => p.forts.some(f => f.buildings.length > 0))
+              .map(({ p, idx }) => (
+                <div key={idx}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      color: p.color,
+                      marginBottom: 6,
+                      fontSize: 13,
+                    }}>
+                    {p.name}
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    {p.forts.flatMap(f =>
+                      f.buildings.map(b => (
+                        <PickTile
+                          key={`${idx}-${b.id}`}
+                          onClick={() =>
+                            build(chosenFortID, repairAt, {
+                              targetPlayerIndex: idx,
+                              buildingID: b.id,
+                            })
+                          }>
+                          <Building building={b} color={p.color} />
+                        </PickTile>
+                      )),
+                    )}
+                  </div>
+                </div>
+              ))}
+          </div>
         )}
         {kind === 'opponentShip' && (
-          <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
-            {opponents.flatMap(({ p, idx }) =>
-              p.ships.map(s => (
-                <li key={`${idx}-${s.id}`} style={{ marginBottom: 8 }}>
-                  <button
-                    onClick={() =>
-                      build(chosenFortID, repairAt, {
-                        targetPlayerIndex: idx,
-                        shipID: s.id,
-                      })
-                    }>
-                    {p.name}: {s.name}
-                  </button>
-                </li>
-              )),
-            )}
-          </ul>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              margin: '12px 0',
+            }}>
+            {opponents
+              .filter(({ p }) => p.ships.length > 0)
+              .map(({ p, idx }) => (
+                <div key={idx}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      color: p.color,
+                      marginBottom: 6,
+                      fontSize: 13,
+                    }}>
+                    {p.name}
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    {p.ships.map(s => (
+                      <PickTile
+                        key={`${idx}-${s.id}`}
+                        onClick={() =>
+                          build(chosenFortID, repairAt, {
+                            targetPlayerIndex: idx,
+                            shipID: s.id,
+                          })
+                        }>
+                        <Ship ship={s} color={p.color} />
+                      </PickTile>
+                    ))}
+                  </div>
+                </div>
+              ))}
+          </div>
         )}
         {kind === 'selfForts' && (
           <>
