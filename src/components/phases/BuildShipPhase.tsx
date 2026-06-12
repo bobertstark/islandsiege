@@ -43,6 +43,11 @@ export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
     })
   }
 
+  // Back out to the action menu uncommitted (until a general undo exists).
+  function cancel() {
+    dispatch({ type: 'action', payload: { actionChosen: 'cancel' } })
+  }
+
   const forts = player?.forts ?? []
   const eligible =
     selectedCard?.cost !== undefined
@@ -93,6 +98,7 @@ export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
               )
             })}
           </div>
+          <button onClick={cancel}>Cancel</button>
         </div>
       )}
       {selectedCard && (
@@ -116,7 +122,10 @@ export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
               )
             })}
           </ul>
-          <button onClick={() => setSelectedCard(null)}>← Back</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setSelectedCard(null)}>← Back</button>
+            <button onClick={cancel}>Cancel</button>
+          </div>
         </div>
       )}
     </>

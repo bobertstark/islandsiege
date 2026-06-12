@@ -376,7 +376,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
                 key={card.id}
                 card={card}
                 hideType
-                onClick={() => handleCardPicked('buildShip', card)}
+                onClick={() => pick('buildShip', card.id)}
               />
             ))}
           </div>
