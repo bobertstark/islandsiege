@@ -283,6 +283,14 @@ describe('silverSmelter — convertColonistsToCoins', () => {
     expect(s.players[0].forts[1].usedSlots).toBe(1)
   })
 
+  it('returns the removed colonists to the builder’s supply', () => {
+    const before = smelterState()
+    const s = applyOnBuildEffect(before, 0, 'silverSmelter', {
+      fortColonistRemovals: { fortA: 2, fortB: 1 },
+    })
+    expect(s.players[0].colonists).toBe(before.players[0].colonists + 3)
+  })
+
   it('leaves unlisted forts untouched', () => {
     const before = smelterState()
     const s = applyOnBuildEffect(before, 0, 'silverSmelter', {

@@ -31,6 +31,10 @@ export function handleAction(
     state.currentPlayerIndex,
   )
   switch (action) {
+    case 'cancel':
+      // Escape hatch: back out of a build phase to the action menu without
+      // committing. (Until a general undo exists — see TODOS 6.x.)
+      return { ...base, phase: 'action', pendingBuildCardID: undefined }
     case 'draw':
       if (prohibited.includes('banDraw'))
         throw new Error('Draw is prohibited by an opponent building')

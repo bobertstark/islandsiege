@@ -954,3 +954,15 @@ describe('handleNonActiveChoice — guardedWave2', () => {
     expect(next.phase).toBe('attackDestroy')
   })
 })
+
+describe('handleAction — cancel', () => {
+  it('returns to the action phase and clears pendingBuildCardID', () => {
+    const base = mockGameState({})
+    const s = handleAction(
+      { ...base, phase: 'buildBuilding', pendingBuildCardID: 'armory' },
+      { actionChosen: 'cancel' },
+    )
+    expect(s.phase).toBe('action')
+    expect(s.pendingBuildCardID).toBeUndefined()
+  })
+})
