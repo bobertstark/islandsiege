@@ -26,6 +26,7 @@ import AttackLayout from 'components/AttackLayout'
 import Fort from 'components/Fort'
 import Ship from 'components/Ship'
 import ActionInstructions from 'components/ActionInstructions'
+import { colonizeBanNote } from 'components/colonizeLogic'
 import { DevOverlay } from 'components/dev/DevOverlay'
 import 'components/phases/Game.css'
 
@@ -146,6 +147,8 @@ const ColonizePhase: React.FC<{
     return () => clearTimeout(timer)
   }, [isMyTurn, dispatch])
 
+  const banNote = isMyTurn ? colonizeBanNote(view, playerIdx) : undefined
+
   return (
     <GameShell
       view={view}
@@ -158,9 +161,10 @@ const ColonizePhase: React.FC<{
         <ActionInstructions
           title="Colonize"
           description={
-            isMyTurn
+            banNote ??
+            (isMyTurn
               ? 'Placing colonists on your forts…'
-              : 'Waiting for colonists to be placed.'
+              : 'Waiting for colonists to be placed.')
           }
         />
       }
