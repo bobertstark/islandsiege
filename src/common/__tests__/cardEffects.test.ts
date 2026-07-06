@@ -174,8 +174,45 @@ describe('defender attack flags', () => {
       attackerRerollsMinus: 0,
       banRerollFaces: [],
       mustRerollAll: false,
+      skipReinforce: false,
+      banShipAbilities: false,
+      banBuildingAbilities: false,
+      defenderReroll1: false,
+      defenderChoosesWave2: false,
     })
     expect(effectLog(s)).toEqual([])
+  })
+
+  it('secretFortress: sets skipReinforce and logs it', () => {
+    const s = attack(defenderState(['secretFortress']), 'secretFortress')
+    expect(s.attackFlags?.skipReinforce).toBe(true)
+    expect(effectLog(s)).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ defenderEffect: 'skipReinforce' }),
+      }),
+    )
+  })
+
+  it('reefsideFortress: sets banShipAbilities and logs it', () => {
+    const s = attack(defenderState(['reefsideFortress']), 'reefsideFortress')
+    expect(s.attackFlags?.banShipAbilities).toBe(true)
+    expect(effectLog(s)).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ defenderEffect: 'banShipAbilities' }),
+      }),
+    )
+  })
+
+  it('secludedFortress: sets banBuildingAbilities and logs it', () => {
+    const s = attack(defenderState(['secludedFortress']), 'secludedFortress')
+    expect(s.attackFlags?.banBuildingAbilities).toBe(true)
+    expect(effectLog(s)).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          defenderEffect: 'banBuildingAbilities',
+        }),
+      }),
+    )
   })
 })
 
@@ -195,6 +232,11 @@ describe('defender attack flags — consumption', () => {
           attackerRerollsMinus: 0,
           banRerollFaces: [],
           mustRerollAll: false,
+          skipReinforce: false,
+          banShipAbilities: false,
+          banBuildingAbilities: false,
+          defenderReroll1: false,
+          defenderChoosesWave2: false,
         },
       }),
       { action: 'init' },
@@ -209,6 +251,11 @@ describe('defender attack flags — consumption', () => {
         attackerRerollsMinus: 0,
         banRerollFaces: [],
         mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
+        defenderReroll1: false,
+        defenderChoosesWave2: false,
       },
     })
     state.players[0] = { ...state.players[0], attackDice: 2 }
@@ -225,6 +272,11 @@ describe('defender attack flags — consumption', () => {
           attackerRerollsMinus: 1,
           banRerollFaces: [],
           mustRerollAll: false,
+          skipReinforce: false,
+          banShipAbilities: false,
+          banBuildingAbilities: false,
+          defenderReroll1: false,
+          defenderChoosesWave2: false,
         },
       }),
       { action: 'init' },
@@ -242,6 +294,11 @@ describe('defender attack flags — consumption', () => {
         attackerRerollsMinus: 0,
         banRerollFaces: ['L'],
         mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
+        defenderReroll1: false,
+        defenderChoosesWave2: false,
       },
     })
     const next = handleAttackRoll(state, {
@@ -264,6 +321,11 @@ describe('defender attack flags — consumption', () => {
         attackerRerollsMinus: 0,
         banRerollFaces: [],
         mustRerollAll: true,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
+        defenderReroll1: false,
+        defenderChoosesWave2: false,
       },
     })
     const next = handleAttackRoll(state, {
@@ -284,6 +346,11 @@ describe('endTurn', () => {
         attackerRerollsMinus: 0,
         banRerollFaces: [],
         mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
+        defenderReroll1: false,
+        defenderChoosesWave2: false,
       },
     })
     expect(handleEndTurn(state).attackFlags).toBeUndefined()
@@ -449,5 +516,453 @@ describe('prison — banFortColonistGain', () => {
         data: expect.objectContaining({ prohibited: 'banFortColonistGain' }),
       }),
     )
+  })
+})
+
+describe('reefsideFortress — banShipAbilities', () => {
+  function withBanShips(attackerShipIds: string[]): IGameState {
+    const base = mockGameState({
+      diceBank: { L: 4 },
+      shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'startingFort' } },
+    })
+    const players = [...base.players]
+    players[0] = { ...players[0], ships: attackerShipIds.map(createShipById) }
+    const targetFort = placeColonists(createFortById('startingFort'), 2).fort
+    players[1] = {
+      ...players[1],
+      forts: [targetFort],
+      ships: [createShipById('raven')],
+    }
+    return {
+      ...base,
+      players,
+      currentPlayerIndex: 0,
+      attackFlags: {
+        attackerDiceMinus: 0,
+        attackerRerollsMinus: 0,
+        banRerollFaces: [],
+        mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: true,
+        banBuildingAbilities: false,
+        defenderReroll1: false,
+        defenderChoosesWave2: false,
+      },
+    }
+  }
+
+  it('throws when attempting a ship-granted ability (raven addDie)', () => {
+    expect(() =>
+      handleAttackLeadership(withBanShips(['raven']), {
+        effect: 'addDie',
+        face: 'B',
+      }),
+    ).toThrow()
+  })
+
+  it('innate destroyShip (cost 2L) still works when banShipAbilities is set', () => {
+    const s = handleAttackLeadership(withBanShips([]), {
+      effect: 'destroyShip',
+      shipID: 'raven',
+    })
+    expect(s.players[1].ships).toHaveLength(0)
+  })
+})
+
+describe('secludedFortress — banBuildingAbilities', () => {
+  function withBanBuildings(buildingIds: string[]): IGameState {
+    return {
+      ...attackerState(buildingIds),
+      attackFlags: {
+        attackerDiceMinus: 0,
+        attackerRerollsMinus: 0,
+        banRerollFaces: [],
+        mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: true,
+        defenderReroll1: false,
+        defenderChoosesWave2: false,
+      },
+    }
+  }
+
+  it('suppresses armory bonus die on init when banBuildingAbilities is set', () => {
+    const next = handleAttackRoll(withBanBuildings(['armory']), {
+      action: 'init',
+    })
+    expect(next.diceBank['G']).toBeUndefined()
+    expect(next.log.filter(e => e.data.bonusDie)).toHaveLength(0)
+  })
+
+  it('suppresses bonus dice in the final bank on keep', () => {
+    // Use a controlled roll with no G so we can assert G is absent after keep
+    const state: IGameState = {
+      ...withBanBuildings(['armory']),
+      attackRoll: ['L', 'B', 'W'],
+      attackRerollsRemaining: 0,
+    }
+    const kept = handleAttackRoll(state, { action: 'keep' })
+    expect(kept.diceBank['G']).toBeUndefined()
+  })
+
+  it('bonus dice still appear when flag is false', () => {
+    const next = handleAttackRoll(attackerState(['armory']), { action: 'init' })
+    expect(next.diceBank['G']).toBe(1)
+  })
+})
+
+describe('coveOutpost — returnAttackerShipColonist', () => {
+  function coveState(shipColonists: number): IGameState {
+    const base = defenderState(['coveOutpost'])
+    const players = [...base.players]
+    const ship = { ...createShipById('raven'), colonists: shipColonists }
+    players[0] = { ...players[0], ships: [ship] }
+    return { ...base, players }
+  }
+
+  it('enters nonActiveChoice and sets defenderChoice when attacker has ship colonists', () => {
+    const s = attack(coveState(2), 'coveOutpost')
+    expect(s.phase).toBe('nonActiveChoice')
+    expect(s.defenderChoice).toEqual({ type: 'coveShip' })
+    expect(s.players[0].ships[0].colonists).toBe(2)
+  })
+
+  it('goes directly to attackRoll when no ship has colonists', () => {
+    const s = attack(coveState(0), 'coveOutpost')
+    expect(s.phase).toBe('attackRoll')
+    expect(s.defenderChoice).toBeUndefined()
+    expect(s.log.filter(e => e.data.defenderEffect)).toHaveLength(0)
+  })
+})
+
+describe('saboteurOutpost — saboteurDestroyCube', () => {
+  function saboteurState(
+    attackerShells: Partial<Record<string, number>>,
+  ): IGameState {
+    const base = defenderState(['saboteurOutpost'])
+    const players = [...base.players]
+    players[0] = { ...players[0], shells: attackerShells as never }
+    return { ...base, players }
+  }
+
+  it('enters nonActiveChoice and sets defenderChoice when attacker has shells', () => {
+    const s = attack(saboteurState({ black: 2 }), 'saboteurOutpost')
+    expect(s.phase).toBe('nonActiveChoice')
+    expect(s.defenderChoice).toEqual({ type: 'saboteurShell' })
+    expect(s.log.filter(e => e.data.defenderEffect)).toHaveLength(0)
+  })
+
+  it('skips nonActiveChoice and goes to attackRoll when attacker has no shells', () => {
+    const s = attack(saboteurState({}), 'saboteurOutpost')
+    expect(s.phase).toBe('attackRoll')
+    expect(s.defenderChoice).toBeUndefined()
+  })
+})
+
+import { handleNonActiveChoice } from '../handlers/nonActiveChoice'
+import { ShellColor } from 'common/colors'
+import { shellInfo } from 'common/fortGrid'
+
+describe('handleNonActiveChoice — saboteurShell', () => {
+  function pendingState(
+    shells: Partial<Record<ShellColor, number>>,
+  ): IGameState {
+    const base = mockGameState({ attackRoll: undefined, rngSeed: 1 })
+    const players = [...base.players]
+    players[0] = {
+      ...players[0],
+      shells: { black: 0, white: 0, gray: 0, ...shells },
+    }
+    return {
+      ...base,
+      players,
+      phase: 'nonActiveChoice',
+      defenderChoice: { type: 'saboteurShell' },
+      shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'saboteurOutpost' } },
+    }
+  }
+
+  it('removes 1 shell of the chosen color and transitions to attackRoll', () => {
+    const s = handleNonActiveChoice(pendingState({ black: 2 }), {
+      shellColor: 'black',
+    })
+    expect(s.players[0].shells.black).toBe(1)
+    expect(s.phase).toBe('attackRoll')
+    expect(s.defenderChoice).toBeUndefined()
+  })
+
+  it('logs the effect with the chosen shellColor', () => {
+    const s = handleNonActiveChoice(pendingState({ white: 1 }), {
+      shellColor: 'white',
+    })
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          defenderEffect: 'saboteurDestroyCube',
+          shellColor: 'white',
+        }),
+      }),
+    )
+  })
+
+  it('throws when the attacker does not have the chosen color', () => {
+    expect(() =>
+      handleNonActiveChoice(pendingState({ black: 1 }), {
+        shellColor: 'white',
+      }),
+    ).toThrow()
+  })
+})
+
+describe('handleNonActiveChoice — coveShip', () => {
+  function pendingState(shipColonists: number): IGameState {
+    const base = mockGameState({ attackRoll: undefined, rngSeed: 1 })
+    const players = [...base.players]
+    const ship = { ...createShipById('raven'), colonists: shipColonists }
+    players[0] = { ...players[0], ships: [ship] }
+    return {
+      ...base,
+      players,
+      phase: 'nonActiveChoice',
+      defenderChoice: { type: 'coveShip' },
+      shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'coveOutpost' } },
+    }
+  }
+
+  it('removes 1 colonist from the chosen ship and transitions to attackRoll', () => {
+    const s = handleNonActiveChoice(pendingState(2), { shipID: 'raven' })
+    expect(s.players[0].ships[0].colonists).toBe(1)
+    expect(s.phase).toBe('attackRoll')
+    expect(s.defenderChoice).toBeUndefined()
+  })
+
+  it('logs the effect with the chosen shipID', () => {
+    const s = handleNonActiveChoice(pendingState(1), { shipID: 'raven' })
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          defenderEffect: 'returnAttackerShipColonist',
+          shipID: 'raven',
+        }),
+      }),
+    )
+  })
+
+  it('throws when no shipID is provided', () => {
+    expect(() => handleNonActiveChoice(pendingState(1), {})).toThrow()
+  })
+
+  it('throws when the chosen ship has no colonists', () => {
+    expect(() =>
+      handleNonActiveChoice(pendingState(0), { shipID: 'raven' }),
+    ).toThrow()
+  })
+})
+
+describe('barricadedFortress — defenderReroll1', () => {
+  function barricadedState(): IGameState {
+    return attack(defenderState(['barricadedFortress']), 'barricadedFortress')
+  }
+
+  it('sets defenderReroll1 flag when barricadedFortress is targeted', () => {
+    const s = attack(
+      defenderState(['barricadedFortress']),
+      'barricadedFortress',
+    )
+    expect(s.attackFlags?.defenderReroll1).toBe(true)
+  })
+
+  it('enters nonActiveChoice on keep', () => {
+    const rolled = handleAttackRoll(barricadedState(), { action: 'init' })
+    const kept = handleAttackRoll(rolled, { action: 'keep' })
+    expect(kept.phase).toBe('nonActiveChoice')
+    expect(kept.defenderChoice).toEqual({ type: 'barricadedReroll' })
+  })
+
+  it('auto-enters nonActiveChoice when last reroll is exhausted', () => {
+    const oneReroll = {
+      ...barricadedState(),
+      players: barricadedState().players.map((p, i) =>
+        i === 0 ? { ...p, diceRerolls: 1 } : p,
+      ),
+    }
+    const rolled = handleAttackRoll(oneReroll, { action: 'init' })
+    const rerolled = handleAttackRoll(rolled, {
+      action: 'reroll',
+      diceIndicesReroll: [0],
+    })
+    expect(rerolled.attackRerollsRemaining).toBe(0)
+    // rerolls exhausted — next call (auto-keep in the UI) triggers barricaded
+    const autoKept = handleAttackRoll(rerolled, { action: 'keep' })
+    expect(autoKept.phase).toBe('nonActiveChoice')
+    expect(autoKept.defenderChoice).toEqual({ type: 'barricadedReroll' })
+  })
+})
+
+describe('handleNonActiveChoice — barricadedReroll', () => {
+  function pendingState(roll: DieValue[]): IGameState {
+    const base = mockGameState({ attackRoll: roll, rngSeed: 1 })
+    return {
+      ...base,
+      phase: 'nonActiveChoice',
+      defenderChoice: { type: 'barricadedReroll' },
+      attackFlags: {
+        attackerDiceMinus: 0,
+        attackerRerollsMinus: 0,
+        banRerollFaces: [],
+        mustRerollAll: false,
+        skipReinforce: false,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
+        defenderReroll1: true,
+        defenderChoosesWave2: false,
+      },
+      shipLocations: {
+        0: { targetPlayerIndex: 1, fortID: 'barricadedFortress' },
+      },
+    }
+  }
+
+  it('rerolls the chosen die but stays in nonActiveChoice until finalized', () => {
+    const s = handleNonActiveChoice(pendingState(['L', 'B', 'G']), {
+      dieIndex: 0,
+    })
+    expect(s.phase).toBe('nonActiveChoice')
+    expect(s.defenderChoice).toEqual({
+      type: 'barricadedReroll',
+      rerolledIndex: 0,
+    })
+    expect(s.attackRoll).toHaveLength(3)
+  })
+
+  it('finalize advances to attackLeadership with the rerolled roll', () => {
+    const rerolled = handleNonActiveChoice(pendingState(['L', 'B', 'G']), {
+      dieIndex: 0,
+    })
+    const s = handleNonActiveChoice(rerolled, { finalize: true })
+    expect(s.phase).toBe('attackLeadership')
+    expect(s.defenderChoice).toBeUndefined()
+    expect(s.attackRoll).toEqual(rerolled.attackRoll)
+  })
+
+  it('logs the barricadedReroll effect with dieIndex and result', () => {
+    const s = handleNonActiveChoice(pendingState(['L', 'B', 'G']), {
+      dieIndex: 1,
+    })
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          defenderEffect: 'barricadedReroll',
+          dieIndex: 1,
+        }),
+      }),
+    )
+  })
+
+  it('passing (no dieIndex) advances to attackLeadership with unchanged roll', () => {
+    const roll: DieValue[] = ['L', 'B', 'G']
+    const s = handleNonActiveChoice(pendingState(roll), {})
+    expect(s.phase).toBe('attackLeadership')
+    expect(s.attackRoll).toEqual(roll)
+    expect(s.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          defenderEffect: 'barricadedReroll',
+          skipped: true,
+        }),
+      }),
+    )
+  })
+
+  it('throws on invalid dieIndex', () => {
+    expect(() =>
+      handleNonActiveChoice(pendingState(['L', 'B']), { dieIndex: 5 }),
+    ).toThrow()
+  })
+})
+
+describe('guardedFortress — defenderChoosesWave2', () => {
+  function guardedState(): IGameState {
+    return attack(defenderState(['guardedFortress']), 'guardedFortress')
+  }
+
+  it('sets defenderChoosesWave2 flag', () => {
+    expect(guardedState().attackFlags?.defenderChoosesWave2).toBe(true)
+  })
+})
+
+describe('handleNonActiveChoice — guardedWave2', () => {
+  function pendingState(): IGameState {
+    const base = mockGameState({ attackRoll: ['T'], rngSeed: 1 })
+    const fort = createFortById('guardedFortress')
+    const players = [...base.players]
+    players[1] = { ...players[1], forts: [fort] }
+    return {
+      ...base,
+      players,
+      phase: 'nonActiveChoice',
+      defenderChoice: { type: 'guardedWave2' },
+      diceBank: { T: 1 },
+      shipLocations: { 0: { targetPlayerIndex: 1, fortID: 'guardedFortress' } },
+    }
+  }
+
+  it('applies attackLocs and transitions to attackDestroy', () => {
+    const s = pendingState()
+    const shellLocs = s.players[1].forts[0].grid
+      .flatMap((row, r) =>
+        row.map((cell, c) =>
+          cell !== null ? ([r, c] as [number, number]) : null,
+        ),
+      )
+      .filter((x): x is [number, number] => x !== null)
+    const loc = shellLocs[0]
+    const next = handleNonActiveChoice(s, { attackLocs: [loc] })
+    expect(next.phase).toBe('attackDestroy')
+    expect(next.defenderChoice).toBeUndefined()
+  })
+
+  it('logs the effect with defenderEffect guardedWave2', () => {
+    const s = pendingState()
+    const shellLocs = s.players[1].forts[0].grid
+      .flatMap((row, r) =>
+        row.map((cell, c) =>
+          cell !== null ? ([r, c] as [number, number]) : null,
+        ),
+      )
+      .filter((x): x is [number, number] => x !== null)
+    const next = handleNonActiveChoice(s, { attackLocs: [shellLocs[0]] })
+    expect(next.log).toContainEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ defenderEffect: 'guardedWave2' }),
+      }),
+    )
+  })
+
+  it('throws when attackLocs is missing', () => {
+    expect(() => handleNonActiveChoice(pendingState(), {})).toThrow()
+  })
+
+  it('caps the required count at available shells when T exceeds them', () => {
+    const base = pendingState()
+    const shellLocs = shellInfo(base.players[1].forts[0].grid)
+      .filter(s => s.color !== null)
+      .map(s => s.loc)
+    const s = { ...base, diceBank: { T: shellLocs.length + 3 } }
+    const next = handleNonActiveChoice(s, { attackLocs: shellLocs })
+    expect(next.phase).toBe('attackDestroy')
+  })
+})
+
+describe('handleAction — cancel', () => {
+  it('returns to the action phase and clears pendingBuildCardID', () => {
+    const base = mockGameState({})
+    const s = handleAction(
+      { ...base, phase: 'buildBuilding', pendingBuildCardID: 'armory' },
+      { actionChosen: 'cancel' },
+    )
+    expect(s.phase).toBe('action')
+    expect(s.pendingBuildCardID).toBeUndefined()
   })
 })

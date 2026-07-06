@@ -3,6 +3,7 @@ import IGameStateView from 'common/IGameStateView'
 import ICard from 'common/ICard'
 import IFort from 'common/IFort'
 import Card from 'components/Card'
+import Fort from 'components/Fort'
 import ActionInstructions from 'components/ActionInstructions'
 
 interface BuildShipPhaseProps {
@@ -41,6 +42,11 @@ export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
       type: 'buildShip',
       payload: { fortID, shipID: selectedCard.id },
     })
+  }
+
+  // Back out to the action menu uncommitted (until a general undo exists).
+  function cancel() {
+    dispatch({ type: 'action', payload: { actionChosen: 'cancel' } })
   }
 
   const forts = player?.forts ?? []
@@ -93,6 +99,7 @@ export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
               )
             })}
           </div>
+          <button onClick={cancel}>Cancel</button>
         </div>
       )}
       {selectedCard && (
@@ -101,22 +108,44 @@ export const BuildShipPhase: React.FC<BuildShipPhaseProps> = ({
             title={`Launch ${selectedCard.name} From a Fort`}
             description={`Requires ${selectedCard.cost} colonists on fort.`}
           />
-          <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 16,
+              flexWrap: 'wrap',
+              margin: '12px 0',
+            }}>
             {forts.map(fort => {
               const ok = eligibleIds.has(fort.id)
               return (
-                <li key={fort.id} style={{ marginBottom: 8 }}>
-                  <button
-                    onClick={() => ok && handleSelectFort(fort.id)}
-                    disabled={!ok}
-                    style={{ opacity: ok ? 1 : 0.4 }}>
-                    {fort.name} — {fort.usedSlots} colonists
-                  </button>
-                </li>
+                <div
+                  key={fort.id}
+                  onClick={() => ok && handleSelectFort(fort.id)}
+                  style={{
+                    opacity: ok ? 1 : 0.4,
+                    cursor: ok ? 'pointer' : 'default',
+                    outline: '2px solid transparent',
+                    borderRadius: 6,
+                    transition: 'outline-color 0.15s',
+                  }}
+                  onMouseEnter={e => {
+                    if (ok)
+                      (e.currentTarget as HTMLDivElement).style.outlineColor =
+                        '#27ae60'
+                  }}
+                  onMouseLeave={e => {
+                    ;(e.currentTarget as HTMLDivElement).style.outlineColor =
+                      'transparent'
+                  }}>
+                  <Fort fort={fort} color={player?.color} />
+                </div>
               )
             })}
-          </ul>
-          <button onClick={() => setSelectedCard(null)}>← Back</button>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setSelectedCard(null)}>← Back</button>
+            <button onClick={cancel}>Cancel</button>
+          </div>
         </div>
       )}
     </>

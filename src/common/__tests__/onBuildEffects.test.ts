@@ -283,6 +283,14 @@ describe('silverSmelter — convertColonistsToCoins', () => {
     expect(s.players[0].forts[1].usedSlots).toBe(1)
   })
 
+  it('returns the removed colonists to the builder’s supply', () => {
+    const before = smelterState()
+    const s = applyOnBuildEffect(before, 0, 'silverSmelter', {
+      fortColonistRemovals: { fortA: 2, fortB: 1 },
+    })
+    expect(s.players[0].colonists).toBe(before.players[0].colonists + 3)
+  })
+
   it('leaves unlisted forts untouched', () => {
     const before = smelterState()
     const s = applyOnBuildEffect(before, 0, 'silverSmelter', {
@@ -369,5 +377,69 @@ describe('handleAction forwards effectTarget to buildBuilding', () => {
 
     expect(next.phase).toBe('endTurn')
     expect(next.discard.map(c => c.id)).toContain('armory')
+  })
+})
+
+describe('robustStronghold — robustGainCoin', () => {
+  const ARMORY_COINS = createBuildingById('armory').coins
+
+  function robustState(): IGameState {
+    const base = mockGameState({})
+    const building = createBuildingById('armory')
+    const fort = placeColonists(
+      createFortById('robustStronghold'),
+      building.cost,
+    ).fort
+    const players = [...base.players]
+    players[0] = {
+      ...players[0],
+      coins: 5,
+      forts: [fort],
+      hand: [...players[0].hand, building as never],
+    }
+    return { ...base, players, currentPlayerIndex: 0 }
+  }
+
+  it('grants 1 extra coin when a building is placed on robustStronghold', () => {
+    const next = handleBuildBuilding(robustState(), {
+      fortID: 'robustStronghold',
+      buildingID: 'armory',
+    })
+    expect(next.players[0].coins).toBe(5 + ARMORY_COINS + 1)
+  })
+
+  it('logs the robustGainCoin event', () => {
+    const next = handleBuildBuilding(robustState(), {
+      fortID: 'robustStronghold',
+      buildingID: 'armory',
+    })
+    expect(next.log).toContainEqual(
+      expect.objectContaining({
+        phase: 'buildBuilding',
+        data: expect.objectContaining({ onBuild: 'robustGainCoin' }),
+      }),
+    )
+  })
+
+  it('does not grant the extra coin when building on a different fort', () => {
+    const base = mockGameState({})
+    const building = createBuildingById('armory')
+    const fort = placeColonists(
+      createFortById('startingFort'),
+      building.cost,
+    ).fort
+    const players = [...base.players]
+    players[0] = {
+      ...players[0],
+      coins: 5,
+      forts: [fort],
+      hand: [...players[0].hand, building as never],
+    }
+    const state = { ...base, players, currentPlayerIndex: 0 }
+    const next = handleBuildBuilding(state, {
+      fortID: 'startingFort',
+      buildingID: 'armory',
+    })
+    expect(next.players[0].coins).toBe(5 + ARMORY_COINS)
   })
 })

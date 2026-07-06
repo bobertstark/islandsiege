@@ -58,4 +58,22 @@ describe('resolvePostWave1Phase', () => {
     const state = stateWithFort({ T: 1 }, emptyGrid)
     expect(resolvePostWave1Phase(state)).toBe('attackDestroy')
   })
+
+  it('returns attackDestroy when skipReinforce is set, even with shell dice', () => {
+    const state = {
+      ...stateWithFort({ B: 2 }),
+      attackFlags: {
+        attackerDiceMinus: 0,
+        attackerRerollsMinus: 0,
+        banRerollFaces: [],
+        mustRerollAll: false,
+        skipReinforce: true,
+        banShipAbilities: false,
+        banBuildingAbilities: false,
+        defenderReroll1: false,
+        defenderChoosesWave2: false,
+      },
+    }
+    expect(resolvePostWave1Phase(state)).toBe('attackDestroy')
+  })
 })

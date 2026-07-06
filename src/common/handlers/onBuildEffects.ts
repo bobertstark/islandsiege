@@ -231,7 +231,14 @@ function convertColonistsToCoins(
   }
 
   const players = [...state.players]
-  players[builderIdx] = { ...player, coins: player.coins + total, forts }
+  // Converted colonists return to the player's supply (conserved), trading a
+  // step away from a colonist victory for coins toward an economic one.
+  players[builderIdx] = {
+    ...player,
+    coins: player.coins + total,
+    colonists: player.colonists + total,
+    forts,
+  }
   return {
     ...state,
     players,

@@ -103,6 +103,31 @@ export const DevPlayerPanel: React.FC<Props> = ({ fullState, updateDraft }) => {
     updateDraft({ players })
   }
 
+  const setBuildingColonists = (cardId: string, count: number) => {
+    const players = fullState.players.map((p, i) => {
+      if (i !== safeIdx) return p
+      const forts = p.forts.map(f => ({
+        ...f,
+        buildings: f.buildings.map(b =>
+          b.id === cardId ? { ...b, colonists: Math.max(0, count) } : b,
+        ),
+      }))
+      return { ...p, forts }
+    })
+    updateDraft({ players })
+  }
+
+  const setShipColonists = (cardId: string, count: number) => {
+    const players = fullState.players.map((p, i) => {
+      if (i !== safeIdx) return p
+      const ships = p.ships.map(s =>
+        s.id === cardId ? { ...s, colonists: Math.max(0, count) } : s,
+      )
+      return { ...p, ships }
+    })
+    updateDraft({ players })
+  }
+
   const handIds = new Set(player.hand.map(c => c.id))
   const tableauFortIds = new Set(player.forts.map(f => f.id))
   const tableauShipIds = new Set(player.ships.map(s => s.id))
@@ -239,6 +264,16 @@ export const DevPlayerPanel: React.FC<Props> = ({ fullState, updateDraft }) => {
                   fortEntry !== undefined
                     ? player.forts.findIndex(f => f.id === card.id)
                     : -1
+                const buildingEntry =
+                  type === 'building'
+                    ? player.forts
+                        .flatMap(f => f.buildings)
+                        .find(b => b.id === card.id)
+                    : undefined
+                const shipEntry =
+                  type === 'ship'
+                    ? player.ships.find(s => s.id === card.id)
+                    : undefined
                 return (
                   <div
                     key={card.id}
@@ -309,6 +344,50 @@ export const DevPlayerPanel: React.FC<Props> = ({ fullState, updateDraft }) => {
                         <span style={{ fontSize: 10, opacity: 0.5 }}>
                           /{fortEntry.slots}
                         </span>
+                      </label>
+                    )}
+                    {type === 'building' && inTableau && buildingEntry && (
+                      <label
+                        style={{
+                          display: 'flex',
+                          gap: 2,
+                          alignItems: 'center',
+                        }}>
+                        <input
+                          type="number"
+                          min={0}
+                          value={buildingEntry.colonists}
+                          style={{ width: 36 }}
+                          onChange={e =>
+                            setBuildingColonists(
+                              card.id,
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
+                        />
+                        <span style={{ fontSize: 10, opacity: 0.5 }}>col</span>
+                      </label>
+                    )}
+                    {type === 'ship' && inTableau && shipEntry && (
+                      <label
+                        style={{
+                          display: 'flex',
+                          gap: 2,
+                          alignItems: 'center',
+                        }}>
+                        <input
+                          type="number"
+                          min={0}
+                          value={shipEntry.colonists}
+                          style={{ width: 36 }}
+                          onChange={e =>
+                            setShipColonists(
+                              card.id,
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
+                        />
+                        <span style={{ fontSize: 10, opacity: 0.5 }}>col</span>
                       </label>
                     )}
                   </div>

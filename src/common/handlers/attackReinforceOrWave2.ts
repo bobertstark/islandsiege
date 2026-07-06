@@ -1,6 +1,7 @@
 import IGameState from 'common/IGameState'
 import { findFort } from 'common/player'
 import { shellsRemaining } from 'common/fortGrid'
+import { transitionToWave2 } from './attackWave2'
 
 // Returns the auto-resolved next phase, or null when a player choice is required.
 export function resolvePostWave1Phase(
@@ -21,7 +22,7 @@ export function resolvePostWave1Phase(
   const remainingShellCells = targetFort ? shellsRemaining(targetFort.grid) : 0
 
   const canWave2 = targetDice > 0 && remainingShellCells > 0
-  const canReinforce = shelledDice > 0
+  const canReinforce = shelledDice > 0 && !state.attackFlags?.skipReinforce
 
   if (!canWave2 && !canReinforce) return 'attackDestroy'
   if (canReinforce && !canWave2) return 'attackReinforce'
@@ -33,7 +34,6 @@ export function handleAttackReinforceOrWave2(
   state: IGameState,
   payload: { choice: 'reinforce' | 'wave2' },
 ): IGameState {
-  const next =
-    payload.choice === 'reinforce' ? 'attackReinforce' : 'attackWave2'
-  return { ...state, phase: next }
+  if (payload.choice === 'wave2') return transitionToWave2(state)
+  return { ...state, phase: 'attackReinforce' }
 }

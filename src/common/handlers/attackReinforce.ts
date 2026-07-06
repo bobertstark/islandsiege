@@ -4,6 +4,8 @@ import { DieValue } from 'common/die'
 import { ILogEntry } from 'common/ILog'
 
 export function handleAttackReinforce(state: IGameState): IGameState {
+  if (state.attackFlags?.skipReinforce)
+    return { ...state, phase: 'attackDestroy' }
   const players = [...state.players]
   const player = players[state.currentPlayerIndex]
   const reserve = { ...state.shellReserve }

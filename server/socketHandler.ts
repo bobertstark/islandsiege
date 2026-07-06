@@ -143,7 +143,12 @@ export function attachWebSocket(wss: WebSocketServer): void {
       }
 
       // Actions any seated player can dispatch regardless of turn order
-      const nonTurnActions = new Set(['initDraw', 'startGame', 'setColor'])
+      const nonTurnActions = new Set([
+        'initDraw',
+        'startGame',
+        'setColor',
+        'nonActiveChoice',
+      ])
 
       if (
         !nonTurnActions.has(msg.action.type) &&

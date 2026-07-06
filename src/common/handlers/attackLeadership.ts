@@ -34,7 +34,10 @@ export function handleAttackLeadership(
   }
 
   const attacker = state.players[state.currentPlayerIndex]
-  const ability = allLeadershipAbilities(attacker).find(a => {
+  const abilities = state.attackFlags?.banShipAbilities
+    ? attacker.leadershipAbilities
+    : allLeadershipAbilities(attacker)
+  const ability = abilities.find(a => {
     if (a.effect !== payload.effect) return false
     if (payload.effect === 'addDie') return a.face === payload.face
     return true
@@ -99,9 +102,7 @@ export function handleAttackLeadership(
   }
 
   const remainingL = newBank.L ?? 0
-  const canRepeat = allLeadershipAbilities(
-    players[state.currentPlayerIndex],
-  ).some(
+  const canRepeat = abilities.some(
     a =>
       remainingL >= a.cost &&
       (a.effect !== 'destroyShip' || players[defenderIdx].ships.length > 0),

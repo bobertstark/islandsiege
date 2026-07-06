@@ -2,7 +2,12 @@ import IGameState from 'common/IGameState'
 import { handleBuildBuilding } from './buildBuilding'
 import { handleBuildShip } from './buildShip'
 import { ILogEntry } from 'common/ILog'
-import { deriveAttackFlags, prohibitionsAgainst } from 'common/cardEffects'
+import {
+  CARD_EFFECTS,
+  deriveAttackFlags,
+  deriveDefenderChoice,
+  prohibitionsAgainst,
+} from 'common/cardEffects'
 import { EffectTarget } from 'common/handlers/onBuildEffects'
 
 export function handleAction(
@@ -26,6 +31,10 @@ export function handleAction(
     state.currentPlayerIndex,
   )
   switch (action) {
+    case 'cancel':
+      // Escape hatch: back out of a build phase to the action menu without
+      // committing. (Until a general undo exists — see TODOS 6.x.)
+      return { ...base, phase: 'action', pendingBuildCardID: undefined }
     case 'draw':
       if (prohibited.includes('banDraw'))
         throw new Error('Draw is prohibited by an opponent building')
@@ -133,8 +142,25 @@ export function handleAction(
         effectEntries.push(effectEntry({ defenderEffect: 'banReroll', face }))
       if (attackFlags.mustRerollAll)
         effectEntries.push(effectEntry({ defenderEffect: 'mustRerollAll' }))
+      if (attackFlags.skipReinforce)
+        effectEntries.push(effectEntry({ defenderEffect: 'skipReinforce' }))
+      if (attackFlags.banShipAbilities)
+        effectEntries.push(effectEntry({ defenderEffect: 'banShipAbilities' }))
+      if (attackFlags.banBuildingAbilities)
+        effectEntries.push(
+          effectEntry({ defenderEffect: 'banBuildingAbilities' }),
+        )
+
+      const targetFortPassive = CARD_EFFECTS[payload.fortID ?? '']?.passive
+      const attackerPlayers = [...state.players]
+      let attacker = attackerPlayers[state.currentPlayerIndex]
+
+      const defenderChoice = deriveDefenderChoice(targetFortPassive, attacker)
+
       return {
         ...base,
+        players: attackerPlayers,
+        defenderChoice,
         attackIsOpenWater: false,
         shipLocations: {
           ...shipLocations,
@@ -144,7 +170,7 @@ export function handleAction(
           },
         },
         attackFlags,
-        phase: 'attackRoll',
+        phase: defenderChoice ? 'nonActiveChoice' : 'attackRoll',
         log: [...(state.log ?? []), attackEntry, ...effectEntries],
       }
     }

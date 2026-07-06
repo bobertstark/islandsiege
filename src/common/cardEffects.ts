@@ -1,6 +1,7 @@
 import { DieValue } from './die'
 import IPlayer from './IPlayer'
 import type ILeadershipAbility from './ILeadershipAbility'
+import { DefenderChoiceSpec } from './IGameState'
 
 export type OnBuildEffect =
   | { type: 'discardOpponentCard' }
@@ -49,6 +50,11 @@ export interface AttackFlags {
   attackerRerollsMinus: number // supportedStronghold
   banRerollFaces: DieValue[] // braced/fortified/reinforcedStronghold
   mustRerollAll: boolean // steepWalledStronghold
+  skipReinforce: boolean // secretFortress
+  banShipAbilities: boolean // reefsideFortress
+  banBuildingAbilities: boolean // secludedFortress
+  defenderReroll1: boolean // barricadedFortress
+  defenderChoosesWave2: boolean // guardedFortress
 }
 
 export const CARD_EFFECTS: Record<string, CardEffects> = {
@@ -101,6 +107,28 @@ export const CARD_EFFECTS: Record<string, CardEffects> = {
   magnifique: { shipAbility: { cost: 1, effect: 'gainCoin' } },
 }
 
+// Maps a target fort's passive effect to the defender choice it triggers, given
+// the attacker's current state. Returns undefined if the effect doesn't apply
+// or the precondition isn't met.
+export function deriveDefenderChoice(
+  passive: PassiveEffect | undefined,
+  attacker: IPlayer,
+): DefenderChoiceSpec | undefined {
+  if (!passive) return undefined
+  switch (passive.type) {
+    case 'returnAttackerShipColonist':
+      return attacker.ships.some(s => s.colonists > 0)
+        ? { type: 'coveShip' }
+        : undefined
+    case 'saboteurDestroyCube':
+      return Object.values(attacker.shells).some(n => (n ?? 0) > 0)
+        ? { type: 'saboteurShell' }
+        : undefined
+    default:
+      return undefined
+  }
+}
+
 // Dice/reroll modifiers the defender's forts impose on an attack targeting
 // `targetFortId`. Most effects apply only to their own fort; flotillaOutpost
 // applies when *another* of the defender's forts is the target.
@@ -113,6 +141,11 @@ export function deriveAttackFlags(
     attackerRerollsMinus: 0,
     banRerollFaces: [],
     mustRerollAll: false,
+    skipReinforce: false,
+    banShipAbilities: false,
+    banBuildingAbilities: false,
+    defenderReroll1: false,
+    defenderChoosesWave2: false,
   }
   for (const fort of defenderForts) {
     const fx = CARD_EFFECTS[fort.id]?.passive
@@ -133,6 +166,21 @@ export function deriveAttackFlags(
         break
       case 'flotillaRollMinus1':
         if (!isTarget) flags.attackerDiceMinus += 1
+        break
+      case 'skipReinforce':
+        if (isTarget) flags.skipReinforce = true
+        break
+      case 'banShipAbilities':
+        if (isTarget) flags.banShipAbilities = true
+        break
+      case 'banBuildingAbilities':
+        if (isTarget) flags.banBuildingAbilities = true
+        break
+      case 'defenderReroll1':
+        if (isTarget) flags.defenderReroll1 = true
+        break
+      case 'defenderChoosesWave2':
+        if (isTarget) flags.defenderChoosesWave2 = true
         break
     }
   }

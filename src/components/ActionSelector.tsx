@@ -3,13 +3,8 @@ import type { IPlayerView } from 'common/IGameStateView'
 import ICard from 'common/ICard'
 import IFort from 'common/IFort'
 import IShip from 'common/IShip'
-import {} from 'common/cardRegistry'
-import { shellInfo } from 'common/fortGrid'
-import { colorToSymbol } from 'common/colors'
-import DescriptionText from 'components/DescriptionText'
 import ActionInstructions from 'components/ActionInstructions'
 import Fort from 'components/Fort'
-import { FortGrid } from 'components/FortGrid'
 import Card from 'components/Card'
 import Building from 'components/Building'
 import Ship from 'components/Ship'
@@ -26,6 +21,10 @@ export interface FortTarget {
 interface ActionSelectorProps {
   player: IPlayerView
   attackTargets: FortTarget[]
+  // Actions blocked by an opponent's in-play building, keyed by action
+  // ('draw'/'buildBuilding'/'buildShip') → a note naming the offending building.
+  // The matching button is locked and shows the note when clicked.
+  prohibitedNotes?: Partial<Record<string, string>>
   onSelect: (
     action: string,
     cardID?: string,
@@ -56,10 +55,12 @@ function buildableShips(hand: ICard[], forts: IFort[]): ICard[] {
 const ActionSelector: React.FC<ActionSelectorProps> = ({
   player,
   attackTargets,
+  prohibitedNotes = {},
   onSelect,
 }) => {
   type Picker = 'attack' | 'fort' | 'building' | 'ship'
   const [activePicker, setActivePicker] = useState<Picker | null>(null)
+  const [note, setNote] = useState<string | null>(null)
 
   const showAttackPicker = activePicker === 'attack'
   const showFortPicker = activePicker === 'fort'
@@ -67,16 +68,9 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
   const showShipPicker = activePicker === 'ship'
 
   function togglePicker(p: Picker) {
-    // re-opening a picker also backs out of any in-progress fort selection
-    setPendingBuildAction(null)
-    setPendingRepairFort(null)
+    setNote(null)
     setActivePicker(v => (v === p ? null : p))
   }
-  const [pendingBuildAction, setPendingBuildAction] = useState<{
-    action: string
-    card: ICard
-  } | null>(null)
-  const [pendingRepairFort, setPendingRepairFort] = useState<IFort | null>(null)
 
   const hand = Array.isArray(player.hand) ? player.hand : []
   const forts = player.forts
@@ -86,38 +80,22 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
   const shipCards = buildableShips(hand, forts)
 
   function pick(action: string, cardID: string) {
+    setNote(null)
     setActivePicker(null)
     onSelect(action, cardID)
   }
 
-  function handleCardPicked(action: string, card: ICard) {
-    setActivePicker(null)
-    setPendingBuildAction({ action, card })
-  }
-
-  function handleFortPicked(fort: IFort) {
-    if (!pendingBuildAction) return
-    if (pendingBuildAction.action === 'buildBuilding') {
-      const emptyCells = shellInfo(fort.grid).filter(s => s.color === null)
-      if (emptyCells.length > 0) {
-        setPendingRepairFort(fort)
-        return
-      }
-    }
-    onSelect(pendingBuildAction.action, pendingBuildAction.card.id, fort.id)
-    setPendingBuildAction(null)
-  }
-
-  function handleRepairCellPicked(loc: [number, number]) {
-    if (!pendingBuildAction || !pendingRepairFort) return
-    onSelect(
-      pendingBuildAction.action,
-      pendingBuildAction.card.id,
-      pendingRepairFort.id,
-      loc,
-    )
-    setPendingBuildAction(null)
-    setPendingRepairFort(null)
+  const drawLock = prohibitedNotes['draw']
+  const buildingLock = prohibitedNotes['buildBuilding']
+  const shipLock = prohibitedNotes['buildShip']
+  const lockedStyle: React.CSSProperties = {
+    background: '#9e9e9e',
+    color: '#eee',
+    border: 'none',
+    borderRadius: 6,
+    padding: '8px 16px',
+    fontWeight: 600,
+    cursor: 'help',
   }
 
   return (
@@ -139,17 +117,23 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
           Attack{showAttackPicker ? ' ▲' : ' ▼'}
         </button>
         <button
-          onClick={() => onSelect('draw')}
-          style={{
-            background: '#27ae60',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            padding: '8px 16px',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}>
-          Draw
+          onClick={() =>
+            drawLock ? setNote(drawLock) : (setNote(null), onSelect('draw'))
+          }
+          style={
+            drawLock
+              ? lockedStyle
+              : {
+                  background: '#27ae60',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '8px 16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }
+          }>
+          {drawLock ? '🔒 ' : ''}Draw
         </button>
         {fortCards.length > 0 && (
           <button
@@ -168,35 +152,64 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
         )}
         {buildingCards.length > 0 && (
           <button
-            onClick={() => togglePicker('building')}
-            style={{
-              background: '#795548',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '8px 16px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}>
-            Build Building{showBuildingPicker ? ' ▲' : ' ▼'}
+            onClick={() =>
+              buildingLock ? setNote(buildingLock) : togglePicker('building')
+            }
+            style={
+              buildingLock
+                ? lockedStyle
+                : {
+                    background: '#795548',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '8px 16px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }
+            }>
+            {buildingLock ? '🔒 ' : ''}Build Building
+            {buildingLock ? '' : showBuildingPicker ? ' ▲' : ' ▼'}
           </button>
         )}
         {shipCards.length > 0 && (
           <button
-            onClick={() => togglePicker('ship')}
-            style={{
-              background: '#795548',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '8px 16px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}>
-            Build Ship{showShipPicker ? ' ▲' : ' ▼'}
+            onClick={() =>
+              shipLock ? setNote(shipLock) : togglePicker('ship')
+            }
+            style={
+              shipLock
+                ? lockedStyle
+                : {
+                    background: '#795548',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '8px 16px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }
+            }>
+            {shipLock ? '🔒 ' : ''}Build Ship
+            {shipLock ? '' : showShipPicker ? ' ▲' : ' ▼'}
           </button>
         )}
       </div>
+
+      {note && (
+        <p
+          style={{
+            margin: '0 0 12px',
+            padding: '8px 12px',
+            background: '#fbeaea',
+            border: '1px solid #e0b4b4',
+            borderRadius: 6,
+            color: '#922',
+            fontSize: 13,
+          }}>
+          🔒 {note}
+        </p>
+      )}
 
       {showAttackPicker && (
         <div style={{ padding: '12px 0' }}>
@@ -335,7 +348,7 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
         </div>
       )}
 
-      {showBuildingPicker && !pendingBuildAction && (
+      {showBuildingPicker && (
         <div style={{ padding: '12px 0' }}>
           <p
             style={{
@@ -352,14 +365,14 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
                 key={card.id}
                 card={card}
                 hideType
-                onClick={() => handleCardPicked('buildBuilding', card)}
+                onClick={() => pick('buildBuilding', card.id)}
               />
             ))}
           </div>
         </div>
       )}
 
-      {showShipPicker && !pendingBuildAction && (
+      {showShipPicker && (
         <div style={{ padding: '12px 0' }}>
           <p
             style={{
@@ -376,73 +389,10 @@ const ActionSelector: React.FC<ActionSelectorProps> = ({
                 key={card.id}
                 card={card}
                 hideType
-                onClick={() => handleCardPicked('buildShip', card)}
+                onClick={() => pick('buildShip', card.id)}
               />
             ))}
           </div>
-        </div>
-      )}
-
-      {pendingBuildAction && (
-        <div style={{ padding: '12px 0' }}>
-          <p style={{ marginBottom: 8 }}>
-            Choose a fort to build{' '}
-            <strong>{pendingBuildAction.card.name}</strong> at (requires{' '}
-            {pendingBuildAction.card.cost} colonists):
-          </p>
-          {pendingRepairFort ? (
-            <div>
-              <p style={{ marginBottom: 8 }}>
-                <DescriptionText
-                  text={`Place the repair shell ${
-                    pendingBuildAction.card.repair?.[0]
-                      ? `[${colorToSymbol(pendingBuildAction.card.repair[0])}]`
-                      : ''
-                  }`}
-                />
-              </p>
-              <FortGrid
-                grid={pendingRepairFort.grid}
-                view="tableau"
-                showLabels
-                highlights={shellInfo(pendingRepairFort.grid)
-                  .filter(s => s.color === null)
-                  .map(s => s.loc)}
-                onCellClick={handleRepairCellPicked}
-              />
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              {forts.map(fort => {
-                const ok =
-                  pendingBuildAction.card.cost !== undefined &&
-                  fort.usedSlots >= pendingBuildAction.card.cost
-                return (
-                  <div
-                    key={fort.id}
-                    onClick={() => ok && handleFortPicked(fort)}
-                    style={{
-                      opacity: ok ? 1 : 0.4,
-                      cursor: ok ? 'pointer' : 'default',
-                      outline: ok ? '2px solid transparent' : undefined,
-                      borderRadius: 6,
-                      transition: 'outline-color 0.15s',
-                    }}
-                    onMouseEnter={e => {
-                      if (ok)
-                        (e.currentTarget as HTMLDivElement).style.outlineColor =
-                          '#27ae60'
-                    }}
-                    onMouseLeave={e => {
-                      ;(e.currentTarget as HTMLDivElement).style.outlineColor =
-                        'transparent'
-                    }}>
-                    <Fort fort={fort} color={player.color} />
-                  </div>
-                )
-              })}
-            </div>
-          )}
         </div>
       )}
     </div>

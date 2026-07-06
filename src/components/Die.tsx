@@ -9,6 +9,7 @@ interface DieProps {
   selected?: boolean
   onClick?: () => void
   readonly?: boolean
+  animateOnMount?: boolean
 }
 
 const Die: React.FC<DieProps> = ({
@@ -16,8 +17,11 @@ const Die: React.FC<DieProps> = ({
   selected = false,
   onClick,
   readonly = false,
+  animateOnMount = true,
 }) => {
-  const [display, setDisplay] = useState<DieValue>(DIE_FACES[0])
+  const [display, setDisplay] = useState<DieValue>(
+    animateOnMount ? DIE_FACES[0] : face,
+  )
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const endRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const faceRef = useRef(face)
@@ -25,6 +29,10 @@ const Die: React.FC<DieProps> = ({
   const isFirstRenderRef = useRef(true)
 
   useEffect(() => {
+    if (!animateOnMount) {
+      setDisplay(faceRef.current)
+      return
+    }
     setDisplay(DIE_FACES[0])
 
     timerRef.current = setInterval(() => {

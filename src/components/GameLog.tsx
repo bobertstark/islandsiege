@@ -28,6 +28,16 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
           return `${actor} cannot reroll [${d.face}] results`
         case 'mustRerollAll':
           return `${actor} must reroll all dice`
+        case 'skipReinforce':
+          return `${actor} cannot reinforce (Secret Fortress)`
+        case 'banShipAbilities':
+          return `${actor}'s ships' abilities are disabled (Reefside Fortress)`
+        case 'banBuildingAbilities':
+          return `${actor}'s building abilities are disabled (Secluded Fortress)`
+        case 'returnAttackerShipColonist':
+          return `${actor} loses a colonist from ${cardName(d.shipID as string)} (Cove Outpost)`
+        case 'saboteurDestroyCube':
+          return `${actor} loses 1 ${d.shellColor} shell (Saboteur Outpost)`
       }
       if (d.openWater) return `${actor} attacked open water`
       const target = playerName(players, d.targetPlayerIndex as number)
@@ -60,6 +70,8 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
           return `${actor} destroyed ${playerName(players, d.targetPlayerIndex as number)}'s ${cardName(d.shipID as string)}`
         case 'convertColonistsToCoins':
           return `${actor}'s Silver Smelter converted colonists into ${d.coinsGained} coin${(d.coinsGained as number) !== 1 ? 's' : ''}`
+        case 'robustGainCoin':
+          return `${actor} gains 1 coin (Robust Stronghold)`
       }
       return `${actor} built ${cardName(d.cardID as string)} on ${cardName(d.fortID as string)}, moving ${d.colonistsMoved} colonist${(d.colonistsMoved as number) !== 1 ? 's' : ''}${d.repairUsed ? ' (repair used)' : ''}`
     case 'buildShip':
@@ -67,6 +79,12 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     case 'attackRoll': {
       if (d.bonusDie !== undefined)
         return `${actor}'s ${cardName(d.cardID as string)} adds [${d.bonusDie}] to attack`
+      if (d.defenderEffect === 'barricadedReroll') {
+        const defender = playerName(players, entry.playerIndex)
+        return d.skipped
+          ? `${defender} passed (Barricaded Fortress)`
+          : `${defender} rerolled die ${(d.dieIndex as number) + 1} → [${d.result}] (Barricaded Fortress)`
+      }
       const rollArr =
         (d.roll as string[] | undefined) ?? (d.finalRoll as string[])
       const rollStr = rollArr.join(', ')
@@ -95,8 +113,13 @@ function formatLogEntry(entry: ILogEntry, players: IPlayerView[]): string {
     }
     case 'attackWave1':
       return `${actor} attacked ${playerName(players, d.targetPlayerIndex as number)} with ${d.strength} ${d.attackColor} dice`
-    case 'attackWave2':
-      return `${actor} wave 2 attacked ${playerName(players, d.targetPlayerIndex as number)} (${(d.attackLocs as unknown[]).length} hit${(d.attackLocs as unknown[]).length !== 1 ? 's' : ''})`
+    case 'attackWave2': {
+      const hits = (d.attackLocs as unknown[]).length
+      const target = playerName(players, d.targetPlayerIndex as number)
+      if (d.defenderEffect === 'guardedWave2')
+        return `${target} chose ${hits} shell${hits !== 1 ? 's' : ''} to destroy (Guarded Fortress)`
+      return `${actor} wave 2 attacked ${target} (${hits} hit${hits !== 1 ? 's' : ''})`
+    }
     case 'attackReinforce': {
       const added = d.shellsAdded as Record<string, number>
       const parts = Object.entries(added).map(([c, n]) => `${n} ${c}`)

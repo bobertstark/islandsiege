@@ -7,6 +7,14 @@ import { rollCounts } from './attackRoll'
 import { ILogEntry } from './ILog'
 import { AttackFlags } from './cardEffects'
 
+// Describes a choice the non-active (defender) player must make before the
+// attacker's turn continues. Add new variants here as more cards need it.
+export type DefenderChoiceSpec =
+  | { type: 'saboteurShell' }
+  | { type: 'coveShip' }
+  | { type: 'barricadedReroll'; rerolledIndex?: number }
+  | { type: 'guardedWave2' }
+
 // Full game state: plain data, safe to store or send over the wire.
 export default interface IGameState {
   players: IPlayer[]
@@ -51,6 +59,10 @@ export default interface IGameState {
   // Defender passive dice/reroll modifiers for the current attack; set when the
   // target fort is locked, cleared at end of turn.
   attackFlags?: AttackFlags
+
+  // Pending choice the non-active (defender) player must make; cleared when
+  // handleNonActiveChoice resolves it.
+  defenderChoice?: DefenderChoiceSpec
 
   winningPlayerIndex: number | undefined
 
